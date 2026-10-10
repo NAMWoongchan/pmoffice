@@ -1,0 +1,11 @@
+node_modules/
+package-lock.json
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+_1. Input/
+_2. Working/
+_3. Prompt/
+*진행기록*
+*결과안내*
+*.log
+.DS_Store
