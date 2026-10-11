@@ -81,3 +81,15 @@
 .VPSidebar .group:nth-child(5) { --wiki-category-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6'%3E%3Cpath d='M12 5C7-2 2 4 5 8c-5 2-3 8 0 8-1 7 7 7 7 2V5Zm0 0c5-7 10-1 7 3 5 2 3 8 0 8 1 7-7 7-7 2M8 6v5m8-5v5M7 15h2m6 0h2'/%3E%3C/svg%3E"); }
 .VPSidebar .group:nth-child(6) { --wiki-category-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6'%3E%3Crect x='2' y='3' width='20' height='14' rx='1.5'/%3E%3Cpath d='M12 17v4m-4 0h8'/%3E%3C/svg%3E"); }
 @media (min-width: 960px) { #local-search { width: clamp(240px, 42vw, 650px); } .VPNavBarSearch .DocSearch-Button { width: 100% !important; justify-content: space-between; } }
+
+/* Textbook navigation and responsive educational figures */
+.VPSidebar .group:has(a[href*="paradigm-shift"][href*="#part-"]) .text::before { display: none; }
+.VPSidebar .group:has(a[href*="paradigm-shift"][href*="#part-"]) .VPSidebarItem.level-0 > .item .text { font-size: 15px; line-height: 1.55; }
+.VPSidebar .group:has(a[href*="paradigm-shift"][href*="#part-"]) .VPSidebarItem.level-1 .text { font-size: 13px; line-height: 1.6; }
+.textbook-page .textbook-figure { margin: 28px 0; }
+.textbook-page .textbook-figure a { display: block; }
+.textbook-page .textbook-figure img { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 6px; background: white; }
+.textbook-page .textbook-figure figcaption { margin-top: 10px; font-size: 13px; line-height: 1.7; color: var(--vp-c-text-2); }
+.textbook-page pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.textbook-page .vp-doc table { display: block; max-width: 100%; overflow-x: auto; }
+@media (max-width: 767px) { .textbook-page .textbook-figure { margin: 22px 0; } .textbook-page .vp-doc th, .textbook-page .vp-doc td { min-width: 110px; } }

@@ -9,7 +9,7 @@ version: "1.1"
 
 # 프로젝트 관리 (Project Management)
 
-PMOffice의 프로젝트 관리 지식을 정리할 분야 안내입니다. 아래는 작성 예정 분류이며 실제 방법론 해설이나 검증된 실무 사례가 아닙니다. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
+PMOffice의 프로젝트 관리 지식을 정리할 분야 안내입니다. 아래 주제를 학습 교재와 실무 도구로 연결합니다. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
 
 | 분류 | 향후 작성 주제 |
 |---|---|
@@ -19,6 +19,12 @@ PMOffice의 프로젝트 관리 지식을 정리할 분야 안내입니다. 아�
 | 원가(Cost) | 추정 근거·예산·변경 영향 |
 | 위험(Risk) | 원인·사건·영향·대응 |
 | 품질(Quality) | 인수 기준·검토·검증 기록 |
+
+## 학습 교재
+
+[프로젝트 관리 패러다임 시프트](project-management/paradigm-shift.md)
+
+AI 시대의 프로젝트 환경, 방법론·도구·리더십, 산업별 체계 선택, 제조업 적용 사례와 메타 프롬프트 실습을 학습합니다. 왼쪽 목차에서 파트와 챕터로 이동할 수 있으며, 그림을 누르면 원본을 크게 볼 수 있습니다.
 
 ## 작성 전 확인
 

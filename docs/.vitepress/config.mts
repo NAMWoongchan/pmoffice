@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { textbookSidebar } from './textbook-sidebar'
 const sectionLink = (page: string, heading: string) => `${page}#${heading.normalize('NFKD')}`
 
 export default defineConfig({
@@ -16,17 +17,20 @@ export default defineConfig({
   themeConfig: {
     logo: '/book.svg',
     siteTitle: 'PMOffice Wiki',
-    sidebar: [
+    sidebar: {
+      '/project-management/paradigm-shift': textbookSidebar,
+      '/': [
       { text: '홈', link: '/' },
       { text: '프로젝트 관리', link: '/project-management', collapsed: false,
-        items: [{ text: '분야 안내', link: '/project-management' }, { text: '작성 전 확인', link: sectionLink('/project-management', '작성-전-확인') }] },
+        items: [{ text: '분야 안내', link: '/project-management' }, { text: '프로젝트 관리 패러다임 시프트', link: '/project-management/paradigm-shift' }, { text: '작성 전 확인', link: sectionLink('/project-management', '작성-전-확인') }] },
       { text: 'MS Project', link: '/microsoft-project', collapsed: true,
         items: [{ text: '분야 안내', link: '/microsoft-project' }, { text: '적용 범위와 검증', link: sectionLink('/microsoft-project', '적용-범위와-검증') }] },
       { text: '실전 AI', link: '/generative-ai', collapsed: true,
         items: [{ text: '분야 안내', link: '/generative-ai' }, { text: '작성과 검토', link: sectionLink('/generative-ai', '작성과-검토') }] },
       { text: '테크', link: '/pc-management/README', collapsed: false,
         items: [{ text: '분야 안내', link: '/pc-management/README' }, { text: '고성능 전원 관리', link: '/pc-management/high-performance-power' }] }
-    ],
+    ]
+    },
     socialLinks: [{ icon: 'github', link: 'https://github.com/NAMWoongchan/pmoffice-wiki-site', ariaLabel: 'GitHub 공개 저장소' }],
     outline: { level: [2, 3], label: '이 문서의 목차' },
     docFooter: { prev: '이전 문서', next: '다음 문서' },

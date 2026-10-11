@@ -4,6 +4,7 @@ import { withBase } from 'vitepress'
 const categories = ['전체', '프로젝트 관리', 'MS Project', '실전 AI', '테크']
 const selected = ref('전체')
 const entries = [
+  { title: '프로젝트 관리 패러다임 시프트', category: '프로젝트 관리', description: 'AI 시대의 방법론·도구·리더십과 제조업 적용, 8가지 실습을 학습하는 심층 교재입니다.', path: '/project-management/paradigm-shift.html', status: 'published' },
   { title: '프로젝트 관리', category: '프로젝트 관리', description: '범위·WBS·일정·원가·위험·품질의 분야 안내와 작성 예정 주제입니다.', path: '/project-management.html', status: 'draft' },
   { title: 'MS Project', category: 'MS Project', description: '일정 작성·자원 배정·기준선의 학습 주제와 검증 원칙을 안내합니다.', path: '/microsoft-project.html', status: 'draft' },
   { title: '실전 AI', category: '실전 AI', description: '프롬프트·컨텍스트·RAG·에이전트를 프로젝트 업무에 적용하기 위한 분야 안내입니다.', path: '/generative-ai.html', status: 'draft' },
@@ -31,7 +32,7 @@ const filtered = computed(() => entries.filter(entry => selected.value === '전�
           <p>{{ entry.description }}</p>
         </div>
         <span class="document-category">{{ entry.category }}</span>
-        <span class="document-status" :class="entry.status">{{ entry.status === 'draft' ? '초안' : '검토·한계 명시' }}</span>
+        <span class="document-status" :class="entry.status">{{ entry.status === 'published' ? '학습 교재' : entry.status === 'draft' ? '초안' : '검토·한계 명시' }}</span>
       </article>
     </section>
     <footer class="wiki-footer"><span>PMOffice Wiki</span><span>각 문서에서 출처와 검증 범위를 확인하실 수 있습니다.</span></footer>
