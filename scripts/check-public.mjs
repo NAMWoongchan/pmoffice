@@ -32,8 +32,8 @@ if (process.argv.includes('--dist')) {
     for (const match of text.matchAll(/<a\b[^>]*href="([^"]+)"/g)) {
       const href = match[1].replaceAll('&amp;', '&')
       if (/^(https?:|mailto:|tel:)/.test(href)) continue
-      const url = new URL(href, `https://site.test/pmoffice/${path.relative(root, file).replaceAll('\\', '/')}`)
-      const rel = decodeURIComponent(url.pathname).replace(/^\/pmoffice\//, '')
+      const url = new URL(href, `https://site.test/${path.relative(root, file).replaceAll('\\', '/')}`)
+      const rel = decodeURIComponent(url.pathname).replace(/^\//, '')
       const target = path.join(root, rel.endsWith('/') || !rel ? `${rel}index.html` : rel)
       if (!fs.existsSync(target)) throw Error(`문서 링크 대상 없음: ${file}: ${href}`)
       if (url.hash && target.endsWith('.html')) {

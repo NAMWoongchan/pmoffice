@@ -32,15 +32,15 @@ AI의 양적 확대는 사용자가 늘고, 처리량이 증가하고, 더 많�
 | 관리 | 작업 시간 단축 | 판단과 품질의 체계화 | 재작업 시간과 승인 대기 |
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A11.png" target="_blank" rel="noopener" aria-label="AI의 업무 수행 범위 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A11.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A11.png'" alt="AI의 업무 수행 범위" width="1723" height="913" loading="eager" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A11.png" target="_blank" rel="noopener" aria-label="AI의 업무 수행 범위 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A11.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A11.png'" alt="AI의 업무 수행 범위" width="1723" height="913" loading="eager" decoding="async"></picture>
 </a>
 <figcaption>그림 1. 대화형 활용에서 도구 사용과 에이전트 협업으로 확장되는 업무 범위</figcaption>
 </figure>
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/qualitative_shift.png" target="_blank" rel="noopener" aria-label="양적 확대와 질적 전환의 평가 기준 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/qualitative_shift.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/qualitative_shift.png'" alt="양적 확대와 질적 전환의 평가 기준" width="1600" height="630" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/qualitative_shift.png" target="_blank" rel="noopener" aria-label="양적 확대와 질적 전환의 평가 기준 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/qualitative_shift.webp'" type="image/webp"><img :src="'/images/paradigm-shift/qualitative_shift.png'" alt="양적 확대와 질적 전환의 평가 기준" width="1600" height="630" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 2. 양적 확대와 질적 전환의 평가 기준</figcaption>
 </figure>
@@ -50,8 +50,8 @@ AI의 양적 확대는 사용자가 늘고, 처리량이 증가하고, 더 많�
 #### 2) 추론 멀티모달 도구 사용의 프로젝트 의미 {#section-2}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A10.png" target="_blank" rel="noopener" aria-label="AI의 기본 개념 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A10.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A10.png'" alt="AI의 기본 개념" width="1723" height="913" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A10.png" target="_blank" rel="noopener" aria-label="AI의 기본 개념 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A10.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A10.png'" alt="AI의 기본 개념" width="1723" height="913" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 3. AI의 입력 처리 결과 구조</figcaption>
 </figure>
@@ -88,15 +88,15 @@ AI의 양적 확대는 사용자가 늘고, 처리량이 증가하고, 더 많�
 | 크고 불확실한 업무 | 학습과 통합의 동시 관리 | 하이브리드와 Gate |
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A13.png" target="_blank" rel="noopener" aria-label="AI 시대의 역할 변화 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A13.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A13.png'" alt="AI 시대의 역할 변화" width="1723" height="913" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A13.png" target="_blank" rel="noopener" aria-label="AI 시대의 역할 변화 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A13.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A13.png'" alt="AI 시대의 역할 변화" width="1723" height="913" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 4. 지식의 전달에서 문제 정의와 실행 설계로 확장되는 역할</figcaption>
 </figure>
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A14.png" target="_blank" rel="noopener" aria-label="문제 정의와 맥락을 연결하는 실무 역량 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A14.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A14.png'" alt="문제 정의와 맥락을 연결하는 실무 역량" width="1723" height="913" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A14.png" target="_blank" rel="noopener" aria-label="문제 정의와 맥락을 연결하는 실무 역량 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A14.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A14.png'" alt="문제 정의와 맥락을 연결하는 실무 역량" width="1723" height="913" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 5. 문제 정의와 맥락을 연결하는 실무 역량</figcaption>
 </figure>
@@ -134,8 +134,8 @@ PMBOK, ISO 21502, Scrum, FMEA를 경쟁하는 방법론처럼 놓고 하나를 �
 #### 2) PMBOK와 ISO 21502의 실무 활용 {#section-8}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/three_elements.png" target="_blank" rel="noopener" aria-label="방법론 도구 리더십의 통합 구조 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/three_elements.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/three_elements.png'" alt="방법론 도구 리더십의 통합 구조" width="1600" height="480" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/three_elements.png" target="_blank" rel="noopener" aria-label="방법론 도구 리더십의 통합 구조 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/three_elements.webp'" type="image/webp"><img :src="'/images/paradigm-shift/three_elements.png'" alt="방법론 도구 리더십의 통합 구조" width="1600" height="480" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 6. 방법론 도구 리더십의 통합 구조</figcaption>
 </figure>
@@ -202,8 +202,8 @@ AI 활용의 성과지표에는 실행 시간, 검토 시간, 재작업 시간, 
 #### 2) 멀티 에이전트 지휘의 기본 구조 {#section-14}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A12.png" target="_blank" rel="noopener" aria-label="전문 역할과 에이전트 협업으로 확장되는 운영 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A12.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A12.png'" alt="전문 역할과 에이전트 협업으로 확장되는 운영" width="1724" height="912" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A12.png" target="_blank" rel="noopener" aria-label="전문 역할과 에이전트 협업으로 확장되는 운영 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A12.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A12.png'" alt="전문 역할과 에이전트 협업으로 확장되는 운영" width="1724" height="912" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 7. 전문 역할과 에이전트 협업으로 확장되는 운영</figcaption>
 </figure>
@@ -220,8 +220,8 @@ AI 활용의 성과지표에는 실행 시간, 검토 시간, 재작업 시간, 
 | 사람의 승인 | 대안과 근거 | 결정과 조건 | 사업 책임 | 결정 이유와 후속 조치 |
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/orchestration.png" target="_blank" rel="noopener" aria-label="사람과 AI의 역할 분담 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/orchestration.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/orchestration.png'" alt="사람과 AI의 역할 분담" width="1600" height="630" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/orchestration.png" target="_blank" rel="noopener" aria-label="사람과 AI의 역할 분담 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/orchestration.webp'" type="image/webp"><img :src="'/images/paradigm-shift/orchestration.png'" alt="사람과 AI의 역할 분담" width="1600" height="630" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 8. 작업 배정 결과 검토 승인 기록의 연결</figcaption>
 </figure>
@@ -248,15 +248,15 @@ AI 결과를 검토할 때도 비슷합니다. 검토자는 문장이 자연스�
 증분은 사용 가능한 범위를 추가하는 것입니다. 반복은 같은 결과를 개선하는 것입니다. 증분과 반복은 별개의 특성이며 예측형 프로젝트에서도 사용될 수 있습니다. Agile을 선택했다는 이유만으로 일정과 품질 기준이 사라지는 것은 아닙니다.
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/delivery_models.png" target="_blank" rel="noopener" aria-label="전달 접근의 비교 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/delivery_models.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/delivery_models.png'" alt="전달 접근의 비교" width="1600" height="630" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/delivery_models.png" target="_blank" rel="noopener" aria-label="전달 접근의 비교 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/delivery_models.webp'" type="image/webp"><img :src="'/images/paradigm-shift/delivery_models.png'" alt="전달 접근의 비교" width="1600" height="630" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 9. 범위 추가와 결과 개선을 구분하는 전달 모델</figcaption>
 </figure>
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/selection.png" target="_blank" rel="noopener" aria-label="프로젝트 상황에 따른 전달 접근과 보완 구조 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/selection.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/selection.png'" alt="프로젝트 상황에 따른 전달 접근과 보완 구조" width="1600" height="780" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/selection.png" target="_blank" rel="noopener" aria-label="프로젝트 상황에 따른 전달 접근과 보완 구조 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/selection.webp'" type="image/webp"><img :src="'/images/paradigm-shift/selection.png'" alt="프로젝트 상황에 따른 전달 접근과 보완 구조" width="1600" height="780" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 10. 프로젝트 상황에 따른 전달 접근과 보완 구조</figcaption>
 </figure>
@@ -340,8 +340,8 @@ PRINCE2와 단계별 사업 통제의 성격은 프로젝트 관리 방법입니
 ### 3. 산업별 개발과 품질 보증 체계를 이해하기 {#part-iii-chapter-3}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A19.png" target="_blank" rel="noopener" aria-label="여러 산업의 업무와 프로젝트 변화 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A19.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A19.png'" alt="여러 산업의 업무와 프로젝트 변화" width="1870" height="841" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A19.png" target="_blank" rel="noopener" aria-label="여러 산업의 업무와 프로젝트 변화 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A19.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A19.png'" alt="여러 산업의 업무와 프로젝트 변화" width="1870" height="841" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 11. 여러 산업의 업무와 프로젝트 변화</figcaption>
 </figure>
@@ -436,8 +436,8 @@ IEC 62304와 의료기기 소프트웨어 생애주기의 성격은 소프트웨
 ### 4. 단계별 투자와 통합 프로젝트를 운영하기 {#part-iii-chapter-4}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_Bdrug.png" target="_blank" rel="noopener" aria-label="제약 개발에서의 단계별 판단 구조 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_Bdrug.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_Bdrug.png'" alt="제약 개발에서의 단계별 판단 구조" width="1380" height="405" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_Bdrug.png" target="_blank" rel="noopener" aria-label="제약 개발에서의 단계별 판단 구조 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_Bdrug.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_Bdrug.png'" alt="제약 개발에서의 단계별 판단 구조" width="1380" height="405" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 12. 제약 개발에서의 단계별 판단 구조</figcaption>
 </figure>
@@ -487,8 +487,8 @@ VDA-RGA와 신제품 성숙도 보증의 성격은 자동차 신제품 성숙도
 ### 5. 하이브리드와 조직 규모의 개발체계를 설계하기 {#part-iii-chapter-5}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_Bwaterfall.png" target="_blank" rel="noopener" aria-label="순차 개발의 단계와 검토를 이해하는 구조 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_Bwaterfall.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_Bwaterfall.png'" alt="순차 개발의 단계와 검토를 이해하는 구조" width="1124" height="307" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_Bwaterfall.png" target="_blank" rel="noopener" aria-label="순차 개발의 단계와 검토를 이해하는 구조 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_Bwaterfall.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_Bwaterfall.png'" alt="순차 개발의 단계와 검토를 이해하는 구조" width="1124" height="307" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 13. 순차 개발의 단계와 검토를 이해하는 구조</figcaption>
 </figure>
@@ -758,8 +758,8 @@ APQP는 자동차 공급망이나 고객 요구가 있는 개발에서 품질 �
 #### 2) 품질 도구를 개발 과정에 배치하기 {#section-64}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/manufacturing.png" target="_blank" rel="noopener" aria-label="제품과 공정 개발의 품질 준비 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/manufacturing.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/manufacturing.png'" alt="제품과 공정 개발의 품질 준비" width="1600" height="630" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/manufacturing.png" target="_blank" rel="noopener" aria-label="제품과 공정 개발의 품질 준비 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/manufacturing.webp'" type="image/webp"><img :src="'/images/paradigm-shift/manufacturing.png'" alt="제품과 공정 개발의 품질 준비" width="1600" height="630" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 14. 제품과 공정 개발의 품질 준비</figcaption>
 </figure>
@@ -817,8 +817,8 @@ APQP는 자동차 공급망이나 고객 요구가 있는 개발에서 품질 �
 #### 2) 교육 사례 자동차용 모터의 소음과 내구 개선 {#section-67}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_Bauto.png" target="_blank" rel="noopener" aria-label="자동차 개발의 단계별 품질 준비 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_Bauto.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_Bauto.png'" alt="자동차 개발의 단계별 품질 준비" width="1417" height="451" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_Bauto.png" target="_blank" rel="noopener" aria-label="자동차 개발의 단계별 품질 준비 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_Bauto.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_Bauto.png'" alt="자동차 개발의 단계별 품질 준비" width="1417" height="451" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 15. 자동차 개발의 단계별 품질 준비</figcaption>
 </figure>
@@ -850,22 +850,22 @@ APQP는 자동차 공급망이나 고객 요구가 있는 개발에서 품질 �
 Stage-Gate는 계속 투자할지 판단하는 거버넌스 구조입니다. V-Model은 요구사항과 검증의 대응을 보여 주는 개발 구조입니다. 하나는 사업 판단, 다른 하나는 개발 증거의 연결에 초점을 둡니다. 두 모델은 함께 사용할 수 있지만 서로의 후속 단계나 상위·하위 관계로 고정되지 않습니다.
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_Bstage.png" target="_blank" rel="noopener" aria-label="단계별 의사결정 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_Bstage.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_Bstage.png'" alt="단계별 의사결정" width="1008" height="290" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_Bstage.png" target="_blank" rel="noopener" aria-label="단계별 의사결정 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_Bstage.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_Bstage.png'" alt="단계별 의사결정" width="1008" height="290" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 16. 단계의 활동과 Gate의 판단을 분리하는 구조</figcaption>
 </figure>
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_Bv.png" target="_blank" rel="noopener" aria-label="요구사항과 시험의 대응 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_Bv.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_Bv.png'" alt="요구사항과 시험의 대응" width="877" height="441" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_Bv.png" target="_blank" rel="noopener" aria-label="요구사항과 시험의 대응 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_Bv.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_Bv.png'" alt="요구사항과 시험의 대응" width="877" height="441" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 17. 요구사항 설계 구현과 시험의 대응 구조</figcaption>
 </figure>
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/stage_v.png" target="_blank" rel="noopener" aria-label="사업 판단과 개발 증거를 함께 운영하는 방식 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/stage_v.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/stage_v.png'" alt="사업 판단과 개발 증거를 함께 운영하는 방식" width="1600" height="630" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/stage_v.png" target="_blank" rel="noopener" aria-label="사업 판단과 개발 증거를 함께 운영하는 방식 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/stage_v.webp'" type="image/webp"><img :src="'/images/paradigm-shift/stage_v.png'" alt="사업 판단과 개발 증거를 함께 운영하는 방식" width="1600" height="630" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 18. 사업 판단과 개발 증거를 함께 운영하는 방식</figcaption>
 </figure>
@@ -918,8 +918,8 @@ Gate에서 “대체로 준비되었다”는 표현은 충분하지 않습니�
 범위를 나누는 기준은 페이지 수만이 아닙니다. 독립적으로 검토할 수 있는 목적과 인수 기준이 있어야 합니다. 제조 프로젝트에서는 제품 설계, 공정 준비, 고객 승인 자료를 별도 증분으로 관리할 수 있으나 서로의 인터페이스를 명확히 해야 합니다.
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/delivery_models.png" target="_blank" rel="noopener" aria-label="증분과 반복의 운영 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/delivery_models.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/delivery_models.png'" alt="증분과 반복의 운영" width="1600" height="630" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/delivery_models.png" target="_blank" rel="noopener" aria-label="증분과 반복의 운영 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/delivery_models.webp'" type="image/webp"><img :src="'/images/paradigm-shift/delivery_models.png'" alt="증분과 반복의 운영" width="1600" height="630" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 19. 증분은 범위를 추가하고 반복은 같은 결과를 개선합니다</figcaption>
 </figure>
@@ -947,8 +947,8 @@ Gate에서 “대체로 준비되었다”는 표현은 충분하지 않습니�
 #### 1) 업무 지침과 프로젝트 목적을 구분하기 {#section-75}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A15.png" target="_blank" rel="noopener" aria-label="AI 역할이 추가되기 전의 프로젝트 업무 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A15.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A15.png'" alt="AI 역할이 추가되기 전의 프로젝트 업무" width="1723" height="913" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A15.png" target="_blank" rel="noopener" aria-label="AI 역할이 추가되기 전의 프로젝트 업무 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A15.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A15.png'" alt="AI 역할이 추가되기 전의 프로젝트 업무" width="1723" height="913" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 20. AI 역할이 추가되기 전의 프로젝트 업무</figcaption>
 </figure>
@@ -961,8 +961,8 @@ Gate에서 “대체로 준비되었다”는 표현은 충분하지 않습니�
 #### 2) 요구사항과 품질 기준을 실행 전에 정의하기 {#section-76}
 
 <figure class="textbook-figure">
-<a href="/pmoffice/images/paradigm-shift/source_A16.png" target="_blank" rel="noopener" aria-label="AI 역할이 추가된 프로젝트 업무와 검토 크게 보기">
-<picture><source :srcset="'/pmoffice/images/paradigm-shift/source_A16.webp'" type="image/webp"><img :src="'/pmoffice/images/paradigm-shift/source_A16.png'" alt="AI 역할이 추가된 프로젝트 업무와 검토" width="1670" height="942" loading="lazy" decoding="async"></picture>
+<a href="/images/paradigm-shift/source_A16.png" target="_blank" rel="noopener" aria-label="AI 역할이 추가된 프로젝트 업무와 검토 크게 보기">
+<picture><source :srcset="'/images/paradigm-shift/source_A16.webp'" type="image/webp"><img :src="'/images/paradigm-shift/source_A16.png'" alt="AI 역할이 추가된 프로젝트 업무와 검토" width="1670" height="942" loading="lazy" decoding="async"></picture>
 </a>
 <figcaption>그림 21. AI 역할이 추가된 프로젝트 업무와 검토</figcaption>
 </figure>

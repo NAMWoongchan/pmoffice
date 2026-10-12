@@ -2,7 +2,7 @@
 
 프로젝트 관리 교육·컨설팅·PMS 개발과 AI 실무 교육 홈페이지입니다. 기존 지식 문서는 지식 공간에서 제공합니다.
 
-**[홈페이지 열기](https://namwoongchan.github.io/pmoffice/)**
+**[홈페이지 열기](https://pmoffice.co.kr/)**
 
 | 분야 | 문서 |
 |---|---|
