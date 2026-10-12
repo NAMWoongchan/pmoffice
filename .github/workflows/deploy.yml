@@ -1,4 +1,4 @@
-name: Deploy PMOffice Wiki
+name: Deploy PMOffice
 on:
   push:
     branches: [main]

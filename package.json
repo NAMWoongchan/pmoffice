@@ -1,6 +1,6 @@
 {
-  "name": "pmoffice-wiki-site",
-  "version": "2.0.0",
+  "name": "pmoffice",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "scripts": {

@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 const root = process.argv.includes('--dist') ? 'docs/.vitepress/dist' : 'docs'
 const privateMarkers = ['sources-and-writing', 'pmoffice-sources-writing', 'github.com/NAMWoongchan/pmoffice-wiki/', 'Source Policy', 'THREAD_REGISTRY', '인증 비밀']
-const allowedPages = new Set(["about.md", "contact.md", "generative-ai.md", "index.md", "knowledge/index.md", "microsoft-project.md", "pc-management/README.md", "pc-management/high-performance-power.md", "project-management.md", "project-management/paradigm-shift.md", "services.md", "training/ai-rd-management.md", "training/copilot-for-microsoft-project.md", "training/index.md"])
+const allowedPages = new Set(["about.md", "ai-edu/ai-rd-management.md", "ai-edu/copilot-for-microsoft-project.md", "ai-edu/index.md", "contact.md", "generative-ai.md", "index.md", "knowledge/index.md", "microsoft-project.md", "ms-project/core-practice.md", "ms-project/expert.md", "ms-project/index.md", "ms-project/template-development.md", "pc-management/README.md", "pc-management/high-performance-power.md", "pm-practice/agile-project.md", "pm-practice/index.md", "pm-practice/project-management.md", "pm-practice/risk-issue-management.md", "project-management.md", "project-management/paradigm-shift.md", "services.md"])
 let files = 0
 function scan(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -32,8 +32,8 @@ if (process.argv.includes('--dist')) {
     for (const match of text.matchAll(/<a\b[^>]*href="([^"]+)"/g)) {
       const href = match[1].replaceAll('&amp;', '&')
       if (/^(https?:|mailto:|tel:)/.test(href)) continue
-      const url = new URL(href, `https://site.test/pmoffice-wiki-site/${path.relative(root, file).replaceAll('\\', '/')}`)
-      const rel = decodeURIComponent(url.pathname).replace(/^\/pmoffice-wiki-site\//, '')
+      const url = new URL(href, `https://site.test/pmoffice/${path.relative(root, file).replaceAll('\\', '/')}`)
+      const rel = decodeURIComponent(url.pathname).replace(/^\/pmoffice\//, '')
       const target = path.join(root, rel.endsWith('/') || !rel ? `${rel}index.html` : rel)
       if (!fs.existsSync(target)) throw Error(`문서 링크 대상 없음: ${file}: ${href}`)
       if (url.hash && target.endsWith('.html')) {

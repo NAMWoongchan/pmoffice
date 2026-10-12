@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import publicContent from './theme/content.json'
+import education from './theme/education.json'
 import { textbookSidebar } from './textbook-sidebar'
 const sectionLink = (page: string, heading: string) => `${page}#${heading.normalize('NFKD')}`
 
@@ -8,19 +9,19 @@ export default defineConfig({
   title: 'PMOffice 피엠오피스',
   description: '프로젝트 관리 교육·컨설팅·PMS 개발과 생성형 AI 실무 교육',
   lang: 'ko-KR',
-  base: '/pmoffice-wiki-site/',
+  base: '/pmoffice/',
   cleanUrls: false,
   lastUpdated: true,
-  sitemap: { hostname: 'https://namwoongchan.github.io/pmoffice-wiki-site/' },
+  sitemap: { hostname: 'https://namwoongchan.github.io/pmoffice/' },
   head: [
     ['meta', { name: 'theme-color', content: '#ffffff' }],
-    ['link', { rel: 'icon', href: '/pmoffice-wiki-site/pmoffice.svg', type: 'image/svg+xml' }]
+    ['link', { rel: 'icon', href: '/pmoffice/pmoffice.svg', type: 'image/svg+xml' }]
   ],
   themeConfig: {
-    logo: '/pmoffice.svg',
+    logo: {src:'/images/pmoffice-logo.png',alt:'피엠오피스 PM OFFICE 프로젝트 관리 업그레이드'},
 
-    nav: [{text:'피엠오피스 소개',link:'/about'},{text:'사업 분야',link:'/services'},{text:'교육 과정',link:'/training/index'},{text:'지식 공간',link:'/knowledge/index'},{text:'문의',link:'/contact'}],
-    siteTitle: 'PMOffice',
+    nav: [],
+    siteTitle: false,
     sidebar: {
       '/project-management/paradigm-shift': textbookSidebar,
       '/': [
@@ -48,7 +49,8 @@ export default defineConfig({
           if (env.frontmatter?.layout !== 'page' && env.relativePath !== 'knowledge/index.md') return html
           const escape = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
           const relative = env.relativePath || ''
-          const pageContent = relative.includes('copilot-for') ? publicContent.copilot : relative.includes('ai-rd') ? publicContent.rd : relative.startsWith('services') ? publicContent.services : relative.startsWith('training') ? [publicContent.rd, publicContent.copilot] : env.frontmatter?.description
+          const deck = education.courses.find(c => relative === c.path + '.md')
+          const pageContent = deck || (relative.startsWith('pm-practice') ? education.courses.filter(c=>c.group==='pm') : null) || (relative.includes('copilot-for') ? publicContent.copilot : relative.includes('ai-rd') ? publicContent.rd : relative.startsWith('services') ? publicContent.services : relative.startsWith('ai-edu') ? [publicContent.rd, publicContent.copilot] : env.frontmatter?.description)
           const flatten = (value: any): string => typeof value === 'string' ? value : Array.isArray(value) ? value.map(flatten).join(' ') : value && typeof value === 'object' ? Object.values(value).map(flatten).join(' ') : ''
           return `<h1 id="page-title">${escape(env.frontmatter?.title || 'PMOffice')}<a class="header-anchor" href="#page-title"></a></h1><p>${escape(flatten(pageContent))}</p>`
         },

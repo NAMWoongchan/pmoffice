@@ -1,0 +1,9 @@
+{
+  "old_base": "https://namwoongchan.github.io/pmoffice-wiki-site/",
+  "new_base": "https://namwoongchan.github.io/pmoffice/",
+  "routes": {
+    "training/index.html": "ai-edu/",
+    "training/ai-rd-management.html": "ai-edu/ai-rd-management.html",
+    "training/copilot-for-microsoft-project.html": "ai-edu/copilot-for-microsoft-project.html"
+  }
+}

@@ -1,0 +1,27 @@
+<script setup>
+import {computed} from 'vue'
+import {withBase} from 'vitepress'
+import data from './education.json'
+const props=defineProps({course:String,group:String})
+const course=computed(()=>data.courses.find(c=>c.path===props.course))
+const list=computed(()=>data.courses.filter(c=>c.group===props.group && c.path!=='ms-project/index'))
+const groupInfo=computed(()=>data.groups.find(g=>g.key===props.group))
+const href=withBase
+</script>
+<template><div class="marketing education-page">
+ <template v-if="course">
+ <section class="section-inner education-hero"><div><a class="back-link" :href="href(course.group==='ms'?'/ms-project/':'/pm-practice/')">← {{course.group==='ms'?'MS Project':'PM 실무'}}</a><h1 id="page-title">{{course.title}}</h1><p>{{course.subtitle}}</p><div v-if="course.days" class="education-facts"><span>{{course.days}}일</span><span>{{course.hours}}시간</span><span>기업 맞춤형 구성</span></div><div class="actions"><a class="btn primary" :href="href('/contact.html')">교육 문의 ↗</a><a class="btn secondary" href="#curriculum">전체 교육 내용 ↓</a></div></div><div class="education-focus"><span>{{course.group==='ms'?'MICROSOFT PROJECT':'PROJECT MANAGEMENT'}}</span><h2>{{course.group==='ms'?'계획을 실행으로.':'실무를 역량으로.'}}</h2><ul><li v-for="item in course.highlights" :key="item">{{item}}</li></ul></div></section>
+ <section v-if="course.path==='ms-project/index'" class="education-selection"><div class="section-inner"><h2>업무 수준과 목적에 맞는 세 가지 과정</h2><div class="education-cards"><a v-for="c in data.courses.filter(x=>x.group==='ms'&&x.path!=='ms-project/index')" :key="c.path" :href="href('/'+c.path+'.html')"><span>{{c.days}}일 · {{c.hours}}시간</span><h3>{{c.title}}</h3><p>{{c.subtitle}}</p><strong>과정 살펴보기 ↗</strong></a></div></div></section>
+ <section class="section-inner full-curriculum" id="curriculum"><div class="section-heading"><h2>교육 내용과 실습 커리큘럼</h2><p>개념과 방법론을 이해하고, 사례와 실습으로 업무에 적용합니다.</p></div><nav class="curriculum-index" aria-label="교육 내용 목차"><a v-for="section in course.sections" :key="section.id" :href="'#'+section.id">{{section.heading}}</a></nav>
+ <article v-for="section in course.sections" :key="section.id" :id="section.id" class="education-section"><h2>{{section.heading}}</h2><div v-if="section.blocks.length" class="education-prose"><div v-for="(block,index) in section.blocks" :key="index" class="education-block"><p v-for="(line,i) in block" :key="i" :class="{'block-lead':i===0&&block.length>1}">{{line}}</p></div></div>
+ <div v-for="(table,index) in section.tables" :key="index" class="education-table-wrap" tabindex="0" :aria-label="section.heading+' 표'"><table><thead><tr><th v-for="(cell,i) in table[0]" :key="i" scope="col">{{cell}}</th></tr></thead><tbody><tr v-for="(row,ri) in table.slice(1)" :key="ri"><td v-for="(cell,ci) in row" :key="ci">{{cell}}</td></tr></tbody></table></div>
+ <div v-if="section.images.length" class="education-media" :class="{single:section.images.length===1}"><img v-for="image in section.images" :key="image.src" :src="href(image.src)" :alt="image.alt" loading="lazy"></div></article>
+ <p v-if="course.time_note" class="course-operating-note">전체 과정은 {{course.days}}일 {{course.hours}}시간입니다. 자료의 세부 모듈 시간과 일차별 배분에는 차이가 있어, 실제 시간표는 선택 주제와 실습 범위를 반영하여 교육 전에 조정합니다.</p>
+ <div v-if="course.group==='ms'" class="course-operating-note">Project Online은 2026년 9월 30일 종료되었습니다. 기존 자료에 포함된 Project Online 주제는 과거 구성의 이해와 협업 환경 전환 관점으로 다루며, 실제 실습은 사용 가능한 제품·라이선스를 확인하여 구성합니다. <a href="https://learn.microsoft.com/en-us/lifecycle/products/project-online" target="_blank" rel="noopener noreferrer">Microsoft 제품 수명 주기 ↗</a></div>
+ <div v-if="course.path==='pm-practice/project-management'" class="course-operating-note">영문 수료증은 교육 이력 증빙입니다. PDU는 PMI의 자격 유지 규정에 따라 개별 신청합니다. <a href="https://www.pmi.org/certifications/certification-resources/maintain" target="_blank" rel="noopener noreferrer">PMI 자격 유지 안내 ↗</a></div>
+ <details class="course-sources"><summary>교육 내용 참고 자료</summary><p>{{course.source_name}} · 피엠오피스 제공 자료. 교육 내용은 원문 전체의 문단·표·실습 예시를 반영하고 표현을 정리했습니다.</p></details></section>
+ </template>
+ <template v-else><section class="section-inner education-hero group-hero"><div><h1 id="page-title">{{groupInfo?.text}}</h1><p>방법론을 이해하고, 현장에 맞는 실행 역량을 기릅니다.</p><div class="actions"><a class="btn primary" :href="href('/contact.html')">기업 맞춤형 교육 문의 ↗</a></div></div><div class="education-focus"><span>PROJECT MANAGEMENT</span><h2>프로젝트의 단계마다,<br>실무에 필요한 역량.</h2><p>PM 실무 · 리스크와 이슈 · 애자일</p></div></section><section class="education-selection"><div class="section-inner"><h2>PM 실무 교육 과정</h2><div class="education-cards"><a v-for="c in list" :key="c.path" :href="href('/'+c.path+'.html')"><span>{{c.days}}일 · {{c.hours}}시간</span><h3>{{c.title}}</h3><p>{{c.subtitle}}</p><strong>과정 살펴보기 ↗</strong></a></div></div></section></template>
+ <section class="contact-band"><div class="section-inner"><div><h2>우리 조직에 필요한 교육,<br>함께 설계합니다.</h2><a class="contact-cta" :href="href('/contact.html')">교육·컨설팅 문의 ↗</a></div><div><p>현장의 과제와 교육 대상을 알려주세요.</p><div class="contact-links"><a href="mailto:nam@pmoffice.co.kr">nam@pmoffice.co.kr</a><a href="tel:025328060">02-532-8060</a></div></div></div></section>
+ <footer class="marketing-footer section-inner"><a class="footer-brand" :href="href('/')">PMOffice<span>피엠오피스</span></a><div><a :href="href('/ai-edu/')">AI 교육</a><a :href="href('/ms-project/')">MS Project</a><a :href="href('/pm-practice/')">PM 실무</a><a :href="href('/knowledge/')">지식 공간</a></div><p>© {{new Date().getFullYear()}} PMOffice</p></footer>
+</div></template>

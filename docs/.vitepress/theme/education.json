@@ -1,0 +1,2608 @@
+{
+  "courses": [
+    {
+      "path": "ms-project/index",
+      "title": "Microsoft Project 교육",
+      "subtitle": "일정, 자원, 비용을 연결하는 프로젝트 관리 실무 교육",
+      "days": null,
+      "hours": null,
+      "highlights": [
+        "조직의 관리 체계",
+        "실무 중심 학습",
+        "맞춤형 Template",
+        "지속적인 지원"
+      ],
+      "source_name": "2-0. MS Project(최상위 메뉴).pptx",
+      "source_slides": 8,
+      "sections": [
+        {
+          "id": "section-1",
+          "heading": "프로젝트 관리자와 팀이 해결해야 할 과제",
+          "blocks": [
+            [
+              "PM(Project Manager)과 프로젝트 팀(Project Team)의 고민"
+            ],
+            [
+              "프로젝트 관리의",
+              "노하우가 부족하다?"
+            ],
+            [
+              "MS Project가",
+              "도움이 될까?"
+            ],
+            [
+              "프로젝트 관리자(PM, Project Manager)로서 프로젝트를 주도하고 조정하는 방법을 모른다.",
+              "프로젝트의 단계별로 필요한 실무적인 방법론을 모른다."
+            ],
+            [
+              "MS Project를 일정 막대 차트 정도로만 사용한다.",
+              "MS Project를 제대로 사용하는 노하우를 모른다."
+            ],
+            [
+              "조직 차원의 프로젝트 관리가 어렵다?"
+            ],
+            [
+              "프로젝트의 일정, 자원(시간 투입량, 물량, 비용), 문서, 리스크, 이슈를 통합적으로 관리하지 못하고 있다.",
+              "프로젝트 이해관계자를 위한 맞춤형 보고서를 제시하지 못하고 있다.",
+              "경영 전략과 프로젝트 포트폴리오를 연계한 통합 관리를 하지 못하고 있다."
+            ],
+            [
+              "해결책은…"
+            ],
+            [
+              "프로젝트 관리 실무 지식과 MS  Project 교육을 통한",
+              "전문적인 프로젝트 관리의 필요성에 대한 공감대 형성",
+              "프로젝트 관리 방법론과 모범 사례의 지식 공유",
+              "체계적이고 실무적인 MS Project의 사용법",
+              "PM과 PL의 리더십과 의사 소통 역량 강화"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 1
+        },
+        {
+          "id": "section-2",
+          "heading": "고객 지원과 교육 서비스",
+          "blocks": [
+            [
+              "시너지"
+            ]
+          ],
+          "tables": [
+            [
+              [
+                "실제 모범 사례와 프로젝트 파일, Project Template을 활용한 실습으로 프로젝트 관리 전문성과 생산성을 강화합니다. 교육 기간은 4일 32시간입니다."
+              ]
+            ]
+          ],
+          "images": [
+            {
+              "src": "/images/courses/2-0-s2-image15.png",
+              "alt": "Microsoft Project 교육 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-0-s2-image18.png",
+              "alt": "Microsoft Project 교육 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-0-s2-image17.png",
+              "alt": "Microsoft Project 교육 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-0-s2-image16.jpeg",
+              "alt": "Microsoft Project 교육 2쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 2
+        },
+        {
+          "id": "section-3",
+          "heading": "실무 중심의 교육과 사후 지원",
+          "blocks": [
+            [
+              "제한된 교육 시간 내에 실무에 적용할 수 있도록 철저히 실무적인 Microsoft Project의 사용법과 방법론 제공합니다."
+            ],
+            [
+              "체계적인 지원 프로세스"
+            ],
+            [
+              "템플릿 제공"
+            ],
+            [
+              "초보자도 쉽게 이해할 수 있도록 전문적인 템플릿(Template)을 제공합니다."
+            ],
+            [
+              "데모와 실습 중심의 교육"
+            ],
+            [
+              "철저히 실무적이고 생산적인 교육 효과를 위하여 시나리오 중심의 데모와 실습 중심으로 교육을 진행합니다."
+            ],
+            [
+              "모범 사례 제시"
+            ],
+            [
+              "온라인으로는 공개할 수 없는 다양한 실전 모범 사례 검토와 고객 맞춤형 컨설팅을 제시합니다."
+            ],
+            [
+              "교재 제공"
+            ],
+            [
+              "고객의 요구사항을 반영한 맞춤형 교육 자료를 제공합니다."
+            ],
+            [
+              "유연한 교육 프로그램 구성"
+            ],
+            [
+              "강사 진행 주제: 70%",
+              "수강생 관심 주제: 30%"
+            ],
+            [
+              "사후 지원"
+            ],
+            [
+              "고객사 전용 카페",
+              "고객 맞춤형 학습 제공",
+              "심화 학습 자료",
+              "교육 녹화 동영상",
+              "Q&A"
+            ],
+            [
+              "MS Project 방문 교육 고객 지원 전략"
+            ],
+            [
+              "요구사항 수집과 범위 정의"
+            ],
+            [
+              "맞춤형 교재와 Template 개발"
+            ],
+            [
+              "프로젝트 관리 방법론 제시"
+            ],
+            [
+              "체계적인 실습과 모범 사례 검토"
+            ],
+            [
+              "지속적인 사후 지원"
+            ],
+            [
+              "체계적이고 지속적인 지원"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/2-0-s3-image29.png",
+              "alt": "Microsoft Project 교육 3쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 3
+        },
+        {
+          "id": "section-4",
+          "heading": "교육 대상과 적용 산업",
+          "blocks": [
+            [
+              "성공적인 프로젝트 관리의 실전 노하우가 필요한 임직원",
+              "조직의 중요 프로젝트를 수행 중인 프로젝트 관리자와 팀원",
+              "Microsoft Project를 조직의 프로젝트 관리에 도입 검토 중인 분",
+              "Excel, Primavera, 기타 도구의 비효율적 문제점을 해결하려는 분"
+            ],
+            [
+              "IT"
+            ],
+            [
+              "자동차"
+            ],
+            [
+              "반도체"
+            ],
+            [
+              "건설/엔지니어링"
+            ],
+            [
+              "생명공학"
+            ],
+            [
+              "컨설팅 / 서비스"
+            ],
+            [
+              "신규 사업"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/2-0-s4-image33.png",
+              "alt": "Microsoft Project 교육 4쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 4
+        },
+        {
+          "id": "section-5",
+          "heading": "학습 목표와 활용 전략",
+          "blocks": [
+            [
+              "Project Template을 활용한 생산성 극대화",
+              "초보자도 체계적으로 프로젝트 관리",
+              "데이터(Data) → 정보(Info) → 가치 정보(Intelligence)",
+              "다양한 모범 사례 벤치마크",
+              "모범 예제 공유",
+              "실제 프로젝트 성공 사례와 실패 사례 학습",
+              "체계적인 프로젝트 관리 방법론 습득",
+              "프로젝트 관리 용어, 절차, 지침",
+              "Custom Menu",
+              "한 눈에 들어오는 쉽고 편리한 메뉴 체계"
+            ],
+            [
+              "체계적인 프로젝트 관리 방법론"
+            ],
+            [
+              "다양한 모범 사례 벤치마크"
+            ],
+            [
+              "Custom Menu"
+            ],
+            [
+              "Project Template"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 5
+        },
+        {
+          "id": "section-6",
+          "heading": "수준과 목적에 맞는 학습 경로",
+          "blocks": [
+            [
+              "기초 과정 (핵심 실무)"
+            ],
+            [
+              "응용 실무 과정"
+            ],
+            [
+              "템플릿 개발"
+            ],
+            [
+              "실무 교육"
+            ],
+            [
+              "Project Template 개발",
+              "핵심 실무 과정",
+              "(4일 과정)"
+            ],
+            [
+              "MS Project 전문가 과정",
+              "(5일 과정)"
+            ],
+            [
+              "Project Template 개발",
+              "고급 심화 과정",
+              "(고객 맞춤형으로 1~5일 선택)"
+            ],
+            [
+              "MS Project 핵심 실무 과정",
+              "(4일 과정)"
+            ],
+            [
+              "모범 Project Template 활용",
+              "철저히 실무적인 실습",
+              "프로젝트 관리 실무 지식(계획, 실행, 통제)"
+            ],
+            [
+              "고객 맞춤형 신규Project Template 개발",
+              "Administration(기술적 관리)",
+              "Customization(메뉴 추가 개발)",
+              "실무 교육  이후에 진행 추천 (선택사항)"
+            ],
+            [
+              "독립형 제품 종류: Project Standard 또는",
+              "Project Professional"
+            ],
+            [
+              "MS Project 고급 심화 과정",
+              "(고객 맞춤형으로 1~5일 선택)"
+            ],
+            [
+              "MS Project 입문 과정 (2~3일 과정)"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 6
+        },
+        {
+          "id": "section-7",
+          "heading": "세 가지 대표 교육 과정",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "교육 과정 종류",
+                "특징"
+              ],
+              [
+                "MS Project 핵심 실무 과정(4일)",
+                "방문 교육 전에 고객 맞춤형 Template 개발\n교육 범위\n모범 Project Template을 활용한 공정 관리 실습\n체계적인 분석과 보고: 대시보드 개발, PERT/CPM, 엑셀 동기화\n통합 프로젝트 관리\n프로젝트 템플릿 개발\n고객 관심 주제 선별 학습"
+              ],
+              [
+                "MS Project 전문가 과정(5일)",
+                "대상: MS Project 입문 또는 핵심 실무 과정 수료자\n고객 맞춤형 심화 학습: EPC 프로젝트 공정 관리, 애자일 R&D 프로젝트, 국가 연구개발 사업 등"
+              ],
+              [
+                "Project Template 개발 과정(4일)",
+                "대상: MS Project 입문 또는 핵심 실무 과정 수료자\n전문가 수준의 Project Template 개발의 노하우 전수\n사용자 정의(Custom) 필드, 보기, 보고서의 개발\n매크로, VBA, API를 활용하여 매크로·VBA·API를 활용한 모듈 개발을 지도"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 7
+        },
+        {
+          "id": "section-8",
+          "heading": "교육 과정별 커리큘럼 비교",
+          "blocks": [
+            [
+              "핵심 실무 · 4일 32시간",
+              "프로젝트 착수·범위·일정 계획, 마스터 스케줄, 달력 설정과 일정 최적화, 진행 상황 관리, 주공정 기법, 통합 프로젝트 관리, 정보 관리, Template 개발, 자원·비용 관리, 실습 워크샵"
+            ],
+            [
+              "전문가 · 5일 40시간",
+              "핵심 실무 확인 학습, WBS 코드, 통합 공정 관리, 일정 기준과 CPM, 일정 최적화, 공수·물량·비용·기성 관리, 적응형 프로젝트와 반복·증분·애자일 스프린트, 실행·통제, 정보 관리, 작업 분류 체계와 보고"
+            ],
+            [
+              "Template 개발 · 4일 32시간",
+              "Template 개발 기초, Gantt 차트, 테이블, Custom Field, 그룹화·필터, 작업·자원 보기, Custom Report와 스타일·관리, 매크로·VBA, PMS 설정, 실습 워크샵"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/2-0-s8-image36.png",
+              "alt": "Microsoft Project 교육 8쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 8
+        }
+      ],
+      "group": "ms",
+      "time_note": false
+    },
+    {
+      "path": "ms-project/core-practice",
+      "title": "MS Project 핵심 실무 과정",
+      "subtitle": "체계적인 일정 계획에서 실행·통제·보고까지",
+      "days": 4,
+      "hours": 32,
+      "highlights": [
+        "WBS·일정 계획",
+        "진도·변경 관리",
+        "Critical Path",
+        "Template·통합 관리"
+      ],
+      "source_name": "2-1. MS Project 핵심 실무 과정.pptx",
+      "source_slides": 11,
+      "sections": [
+        {
+          "id": "section-1",
+          "heading": "교육 개요",
+          "blocks": [
+            [
+              "교육 기간: 4일",
+              "교육 시간: 32시간 (4일 x 8시간 = 32시간)",
+              "고객 맞춤형 커리큘럼 조정 가능"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 1
+        },
+        {
+          "id": "section-2",
+          "heading": "주요 학습 목표",
+          "blocks": [
+            [
+              "주요 학습 목표",
+              "MS Project 입문/기초 과정: 일정 계획",
+              "프로젝트 진행 상황 관리",
+              "주공정(CP: Critical Path) 관리",
+              "통합 프로젝트 관리",
+              "Project Template 개발",
+              "프로젝트 보고서 작성"
+            ],
+            [
+              "교육 기간: 4일",
+              "교육 시간: 32시간 (4일 x 8시간 = 32시간)"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/2-1-s2-image11.jpeg",
+              "alt": "MS Project 핵심 실무 과정 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s2-image15.jpeg",
+              "alt": "MS Project 핵심 실무 과정 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s2-image10.jpeg",
+              "alt": "MS Project 핵심 실무 과정 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s2-image14.jpeg",
+              "alt": "MS Project 핵심 실무 과정 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s2-image13.jpg",
+              "alt": "MS Project 핵심 실무 과정 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s2-image12.jpeg",
+              "alt": "MS Project 핵심 실무 과정 2쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 2
+        },
+        {
+          "id": "section-3",
+          "heading": "현장의 문제와 개선 방안",
+          "blocks": [
+            [
+              "문제점"
+            ],
+            [
+              "개선 방안"
+            ],
+            [
+              "경영진과 고객이 프로젝트의 전체 현황을 한 눈에 파악하지 못함"
+            ],
+            [
+              "프로젝트의 잦은 범위 변경으로 인한 일정 과부하와 원가 초과"
+            ],
+            [
+              "개별 작업의 일정 변경이 프로젝트 전체에 주는 영향도를 이해하지 못함"
+            ],
+            [
+              "계획(Plan, Baseline) 대비 실적(Actual)의 차이(Variance)를 제대로 파악하지 못함"
+            ],
+            [
+              "프로젝트 협업이 제대로 되지 않고, 자원의 프로젝트 별 참여 현황을 관리하지 못함"
+            ],
+            [
+              "프로젝트 대시보드(Project Dashboard) 개발",
+              "마스터 스케줄(Master Schedule) 작성"
+            ],
+            [
+              "작업 분류 체계(WBS) 방법론 적용",
+              "범위, 일정, 자원, 비용의 통합 관리(S Curve, EVM)"
+            ],
+            [
+              "주공정 기법(Critical Path Method)",
+              "일정 최적화 기법(Schedule Optimization Technique)"
+            ],
+            [
+              "베이스라인(Baseline) 설정",
+              "모니터링과 통제를 위한 보기(View)와 보고서(Report) 개발",
+              "프로젝트 버전 비교(Project Version Comparison)"
+            ],
+            [
+              "통합 프로젝트(Master Project)의 개발",
+              "협업(Collaboration) 체계와 기존 Project Online 환경의 전환 고려 사항"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 3
+        },
+        {
+          "id": "section-4",
+          "heading": "고객 맞춤형 Project Template",
+          "blocks": [
+            [
+              "기존 엑셀 공정표 요구사항을 만족하는 체계적인 Project Template을 MS Project 파일로 제공해 드립니다."
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/2-1-s4-image17.png",
+              "alt": "MS Project 핵심 실무 과정 4쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s4-image21.png",
+              "alt": "MS Project 핵심 실무 과정 4쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s4-image16.png",
+              "alt": "MS Project 핵심 실무 과정 4쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s4-image20.png",
+              "alt": "MS Project 핵심 실무 과정 4쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s4-image19.png",
+              "alt": "MS Project 핵심 실무 과정 4쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/2-1-s4-image18.png",
+              "alt": "MS Project 핵심 실무 과정 4쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 4
+        },
+        {
+          "id": "section-5",
+          "heading": "4일 표준 시간표",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "시간",
+                "1일차",
+                "2일차",
+                "3일차",
+                "4일차"
+              ],
+              [
+                "1",
+                "오리엔테이션",
+                "마스터 스케줄(Master Schedule)",
+                "PERT / CPM\n공정 관리 실무\n주공정(Critical Path) 기법\n일정 최적화 기법",
+                "Project Template 개발\n대시보드 개발 방법\nCustom Field 활용 방법\n필터와 그룹화 분석\n보고서 개발"
+              ],
+              [
+                "2",
+                "프로젝트 착수",
+                "주공정 경로 기법",
+                "",
+                ""
+              ],
+              [
+                "3",
+                "프로젝트 범위 계획",
+                "달력(Calendar) 설정",
+                "프로젝트 리스크 관리 실습",
+                "프로젝트 리스크 관리 실습"
+              ],
+              [
+                "4",
+                "마일스톤 계획 수립",
+                "",
+                "",
+                ""
+              ],
+              [
+                "5",
+                "프로젝트 일정 계획\n다이나믹 스케줄링\n작업 모드: 수동 vs 자동\nGantt 차트 검토",
+                "프로젝트 진행 상황 관리",
+                "통합 프로젝트 관리\n자원의 프로젝트별 참여현황 관리\n통합 프로젝트의 구성과 분석",
+                "프로젝트 자원과 비용 관리\n공수 관리\n비용 관리"
+              ],
+              [
+                "6",
+                "Work Breakdown Structure",
+                "프로젝트 실행, 감시, 통제 실습",
+                "통합 프로젝트 관리\n자원의 프로젝트별 참여현황 관리\n통합 프로젝트의 구성과 분석",
+                ""
+              ],
+              [
+                "7",
+                "프로젝트 범위 관리 실습",
+                "프로젝트 변경 관리",
+                "프로젝트 보고서\n공정표 보고 방법\n엑셀 연계 활용",
+                "모범 사례 검토"
+              ],
+              [
+                "8",
+                "",
+                "",
+                "프로젝트 보고서\n공정표 보고 방법\n엑셀 연계 활용",
+                ""
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 5
+        },
+        {
+          "id": "section-6",
+          "heading": "4일차 실습 보강형 시간표",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "시간",
+                "1일차",
+                "2일차",
+                "3일차",
+                "4일차"
+              ],
+              [
+                "1",
+                "오리엔테이션",
+                "마스터 스케줄(Master Schedule)",
+                "PERT / CPM\n공정 관리 실무\n주공정(Critical Path) 기법\n일정 최적화 기법",
+                "자유 주제 선별 학습,\n\n프로젝트 워크샵(조별 실습), 모범 사례 벤치마크, 고객 맞춤형 템플릿 개발"
+              ],
+              [
+                "2",
+                "프로젝트 착수",
+                "주공정 경로 기법",
+                "",
+                ""
+              ],
+              [
+                "3",
+                "프로젝트 범위 계획",
+                "달력(Calendar) 설정",
+                "프로젝트 리스크 관리 실습",
+                ""
+              ],
+              [
+                "4",
+                "마일스톤 계획 수립",
+                "",
+                "",
+                ""
+              ],
+              [
+                "5",
+                "프로젝트 일정 계획\n다이나믹 스케줄링\n작업 모드: 수동 vs 자동\nGantt 차트 검토",
+                "프로젝트 진행 상황 관리",
+                "통합 프로젝트 관리\n자원의 프로젝트별 참여현황 관리\n통합 프로젝트의 구성과 분석",
+                "프로젝트 자원과 비용 관리\n공수 관리\n비용 관리"
+              ],
+              [
+                "6",
+                "Work Breakdown Structure",
+                "프로젝트 실행, 감시, 통제 실습",
+                "통합 프로젝트 관리\n공정 관리 실무\n주공정(Critical Path) 기법\n일정 최적화 기법",
+                ""
+              ],
+              [
+                "7",
+                "프로젝트 범위 관리 실습",
+                "프로젝트 변경 관리",
+                "프로젝트 보고서\n공정표 보고 방법\n엑셀 연계 활용",
+                ""
+              ],
+              [
+                "8",
+                "",
+                "",
+                "프로젝트 보고서\n공정표 보고 방법\n엑셀 연계 활용",
+                "마무리: 핵심 정리, Q&A"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 6
+        },
+        {
+          "id": "section-7",
+          "heading": "1일차 교육 커리큘럼",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "I. 오리엔테이션",
+                "Microsoft Project 소개",
+                "교육 소개와 안내\nMicrosoft Project 제품 라인업: 독립형 vs PMS, 클라우드(Cloud) vs 온프레미스(On Premise)\nMicrosoft Project 제품 도입 전략\nMicrosoft Project 주요 기능 소개\nMicrosoft Project 모범 사례 검토, 고객 기대사항 토론",
+                "1h"
+              ],
+              [
+                "II. 프로젝트 계획 수립",
+                "1. 프로젝트 착수",
+                "Microsoft Project 사전 설정\n프로젝트 서식(Project Template) 활용\n프로젝트 정보(Project Information) 입력",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 범위 계획",
+                "프로젝트 범위 관리 방법론 이해\nWBS(Work Breakdown Structure, 작업 분류 체계) 작성 실습\n개요(Outline) 검토\n모범 사례 검토",
+                "1h"
+              ],
+              [
+                "",
+                "4. 마일스톤 계획 수립",
+                "일정 관리 엔진(Scheduling Engine)을 활용한 역동적인 일정 계획(Dynamic Scheduling)\n기간(Duration) 산정\n마일스톤(Milestone) 입력과 마일스톤 차트(Milestone Chart) 작성\n마일스톤(Milestone) 활용의 방법론 이해",
+                "1h"
+              ],
+              [
+                "",
+                "5. 다이내믹 스케줄링    (Dynamic Scheduling)",
+                "프로세스 핵심 프로세스 vs 보조 프로세스\n의존 관계(Dependency) 종류와 간격(Lead, Lag) 입력\n네트워크 다이어그램(Network Diagram)의 검토와 활용 기법 실습\n프로세스 작성 방법론 이해와 모범 사례 검토",
+                "2h"
+              ],
+              [
+                "",
+                "6. 공정표 작성 기법",
+                "하향식 일정 계획(Top-down Scheduling) vs 상향식 일정 계획(Bottom-up Scheduling)\n수동 작업 모드(Manually Schedule) vs 자동 작업 모드(Auto Schedule)\n공정표의 검토 방법",
+                "1h"
+              ],
+              [
+                "",
+                "7. 공정표 종류 활용",
+                "공정표의 종류 이해와 Microsoft Project 활용 방안\nGantt 차트 편집 기법 실습",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 7
+        },
+        {
+          "id": "section-8",
+          "heading": "2일차 교육 커리큘럼",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "II. 프로젝트 계획 수립",
+                "8. 마스터 스케줄(Master Schedule)",
+                "마스터 스케줄(Master Schedule)의 이해\n[Gantt 차트](Gantt Chart) 보기의 단점 해결 방안\n\"프로젝트 서식(Project Template)\"의 [마스터 스케줄] 보기 활용 안내\n마스터 스케줄(Master Schedule)의 작성 실습\n타임라인(Timeline)의 이해\n타임라인(Timeline) 작성 실습\n타임라인(Timeline)의 다양한 편집 기법과 모범 사례 검토",
+                "2h"
+              ],
+              [
+                "",
+                "9. 달력(Calendar) 설정",
+                "달력의 이해\n프로젝트 달력(Project Calendar)\n자원 달력(Resource Calendar)\n작업 달력(Task Calendar)\n달력 관련 설정의 이해",
+                "2h"
+              ],
+              [
+                "III. 프로젝트 실행과 통제",
+                "1. 프로젝트 진행 상황 관리",
+                "Project Template을 활용한 프로젝트 실행과 통제 지침\n쉽고 편리한 진행 상황 관리 방법 안내\n일정 상태 분석(Analyze Schedule Status)\n현재 날짜 기준의 프로젝트 업데이트(Update Project)\n상황 보고 날짜 기준의 프로젝트 업데이트(Update Project)\n일정 재조정(Reschedule)",
+                "2h"
+              ],
+              [
+                "",
+                "2. 프로젝트 변경 관리",
+                "베이스라인(Baseline)의 가치 이해\n목표 완료율(Target Progress) 설정\n진행 상황 관리(Tracking)\n초기 계획 설정(Set Baseline)과 초기 계획 지우기(Clear Baseline)\n목표 백업과 복원(Backup and Restore Baseline)\n목표 일정 버전(Multiple Baselines) 비교\nEOT(Extension Of Time) Claim\n프로젝트 버전 비교 실습",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 8
+        },
+        {
+          "id": "section-9",
+          "heading": "3일차 교육 커리큘럼",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "IV. 공정 관리 실무",
+                "1. 주공정(Critical Path) 기법 1부",
+                "주공정(Critical Task)와 주경로기법(Critical Path Method) 이해\n프로젝트 일정 관리의 초점\n전체 여유 시간(Total Slack, Buffer)의 자동 계산과 검토 기법\n가능한 빠른 일정(Early Schedule) vs 가능한 늦은 일정(Late Schedule)\n[전체 여유 시간 검토](Total Slack Review)와 [CPM 일정](CPM Schedule) 보기",
+                "2h"
+              ],
+              [
+                "",
+                "2. 주공정(Critical Path) 기법 2부",
+                "크리티컬 패스의 오류 해결 방법\n작업 경로(Task Path) 분석: [작업 경로 일정](Task Path Schedule) 매크로\n[관계 다이어그램](Relationship Diagram) 보기\n마감일(Deadline) 설정과 주공정 분석",
+                "1h"
+              ],
+              [
+                "",
+                "3. 주공정(Critical Path) 기법 3부",
+                "날짜 제한(Date Constraint) 활용과 주공정 분석\n유사 주공정(Near Critical Task) 설정\n여러 요주의 경로(Multiple Critical Path) 설정\nCritical Path Method 모범 사례",
+                "1h"
+              ],
+              [
+                "",
+                "4. 통합 프로젝트 관리",
+                "자원 그룹(Resource Pool) 활용: 자원의 프로젝트별 참여 현황 관리\n통합 프로젝트(Master Project)의 구성\n통합 프로젝트의 분석과 보고 방법\n외부 작업(External Task) 관리",
+                "2h"
+              ],
+              [
+                "",
+                "5. 프로젝트 보고서",
+                "프로젝트 보고서 작성 방법\n체계적인 작업 정보 관리 방법\nWBS 코드와 프로젝트 코드 활용\n유익한 팁",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 9
+        },
+        {
+          "id": "section-10",
+          "heading": "4일차 교육 커리큘럼: 학습형 (선택형 모듈 1안)",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "V. Project Template 개발\n     핵심 실무",
+                "1. Project Template 개발 1부",
+                "Project Template 개요\nProject Template의 원리 이해\nProject Template의 구성 요소별 개선 방법\nGantt 차트 편집 기법과 새로운 보기의 개발",
+                "2h"
+              ],
+              [
+                "",
+                "2. Project Template 개발 2부",
+                "사용자 정의 필드(Custom Field)의 특징과 활용 방법\n수식(Formula)을 활용한 필드 개발 방법\n조회(Look-up Table) 기능이 포함된 필드 개발 방법\n사용자 정의 필드(Custom Field) 예제 모음집 활용 안내\n사용자 정의 보고서(Custom Report)의 개발 방법",
+                "2h"
+              ],
+              [
+                "VI. 프로젝트 관리 역량 강화",
+                "1. 프로젝트 자원과 비용 관리",
+                "체계적인 자원 배정과 검토 기법\n인적 자원과 재료 자원의 투입량 관리 방법\n프로젝트 원가 산정과 예산 편성 방법\n자원과 비용 보고서 작성 방법",
+                "2h"
+              ],
+              [
+                "",
+                "2. 모범 사례 검토",
+                "국내 EPC 프로젝트 모범 사례 소개\n해외 EPC 프로젝트 모범 사례 소개\n벤치마크 안내",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 10
+        },
+        {
+          "id": "section-11",
+          "heading": "4일차 교육 커리큘럼: 실습형 (선택형 모듈 2안)",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "V. 프로젝트 실습",
+                "1. 프로젝트 관리 방법론",
+                "프로젝트 관리 방법론의 이해\n프로젝트 계획 수립 프로세스\n공정표 작성 기법 소개",
+                "1h"
+              ],
+              [
+                "",
+                "2. Project Template 활용 지침",
+                "Project Template 종류 선택\n계획 수립 인터페이스 계획\n실행 통제 인터페이스 계획\n프로젝트 대시보드 계획",
+                "1h"
+              ],
+              [
+                "",
+                "3. 공정표 작성 실습",
+                "Project Template 테일러링 데모\n마스터 스케줄 작성 데모\n상세 공정표 작성 데모\n업종별 모범 공정표 소개\n수강생 자유 실습\n수강생별 개별 코칭 및 지도\n공정표 작성 관련 주요 이슈 공유",
+                "4h"
+              ],
+              [
+                "",
+                "4. 수강생 발표",
+                "수강생 작성 공정표 발표\n모범 사례 선정\n교훈 정리",
+                "1h"
+              ],
+              [
+                "VI. 마무리",
+                "",
+                "핵심 정리\n자유 Q&A\n수강생 안내 사항 전달",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 11
+        }
+      ],
+      "group": "ms",
+      "time_note": false
+    },
+    {
+      "path": "ms-project/expert",
+      "title": "MS Project 전문가 과정",
+      "subtitle": "EPC와 R&D의 현장 과제를 깊이 있게 다룹니다",
+      "days": 5,
+      "hours": 40,
+      "highlights": [
+        "EPC 또는 R&D 선택",
+        "자원·공수·물량",
+        "비용·기성 관리",
+        "분석·보고서"
+      ],
+      "source_name": "2-2. MS Project 전문가 과정.pptx",
+      "source_slides": 10,
+      "sections": [
+        {
+          "id": "section-1",
+          "heading": "교육 개요",
+          "blocks": [
+            [
+              "교육 기간: 5일",
+              "교육 시간: 40시간 (5일 x 8시간 = 40시간)",
+              "고객 맞춤형 커리큘럼 조정 가능"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 1
+        },
+        {
+          "id": "section-2",
+          "heading": "학습 목표와 교육 대상",
+          "blocks": [
+            [
+              "공정 관리 실무 확인 학습",
+              "EPC 프로젝트 관리 기법",
+              "적응형 프로젝트 관리 기법",
+              "프로젝트 자원 관리: 초과 배정 관리, 수량 관리",
+              "프로젝트 비용 관리",
+              "프로젝트 진척 상황 관리",
+              "프로젝트 정보 관리와 보고서 작성"
+            ],
+            [
+              "전문가 과정 교육 시간: 40시간 (5일 x 8시간 = 40시간)",
+              "대상: MS Project 입문 또는 핵심 실무 과정 수료자",
+              "학습 목표: 프로젝트 관리 전문가 양성과 조직 생산성 제고"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/2-2-s2-image10.png",
+              "alt": "MS Project 전문가 과정 2쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 2
+        },
+        {
+          "id": "section-3",
+          "heading": "5일 교육 시간표",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "시간",
+                "1일차",
+                "2일차",
+                "3일차",
+                "4일차",
+                "5일차"
+              ],
+              [
+                "1",
+                "오리엔테이션",
+                "프로젝트 관리 방법론\n\n(EPC 프로젝트 또는 R&D 프로젝트 관점 선택 가능)",
+                "프로젝트 자원 관리(Project Resource Management)",
+                "프로젝트 비용 관리\n(Project Cost Management)",
+                "유익한 프로젝트 관리 기능"
+              ],
+              [
+                "2",
+                "체계적인 공정표 작성",
+                "",
+                "",
+                "",
+                ""
+              ],
+              [
+                "3",
+                "",
+                "자원 관리 실무",
+                "프로젝트 리스크 관리 실습",
+                "",
+                ""
+              ],
+              [
+                "4",
+                "",
+                "",
+                "",
+                "",
+                "프로젝트 보고서 작성"
+              ],
+              [
+                "",
+                "",
+                "",
+                "",
+                "진척 상황 관리\n(Earned Value Management)",
+                ""
+              ],
+              [
+                "5",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ],
+              [
+                "6",
+                "",
+                "프로젝트 실행, 감시, 통제 실습",
+                "진척 상황 관리\n(Earned Value Management)",
+                "",
+                ""
+              ],
+              [
+                "7",
+                "",
+                "",
+                "",
+                "",
+                ""
+              ],
+              [
+                "8",
+                "",
+                "",
+                "작업 정보 관리",
+                "",
+                "마무리: 핵심 정리, Q&A"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 3
+        },
+        {
+          "id": "section-4",
+          "heading": "1일차 커리큘럼: 체계적인 공정표 작성",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "I. 오리엔테이션",
+                "Microsoft Project 활용 프로젝트 관리 실무 전문가 과정 개요",
+                "과정 소개와 안내 사항 전달\n프로젝트 관리 접근법: 예측형(Waterfall) vs 적응형(Adaptive, Agile)\n전문가 과정 Project Template 소개",
+                "1h"
+              ],
+              [
+                "II. 체계적인 공정표 작성",
+                "1. 사전 설정과 프로젝트 착수",
+                "Microsoft Project 사전 설정: 옵션(Options), 사용자 정의 메뉴(Custom Menu), 보기 표시줄(View Bar)\n전문가 과정 Project Template의 특징 이해\n프로젝트 정보(Project Information) 입력",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 일정 계획 수립 핵심 실무",
+                "WBS 작성과 마일스톤 계획 수립\nPDM(Precedence Diagramming Method)\n작업 모드(Task Mode)의 활용\nGantt 차트의 검토 기법",
+                "1h"
+              ],
+              [
+                "",
+                "3. 프로젝트 범위 관리 방법론",
+                "프로젝트 범위 관리 방법론\nWBS 코드 이해: WBS 작성 방법론, WBS 코드의 가치, 형식, 특징\nWBS 코드 정의: 기능 실습\n프로젝트 코드와 통합 프로젝트 관리 이해",
+                "1h"
+              ],
+              [
+                "",
+                "5. 공정표 작성 1부: 통합 공정 관리",
+                "통합 공정 관리 체계의 수립 방법\n프로젝트 공정표의 종류: 마스터 스케줄, 예정공정표 등 다양한 공정표의 활용 포인트",
+                "1h"
+              ],
+              [
+                "",
+                "6. 공정표 작성 2부: 일정 기준과 CPM",
+                "일정 기준: 전진 이동 일정 계획 수립 기법(Forward Scheduling)\nForward Scheduling과 CPM(Critical Path Method)의 연계 활용\n일정 기준: 후진 이동 일정 계획 수립 기법(Backward Scheduling): 역공정(Reverse Scheduling)\n역공정(Reverse Scheduling)과 CPM(Critical Path Method)의 연계 활용",
+                "2h"
+              ],
+              [
+                "",
+                "7. 공정표 작성 3부: 일정 최적화",
+                "일정 최적화 기법(Schedule Optimization Technique)\n마감일(Deadline)과 역공정(Reverse Scheduling) 관리\n제한 종류(Constraint Type)과 역공정(Reverse Scheduling)",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 4
+        },
+        {
+          "id": "section-5",
+          "heading": "2일차 커리큘럼: EPC 프로젝트(선택형 모듈)",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "III.1. EPC 프로젝트 관리",
+                "1. EPC 프로젝트 관리의 이해",
+                "프로젝트 관리 지식의 역사\n현대적 프로젝트 관리 방법론의 초점",
+                "1h"
+              ],
+              [
+                "",
+                "2. EPC 프로젝트의 특징",
+                "설계 공정(Engineering Project)의 작성 지침\n조달 공정(Procurement Project)의 작성 지침\n시공 공정(Construction Project)의 작성 지침\n통합 공정(Master Project)의 작성 지침\nSCL Protocol의 이해",
+                "2h"
+              ],
+              [
+                "",
+                "3 지연 및 중단   (Delays and Disruptions)",
+                "지연 및 중단의 정의와 분류\n지연 및 중단의 원인과 영향 분석\n지연 및 중단의 예방 및 대응 방안\n지연 및 중단에 따른 비용 및 보상 문제\n계약 변경 및 수정 방안              6) 지연 및 중단에 따른 법적 책임 및 분쟁 해결 방안\n7)  주제별 Project Template의 활용 방법",
+                "1h"
+              ],
+              [
+                "",
+                "4. 시간 영향 분석\n   (Time Impact Analysis)",
+                "식별: 대상 사건 선정 및 영향도 분석\n대응: 대응 방안 수립, 공사 기간 예측, 모니터링\nMS Project 활용한 TI 분석 실습",
+                "1h"
+              ],
+              [
+                "",
+                "5. 계획 대비 준공 분석   (As Planned Vs. As-Built Analysis)",
+                "식별: 데이터 수집, 비교 분석, 원인 분석\n대응: 개선 방안 도출, 보고서 작성\n공기 연장(Extension of Time, EOT)\nMS Project 활용한 계획 대비 준공 분석 실습",
+                "2h"
+              ],
+              [
+                "",
+                "6. 대표적 공정 관리 접근법",
+                "계획 대비 영향 분석(Impact As-Planned Analysis)\n시간 구간 분석(Time Slice Windows Analysis)\n회고형 최장 경로 분석(Retrospective Longest Path Analysis)\n통합 준공 분석(Collapsed As-Built Analysis)\nMS Project를 활용한 분석법 실습",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 5
+        },
+        {
+          "id": "section-6",
+          "heading": "2일차 커리큘럼: R&D 프로젝트(선택형 모듈)",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "III.2. 적응형 프로젝트 관리",
+                "1. 적응형 프로젝트 관리의 이해",
+                "프로젝트 관리 접근법: 예측형(Waterfall) vs 적응형(Adaptive, Agile)\n애자일의 등장 배경\n애자일(Agile) 소개\nMicrosoft Project의 애자일(Agile) 접근법",
+                "1h"
+              ],
+              [
+                "",
+                "2 애자일(Agile) 방법론",
+                "대표적 개발 방법론의 종류\n애자일 선언문(Agile Manifesto)\n애자일 4대 가치(Agile 4 Value)\n애자일 12대 원칙(Agile 12 Principles)\n애자일 환경 구현 방법",
+                "2h"
+              ],
+              [
+                "",
+                "3 프로젝트 라이프 사이클",
+                "프로젝트 라이프 사이클(Project Life Cycle)의 이해\n예측형 라이프 사이클\n적응형 라이프 사이클\n하이브리드 라이프 사이클",
+                "1h"
+              ],
+              [
+                "",
+                "4. 애자일(Agile) 계획 수립 1부",
+                "스크럼(Scrum) 방법론의 이해\n스프린트(Sprint) 기초 실습\n백로그(Backlog) 관리 실습",
+                "1h"
+              ],
+              [
+                "",
+                "5. 애자일(Agile) 계획 수립 2부",
+                "Project Template 활용 안내: 작업 보드, 스프린트 차트, 보고서\n반복형 스프린트(Iterative Sprint) 계획 수립 실습\n증분형 스프린트(Incremental Sprint) 계획 수립 실습\n애자일 스프린트(Agile Sprint) 계획 수립 실습\n스프린트 차트 검토",
+                "2h"
+              ],
+              [
+                "",
+                "6. 애자일 실행과 통제",
+                "스크럼 진행 상황 관리 방법\n스프린트 리뷰(Sprint Review) 실습\n소진 차트(Burn-down Chart) 관리\n스프린트 회고(Sprint Retrospective) 실습",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 6
+        },
+        {
+          "id": "section-7",
+          "heading": "3일차 커리큘럼: 프로젝트 자원 관리",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "IV. 프로젝트 자원 관리",
+                "1. 프로젝트 자원 관리 기초",
+                "Project Template의 자원 관리 기능 소개\n자원 시트: 기본 정보 입력\nGantt 차트: 자원 배정, 배정 속성\n작업 배정 현황: 작업 관점의 투입량 관리\n자원 배정 현황: 자원 관점의 투입량 관리\n팀 플래너(Team Planner) 활용: 정보의 검토 방법, 정보의 관리, 형식의 편집",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 자원 관리 방법론",
+                "프로젝트 자원 관리 초점\n성과 측정 기준선(Performance Measurement Baseline)의 이해\n진척 상황 관리(Earned Value Management, EVM)의 이해",
+                "1h"
+              ],
+              [
+                "",
+                "3. 프로젝트 자원 관리 실무 개요",
+                "프로젝트 자원 정보 관리\n체계적인 자원 배정과 검토 기법\n인적 자원의 작업량 관리\n재료 자원의 물량 관리\n비용 자원의 원가 관리",
+                "1h"
+              ],
+              [
+                "",
+                "4. 프로젝트 공수(시수) 관리",
+                "프로젝트 팀 구성\n프로젝트의 자원 배정과 현황 검토\n자원 투입량 산정: 초과 배정 진단, 경고 무시 설정, 할당율 조정\n효과적인 자원 배정 현황 검토 방법\n자원의 프로젝트 참여 현황 보고서 작성",
+                "1h"
+              ],
+              [
+                "",
+                "5. 시간의 영향 관계 관리",
+                "시간 개념의 종류와 상호 영향 관계 이해\n[작업 종류](Task Type) 설정\n[작업량 고정](Effort Driven) 설정",
+                "1h"
+              ],
+              [
+                "",
+                "6. 프로젝트 물량 관리 실무",
+                "재료 자원 관리의 이해\n재료 자원의 수량 산정\n재료 자원 관리 확인 사항",
+                "1h"
+              ],
+              [
+                "IV. 프로젝트 자원 관리",
+                "7. 자원 관리 종합 실습",
+                "초과 배정·작업량·재료 수량을 검토하고 자원 관리와 리스크를 연계한 사례를 실습합니다.",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 7
+        },
+        {
+          "id": "section-8",
+          "heading": "4일차 커리큘럼: 비용 관리, 진척 상황 관리",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "V. 프로젝트 비용 관리",
+                "1. 프로젝트 비용 계획 수립",
+                "프로젝트 비용 관리 개요\n자원 투입량에 따른 프로젝트 비용 산정\n고정 비용(Fixed Cost)의 산정",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 비용 실행과 통제",
+                "원가 기준 설정(Set Cost Baseline)\n원가 가중치(Weight)와 진도 계획 검토 기법\n원가 진행 상황 입력 기법\n프로젝트 원가 통제 기법\n통화 옵션(Currency Options)",
+                "1h"
+              ],
+              [
+                "",
+                "3. 프로젝트 예산 계획 수립",
+                "프로젝트 예산 관리: 상향식 vs 하향식\n예산 비용 산정 방법\n프로젝트 수익률 분석",
+                "1h"
+              ],
+              [
+                "",
+                "4. 프로젝트 예산 실행과 통제",
+                "예산 기준 설정(Set Budget Baseline)\n프로젝트 진행 상황 분석: 원가 vs 예산\n프로젝트 진행 상황 분석: 계획 예산 vs 집행 예산",
+                "1h"
+              ],
+              [
+                "VI. 프로젝트 진척 상황 관리\n     (기성 관리)",
+                "1. Earned Value Management 기초",
+                "EVM(Earned Value Management) 방법론\n진척 상황 관리 필드의 이해\nEVM 기초 실습",
+                "1h"
+              ],
+              [
+                "",
+                "2. Earned Value Management 실무",
+                "프로젝트 진척 상황 관리의 특징과 절차의 이해\n진척상황 계획 수립\n진척 상황 입력과 통제\nS Curve와 EVM 보고서 검토",
+                "2h"
+              ],
+              [
+                "",
+                "3. 가중치 기준 진도 관리",
+                "프로젝트 진척 상황 관리: 이론 vs 현실\n대한민국 프로젝트 진척 상황 관리를 위한 Project Template 소개\n가중치 기준 진도 계획 수립 실습\n가중치 기준 진도 관리 실습",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 8
+        },
+        {
+          "id": "section-9",
+          "heading": "5일차 커리큘럼: 유익한 프로젝트 관리 기능, 보고서 작성",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "VII. 유익한 프로젝트 관리 기능",
+                "1. 효과적인 프로젝트 정보 관리",
+                "효과적인 작업 정보 관리 방법\n메모(Notes)와 엔터티(Entity)\n사용자 정의 필드 활용 방법: 로컬 vs 엔터프라이즈\n기타: 배정 정보, 자원 정보, 되풀이 작업(Recurring Task), 작업 나누기",
+                "1h"
+              ],
+              [
+                "",
+                "2. 작업 분류 체계 관리 1부",
+                "작업 분류 체계 작성 접근법\n개요 코드를 활용 작업 분류 체계 관리\n값 목록을 활용한 작업 분류 체계 관리\n효과적인 작업 분류 체계의 시각화 방법",
+                "1h"
+              ],
+              [
+                "",
+                "3. 작업 분류 체계 관리 2부",
+                "작업 비활성화(Task Inactivation)\n텍스트(Text) 필드를 활용한 작업 정보 관리\n연결(Link) 메뉴 활용",
+                "1h"
+              ],
+              [
+                "VIII. 프로젝트 보고서 작성",
+                "1. 인쇄와 PDF",
+                "Gantt 차트의 인쇄 방법\n보기(View)별 효과적인 인쇄 방법\n보고서(Report)의 효과적인 인쇄 방법\n효과적인 PDF 문서 작성 방법",
+                "1h"
+              ],
+              [
+                "",
+                "2. Office 연계 활용",
+                "Gantt 차트 Excel로 내보내기와 불러오기\n시각적 보고서 메뉴를 활용한 Excel로 내보내기\n사용자 정의 시각적 보고서 작성\nExcel 변환 맵 활용\nExcel 내보내기와 불러오기",
+                "2h"
+              ],
+              [
+                "",
+                "3. 기타 솔루션 활용",
+                "WBS 마인드맵 작성\n협업·분석 솔루션 활용: SharePoint Online, Outlook, Teams, Planner, Power BI\n기존 Project Online 환경의 구성 이해와 전환 고려 사항",
+                "1h"
+              ],
+              [
+                "IX. 마무리",
+                "",
+                "핵심정리\n수강생 Q&A",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 9
+        },
+        {
+          "id": "section-10",
+          "heading": "고객 맞춤형 지원 서비스",
+          "blocks": [
+            [
+              "고객 맞춤형 교재 개발",
+              "교육 대상과 조직의 업무 요구사항을 반영한 교재를 제공합니다."
+            ],
+            [
+              "Project Template 작성 대행",
+              "조직의 관리 방식에 맞는 프로젝트 서식을 개발합니다."
+            ],
+            [
+              "실제 공정표 작성 대행",
+              "고객의 실제 프로젝트 계획과 공정표 작성을 지원합니다."
+            ],
+            [
+              "교육 녹화 동영상 평생 업데이트",
+              "교육 녹화 동영상과 추가 학습 자료의 업데이트를 지원합니다."
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 10
+        }
+      ],
+      "group": "ms",
+      "time_note": false
+    },
+    {
+      "path": "ms-project/template-development",
+      "title": "MS Project Template 개발 과정",
+      "subtitle": "조직의 업무에 맞는 보기, 필드, 보고서를 개발합니다",
+      "days": 4,
+      "hours": 32,
+      "highlights": [
+        "Gantt 차트·보기",
+        "Custom Field",
+        "Custom Report",
+        "매크로·VBA"
+      ],
+      "source_name": "2-3. MS Project Template 개발 과정.pptx",
+      "source_slides": 7,
+      "sections": [
+        {
+          "id": "section-1",
+          "heading": "교육 개요",
+          "blocks": [
+            [
+              "교육 기간: 4일",
+              "교육 시간: 32시간 (4일 x 8시간 = 32시간)",
+              "고객 맞춤형 커리큘럼 조정 가능"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 1
+        },
+        {
+          "id": "section-2",
+          "heading": "학습 목표와 개발 영역",
+          "blocks": [
+            [
+              "Project Template 개발 기초",
+              "다양한 Gantt 차트 개발",
+              "테이블 관리",
+              "사용자 정의 필드(Custom Field) 개발 방법",
+              "그룹화와 필터",
+              "작업 보기(Task View) 개발",
+              "자원 보기(Resource View) 개발"
+            ],
+            [
+              "교육 시간: 32시간 (4일 x 8시간 = 32시간)",
+              "학습 목표: Project Template 개발의 노하우 전수",
+              "사용자 정의(Custom) 필드, 보기, 보고서의 개발",
+              "매크로와 VBA를 활용한 모듈 개발"
+            ],
+            [
+              "Custom Report 개발 방법",
+              "Custom Report 스타일 설정",
+              "Custom Report의 관리 방법",
+              "매크로와 VBA",
+              "PMS 설정 활용법",
+              "프로젝트 실습 워크샵"
+            ]
+          ],
+          "tables": [],
+          "images": [],
+          "source_slide": 2
+        },
+        {
+          "id": "section-3",
+          "heading": "4일 교육 시간표",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "시간",
+                "1일차",
+                "2일차",
+                "3일차",
+                "4일차"
+              ],
+              [
+                "1",
+                "오리엔테이션",
+                "사용자 정의 필드(Custom Field)의 개발",
+                "사용자 정의 보기(Custom View)의 개발",
+                "사용자 정의 보고서(Custom Report)의 개발"
+              ],
+              [
+                "2",
+                "주공정 경로 기법",
+                "주공정 경로 기법",
+                "",
+                ""
+              ],
+              [
+                "3",
+                "Project Template 개발 기초",
+                "자원 관리 실무",
+                "프로젝트 리스크 관리 실습",
+                "프로젝트 리스크 관리 실습"
+              ],
+              [
+                "4",
+                "",
+                "",
+                "",
+                ""
+              ],
+              [
+                "5",
+                "Gantt 차트 편집 기법",
+                "",
+                "",
+                "매크로와 VBA를 활용한 모듈 개발"
+              ],
+              [
+                "6",
+                "프로젝트 실행, 감시, 통제 실습",
+                "프로젝트 실행, 감시, 통제 실습",
+                "진척 상황 관리\n(Earned Value Management)",
+                ""
+              ],
+              [
+                "7",
+                "",
+                "",
+                "",
+                "애자일(Agile) 프로젝트 관리"
+              ],
+              [
+                "8",
+                "",
+                "",
+                "작업 정보 관리",
+                "마무리: 핵심 정리, Q&A"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 3
+        },
+        {
+          "id": "section-4",
+          "heading": "1일차 보기와 Gantt 차트",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "I. 오리엔테이션",
+                "1. Project Template 개발     핵심 실무 과정 개요",
+                "과정 소개와 안내 사항 전달\nMicrosoft Project의 경쟁력 이해\n모범 Project Template의 구현 사례 소개",
+                "1h"
+              ],
+              [
+                "",
+                "2. Project Template 개요",
+                "Project Template의 가치\nProject Template의 특징\nProject Template의 구조 이해",
+                "1h"
+              ],
+              [
+                "II. 보기(View) 편집 기초",
+                "1. 보기(View)의 소개",
+                "보기(View)의 개념 이해\n기본 제공 작업 보기(Built-in Task View)\n기본 제공 자원 보기(Built-in Resource View)",
+                "1h"
+              ],
+              [
+                "",
+                "2. 보기(View) 활용의 기초",
+                "보기(View) 설정 관련 기본 인터페이스\n보기 정의(View Definition) 메뉴 활용 방법",
+                "1h"
+              ],
+              [
+                "III. 다양한 Gantt 차트 개발",
+                "1. “Gantt 차트” 형식의 보기",
+                "다양한 Gantt 차트의 종류 소개\n기본형: Gantt 차트(Gantt Chart), 진행 상황 Gantt(Tracking Gantt), 여러 초기 계획 Gantt(Multiple Baseline Gantt), 평준화 Gantt(Leveling Gantt), 세부 Gantt(Detail Gantt)\n겹쳐서 표시한 막대(Bar Rollup), 겹쳐서 표시(Rollup) 등\n사용자 정의 Gantt 차트(Custom Gantt Chart) 사례\n사용자 정의 Gantt 차트 개발 방법 기초",
+                "2h"
+              ],
+              [
+                "",
+                "2. Gantt 차트 개발",
+                "Gantt 차트 편집 1: 날짜 표시줄(Timescale)\nGantt 차트 편집 2: 텍스트 스타일(Text Style) vs 글꼴(Font)\nGantt 차트 편집 3: 막대 스타일(Bar Style) vs 막대 서식(Bar Format)\nGantt 차트 편집 4: 레이아웃(Layout), Gantt 차트 마법사(Gantt Chart Wizard)\nGantt 차트 개발과 관계된 수식 활용\nGantt 차트 개발과 관계된 VBA 활용",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 4
+        },
+        {
+          "id": "section-5",
+          "heading": "2일차 테이블과 Custom Field",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "IV. 테이블과 필드",
+                "1. 테이블(Table)의 활용",
+                "테이블(Table)의 이해\n기본 작업 테이블(Built-in Task Table)의 종류\n기본 자원 테이블(Built-in Resource Table)의 종류\n테이블(Table)의 특징과 구성 요소\n효과적인 사용자 정의 테이블(Custom View)의 편집 방법",
+                "2h"
+              ],
+              [
+                "",
+                "2. 사용자 정의 필드(Custom Field)의    활용 1부",
+                "사용자 정의 필드(Custom Field)의 특징\n사용자 정의 필드 설정 1: 그래픽 표시기(Graphic Indicator)\n사용자 정의 필드 설정 2: 수식(Formula)\n사용자 정의 필드 설정 3: 조회(Look-up Table)",
+                "1h"
+              ],
+              [
+                "",
+                "3. 사용자 정의 필드(Custom Field)의    활용 2부",
+                "텍스트(Text) 필드를 활용한 사용자 정의(Customization)\n개요 코드(Outline) 필드를 활용한 사용자 정의(Customization)\n플래그(Flag) 필드를 활용한 사용자 정의(Customization)\n번호(Number) 필드를 활용한 사용자 정의(Customization)\n날짜(Date), 기간(Duration), 시작(Start), 완료(Finish) 등 날짜 형식 필드를 활용한 사용자 정의(Customization)\n비용(Cost) 필드를 활용한 사용자 정의(Customization)",
+                "2h"
+              ],
+              [
+                "",
+                "4. 사용자 정의 필드(Custom Field)의    활용 3부",
+                "수식(Formula)을 활용한 자동 분석 개요\n수식(Formula) 개발 모범 사례 검토\n중요 수식의 원리와 특징 이해\n텍스트(Text) 필드 수식(Formula) 개발 방법\n플래그(Flag) 필드 수식(Formula) 개발 방법\n번호(Number) 필드 수식(Formula) 개발 방법\n날짜(Date), 기간(Duration), 시작(Start), 완료(Finish) 등 날짜 형식의 수식(Formula) 개발 방법\n비용(Cost) 필드 수식(Formula) 개발 방법",
+                "3h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 5
+        },
+        {
+          "id": "section-6",
+          "heading": "3일차 보기 개발과 실습",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "V. 보기(View)의 개발",
+                "1. 그룹화와 정렬",
+                "그룹화(Group)의 개념 이해\n기본 작업 그룹화(Built-in Task Group)의 종류\n기본 자원 그룹화(Built-in Resource Group)의 종류\n그룹화(Group)의 구성 원리\n사용자 정의 그룹화(Custom Group)의 작성 방법\n사용자 정의 필드(Custom Field)를 활용한 그룹화 기법 소개\n그룹화 모범 적용 사례 소개\n정렬(Ordering)의 소개\n작업 정렬과 자원 정렬 방법",
+                "2h"
+              ],
+              [
+                "",
+                "2. 필터",
+                "필터의 소개\n필터의 종류: 일반 필터, 강조 필터, 자동 필터\n사용자 정의 작업 필터의 개발\n사용자 정의 자원 필터의 개발",
+                "1h"
+              ],
+              [
+                "",
+                "3. 작업 보기(Task View)의 편집",
+                "작업 배정 현황(Task Usage)\n작업 게시판(Task Board) = 작업 보드\n네트워크 다이어그램(Network Diagram)\n관계 다이어그램(Relationship Diagram)\n세부 네트워크 다이어그램(Descriptive Network Diagram)\n달력(Calendar)\n타임라인(Timeline)\n작업 시트(Task Sheet)\n작업 폼(Task Form)",
+                "2h"
+              ],
+              [
+                "",
+                "4. 자원 보기(Resource View)의 편집",
+                "팀 플래너(Team Planner)\n자원 배정 현황(Resource Usage)\n자원 시트(Resource Sheet)\n자원 그래프(Resource Graph)\n자원 폼(Resource Form)",
+                "1h"
+              ],
+              [
+                "V. 보기(View)의 개발",
+                "5. Project Template 실습 워크샵",
+                "작업·자원 보기를 조직의 요구사항에 맞게 구성하고 필터·그룹화·정렬을 함께 검토합니다.",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 6
+        },
+        {
+          "id": "section-7",
+          "heading": "4일차 보고서와 자동화",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "VI. 보고서(Report)의 개발",
+                "1. 보고서(Report)의 활용 1부",
+                "Microsoft Project 보고서 개요\n기본 제공 보고서(Built-in Report)의 종류\n보고서(Report) 관리 메뉴의 특징",
+                "1h"
+              ],
+              [
+                "",
+                "2. 보고서(Report)의 활용 2부",
+                "보고서의 종류 이해\n사용자 정의 보고서(Custom Report) 개요\n사용자 정의 보고서(Custom Report) 예시\n사용자 정의 보고서(Custom Report) 만들기 기초",
+                "1h"
+              ],
+              [
+                "",
+                "3. 보고서(Report)의 활용 3부",
+                "사용자 정의 보고서(Custom Report)를 위한 필드 설정 방법\n사용자 정의 보고서(Custom Report)를 위한 필터 개발 방법\n사용자 정의 보고서(Custom Report)를 위한 그룹화 개발 방법\n사용자 정의 보고서(Custom Report)를 위한 개요 수준 설정 방법\n사용자 정의 보고서(Custom Report)를 위한 정렬 방법\n사용자 정의 보고서(Custom Report)의 스타일 설정",
+                "2h"
+              ],
+              [
+                "",
+                "4. 보고서(Report)의 활용 4부",
+                "사용자 정의 보고서(Custom Report)의 형식 설정 방법\n보고서 분할 보기\n보고서 설정 이동\n통합 프로젝트의 대시보드 보고서 작성 방법",
+                "1h"
+              ],
+              [
+                "VII. Project Template 개발",
+                "매크로와 VBA",
+                "매크로의 이해와 실행 방법\n모범 매크로 활용 사례\nVisual Basic의 이해와 코딩\nMicrosoft Project 메뉴 모음 개발 방법\n파워 유저를 위한 PMS 설정 활용법",
+                "2h"
+              ],
+              [
+                "X. 마무리",
+                "",
+                "핵심정리\n수강생 Q&A",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 7
+        }
+      ],
+      "group": "ms",
+      "time_note": false
+    },
+    {
+      "path": "pm-practice/project-management",
+      "title": "PM 실무 과정",
+      "subtitle": "프로젝트 단계별 방법론과 리더십을 실습으로 연결합니다",
+      "days": 3,
+      "hours": 24,
+      "highlights": [
+        "착수·계획",
+        "범위·일정",
+        "실행·통제",
+        "리스크·팀워크"
+      ],
+      "source_name": "3-1. PM(Project Management) 실무 과정.pptx",
+      "source_slides": 6,
+      "sections": [
+        {
+          "id": "section-1",
+          "heading": "교육 개요와 학습 목표",
+          "blocks": [
+            [
+              "교육 시간: 3일 (8시간 x 3일 = 24시간)",
+              "교육 개요",
+              "PM에게 필요한 필수 지식을 프로젝트 단계별로 쉽고 체계적으로 학습합니다.",
+              "국내외 기업의 모범 사례 검토를 검토합니다.",
+              "교육 대상",
+              "전문적인 프로젝트 관리에 대한 역량의 개선을 희망하는 프로젝트 관리자",
+              "프로젝트 리더십과 조정 능력을 필요로 하는 개발자와 엔지니어",
+              "교육 기대 효과",
+              "프로젝트 계획과 실행 및 통제의 실무 방법론 학습",
+              "프로젝트 리더십과 프로젝트 팀워크 강화",
+              "다양한 모범 프로젝트 관리 사례 벤치마크",
+              "자료 지원",
+              "교육용 교재",
+              "페이스북을 통한 추가 지원",
+              "교육 녹화 동영상",
+              "교재 파일",
+              "MS Project 서식(MS Project Template)",
+              "모범 프로젝트 리스크 관리 예제",
+              "Q&A"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-1-s1-image9.jpeg",
+              "alt": "PM 실무 과정 1쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-1-s1-image8.png",
+              "alt": "PM 실무 과정 1쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 1
+        },
+        {
+          "id": "section-2",
+          "heading": "교육 커리큘럼 예: 1일차",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "1. 오리엔테이션",
+                "시작(Getting Started)",
+                "수강생 지원 안내\n교육 개요\n기대 사항 수집",
+                "1h"
+              ],
+              [
+                "II. 프로젝트 관리 프레임워크",
+                "1. 프로젝트 관리 개요",
+                "프로젝트 관리의 기초\n프로젝트 관리 방법론 요약: PMBOK, ISO, PRINCE2, CMMI, ASPICE, NCS\n프로젝트 관리 성숙도 모델(Project Management Maturity Model)",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 착수",
+                "제안의 타당성 검토 기법(Feasibility Study Techniques)\n프로젝트 공식화와 프로젝트 헌장(Project Authorization and Project Charter)\n이해관계자 식별과 팀 헌장(Stakeholder Identification and Team Charter)",
+                "1h"
+              ],
+              [
+                "III. 프로젝트 계획",
+                "1. 프로젝트 계획 수립 개요",
+                "성공적인 프로젝트 계획의 요구사항\n프로젝트 관리 계획의 이해\n프로젝트 관리 계획의 구성 요소\n프로젝트 계획 수립 프로세스",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 범위 관리",
+                "프로젝트 범위 관리 지식 영역 소개\n프로젝트 범위 관리 프로세스\n프로젝트 범위 관리 계획 수립\n요구사항 수집과 범위 정의\nWBS 작성\n범위 검수와 통제",
+                "2h"
+              ],
+              [
+                "",
+                "3. 프로젝트 범위 관리 실습",
+                "MS Project Template 활용 안내\n사전 설정과 프로젝트 착수 실습\nWBS 작성과 개요(Outline) 검토\nWBS 코드 작성",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 2
+        },
+        {
+          "id": "section-3",
+          "heading": "교육 커리큘럼 예: 2일차",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "III. 프로젝트 계획",
+                "4. 프로젝트 일정 계획 수립 개요",
+                "프로젝트 일정 관리 지식 영역 소개\n프로젝트 일정 관리 계획 수립\n활동 정의와 순서 배열\n기간 산정과 일정 개발\n일정 통제",
+                "1h"
+              ],
+              [
+                "",
+                "5. 프로젝트 일정 계획 실습",
+                "일정 관리 엔진(Scheduling Engine)의 이해\n마일스톤 관리 방법론\n선행 도식화 기법(Precedence Diagramming Method)\nLead와 Lag 활용\n전진 이동 일정 계획(Forward Scheduling), 후진 이동 일정 계획(Backward Scheduling)\n다양한 프로젝트 공정표의 활용 방법\n애자일 프로젝트 관리(Agile Project Management): 스크럼(Scrum), 칸반(Kanban), 애자일 보고서(Agile Report)",
+                "3h"
+              ],
+              [
+                "",
+                "6. 프로젝트 일정 계획 실습",
+                "마일스톤 지정\n마일스톤 차트와 마스터 스케줄 작성\n네트워크 다이어그램(Network Diagram) 작성 실습\nGantt 차트(Gantt Chart) 작성 실습\n공수 산정과 작업 배정 현황 작성 실습",
+                "2h"
+              ],
+              [
+                "",
+                "7. Critical Path Method 실습",
+                "작업 경로 분석 실습\n의존 관계(Dependency) 관점의 CPM 분석 실습\n마감일(Deadline) 관점의 CPM 분석 실습\n날짜 제한(Date Constraint) 관점의 CPM 분석 실습\n일정 최적화(Schedule Optimization) 실습\n애자일 프로젝트 계획 실습",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 3
+        },
+        {
+          "id": "section-4",
+          "heading": "교육 커리큘럼 예: 3일차",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "III. 프로젝트 실행과 통제",
+                "1. 프로젝트 실행, 감시, 통제의 방법론",
+                "프로젝트 마스터 스케줄 관리\n프로젝트 실행 프로세스\n프로젝트 감시와 통제 프로세스\n통합 변경 통제 수행\n프로젝트 종료",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 실행, 감시, 통제의 실습",
+                "진도 입력과 일정 상태 분석\n베이스라인(Baseline) 설정과 차이 분석 실습\n프로젝트 대시보드(Project Dashboard) 검토\n프로젝트 버전과 변경사항 관리\n통합 프로젝트의 구성\n그룹화를 통한 프로젝트 분석\n필터를 통한 프로젝트 분석\n프로젝트 진행 중 이슈 관리",
+                "2h"
+              ],
+              [
+                "IV. 프로젝트 리스크 관리",
+                "1. 프로젝트 리스크 관리 방법론",
+                "프로젝트 리스크 관리 개요\n리스크 관리 계획 수립\n리스크 식별과 정성적/정량적 분석\n리스크 대응 계획 수립\n리스크 대응 실행과 리스크 감시",
+                "3h"
+              ],
+              [
+                "",
+                "2. 프로젝트 리스크 관리 실습",
+                "리스크 관리 계획 토론\n리스크 관리 대장 작성 실습\n정성적 리스크 분석 실습\n정량적 리스크 분석 실습\n리스크 대응 계획 수립 실습",
+                "1h"
+              ],
+              [
+                "V. 마무리",
+                "",
+                "핵심 정리\n사후 지원 안내",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 4
+        },
+        {
+          "id": "section-5",
+          "heading": "시나리오와 모범 사례 중심의 학습",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "풍부한 실무 교육 경험을 바탕으로 철저히 실무적인 프로젝트 관리 방법론에 근거한 명쾌하고 친절한 교육을 진행합니다.\n체계적인 시나리오 중심의 실습 교육으로 자신감과 확신을 드립니다.\n쉽고 빠르게 프로젝트 관리 노하우를 벤치마크할 수 있는 120여개의 모범 프로젝트 사례를 제시해 드립니다.\n강사가 진행하는 모든 교육 자료를 수강생에게 파일로 제공해 드리며, 확실하게 노하우를 전수해 드립니다.\n교육 진행 모습을 100% 녹화한 “선명한 교육 촬영 동영상”을 제공해 드리므로 실제 교육과 같은 복습이 가능합니다.\n교육 후에도 수강생들이 지속적인 지원을 받을 수 있도록 수강생 전용 페이스북 그룹을 제공합니다.\n열정적인 강의, 유익한 사례 이야기, 유쾌한 교훈 동영상 등으로 교육 시간 중 재미와 감동을 드립니다."
+              ]
+            ]
+          ],
+          "images": [
+            {
+              "src": "/images/courses/3-1-s5-image11.jpeg",
+              "alt": "PM 실무 과정 5쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-1-s5-image10.jpeg",
+              "alt": "PM 실무 과정 5쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-1-s5-image13.jpeg",
+              "alt": "PM 실무 과정 5쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-1-s5-image12.jpeg",
+              "alt": "PM 실무 과정 5쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 5
+        },
+        {
+          "id": "section-6",
+          "heading": "교육 자료와 수강생 지원",
+          "blocks": [
+            [
+              "맞춤형 Q&A 영상을 제공하여 수강생의 이해와 활용을 지원합니다."
+            ],
+            [
+              "교육 이력 증빙을 위한 영문 수료증을 제공합니다. 자격 유지에 필요한 PDU는 PMI 규정에 따라 개별 신청합니다."
+            ],
+            [
+              "수강생 특전"
+            ],
+            [
+              "프로젝트 관리 방법론 제공"
+            ],
+            [
+              "Agile, PMBOK 등 철저히 실무적인 관점의 필수 프로젝트 관리 방법론을 제공합니다."
+            ],
+            [
+              "온라인 동영상 교육 지원"
+            ],
+            [
+              "프로젝트 관리 테스트 제공"
+            ],
+            [
+              "프로젝트 관리 역량을 셀프 테스트할 수 있고 PMP 시험의 출제 경향을 분석한 적중 문제 풀이집을 파일로 제공해 드립니다."
+            ],
+            [
+              "체계적인 교육 프로세스"
+            ],
+            [
+              "목표 제시"
+            ],
+            [
+              "프로젝트 관리 지식"
+            ],
+            [
+              "모범 사례 검토와 데모"
+            ],
+            [
+              "셀프 테스트와 해설서"
+            ],
+            [
+              "핵심 정리와 확인 학습"
+            ],
+            [
+              "PMP"
+            ],
+            [
+              "모범 프로젝트 예제"
+            ],
+            [
+              "초보자도 쉽게 이해할 수 있도록 다양한 템플릿과 모범 프로젝트 예제 120선을 제공합니다."
+            ],
+            [
+              "모범 사례 검토와 심화 학습 자료 제공"
+            ],
+            [
+              "성공적인 프로젝트 사례를 벤치마크합니다.",
+              "프로젝트 관리 역량을 강화할 수 있는 다양한 심화 학습 자료를 제공합니다."
+            ],
+            [
+              "영문 수료증 제공"
+            ],
+            [
+              "고객지원 네이버 카페 VVIP 멤버십"
+            ],
+            [
+              "교육 녹화 동영상",
+              "교재 파일",
+              "지속적인 수강생 지원 및 안내"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-1-s6-image23.png",
+              "alt": "PM 실무 과정 6쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 6
+        }
+      ],
+      "group": "pm",
+      "time_note": false
+    },
+    {
+      "path": "pm-practice/risk-issue-management",
+      "title": "리스크&이슈 관리 실무 과정",
+      "subtitle": "위협과 기회를 식별하고, 분석하고, 대응합니다",
+      "days": 2,
+      "hours": 16,
+      "highlights": [
+        "리스크 계획·식별",
+        "정성·정량 분석",
+        "대응·감시",
+        "MS Project·Excel 실습"
+      ],
+      "source_name": "3-2. 프로젝트 리스크&이슈 관리 전문가 과정.pptx",
+      "source_slides": 4,
+      "sections": [
+        {
+          "id": "section-1",
+          "heading": "교육 목표와 대상",
+          "blocks": [
+            [
+              "소개",
+              "프로젝트의 리스크(Risk) 관리는 긍정적인 사건의 발생 가능성과 파급 효과는 극대화(maximize the positive)하고, 부정적인 사건의 가능성과 영향도는 최소화(minimize the negative)하는 것을 목표로 합니다.",
+              "교육 목표",
+              "프로젝트 리스크 관리를 위한 정확한 용어를 이해합니다.",
+              "프로젝트 리스크 관리의 체계적인 프로세스를 이해하고 실무에 적용합니다.",
+              "프로젝트의 리스크 관리 방법론을 이해하고 리스크 관리 계획을 수립합니다.",
+              "프로젝트의 리스크를 식별하여 유형을 분류하고 리스크관리대장을 작성합니다.",
+              "프로젝트의 리스크를 관리할 수 있는 다양한 도구와 기법을 이해하고 활용합니다.",
+              "프로젝트의 위협 요인과 기회 요인에 대한 리스크 대응 전략을 수립합니다.",
+              "프로젝트의 리스크를 감시하고 통제하여 프로젝트의 불확실성을 줄일 수 있습니다.",
+              "교육 대상",
+              "프로젝트의 성공 가능성을 높이기를 희망하는 모든 이해 관계자",
+              "MS Project를 사용 중이거나 사용 검토 중인 프로젝트 이해 관계자",
+              "시험 위주의 지식을 지양하고 철저히 실무적인 지식을 필요로 하는 프로젝트 팀"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-2-s1-image3.png",
+              "alt": "리스크&이슈 관리 실무 과정 1쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-2-s1-image5.jpeg",
+              "alt": "리스크&이슈 관리 실무 과정 1쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-2-s1-image4.jpeg",
+              "alt": "리스크&이슈 관리 실무 과정 1쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 1
+        },
+        {
+          "id": "section-2",
+          "heading": "학습 효과와 지원 자료",
+          "blocks": [
+            [
+              "교육 기대 효과",
+              "리스크의 예측 및 해결 능력 제고",
+              "조직 차원의 리스크 관리 역량 강화",
+              "MS Project와 MS Office를 활용한 체계적인 리스크 관리 실습",
+              "리스크 관리 모범 사례와 실패 사례의 교훈 확보",
+              "수강생 특전",
+              "프로젝트 리스크 관리 전문가 과정 교재",
+              "주요 파일 자료",
+              "프로젝트 리스크 관리 전문가 과정 교재 교재 파일",
+              "프로젝트 리스크 관리 방법론",
+              "프로젝트 리스크 관리 E-Book",
+              "프로젝트 리스크 관리 서식(Template)",
+              "모범 프로젝트 서식 파일 100선",
+              "수강생 자료실 (사후 지속적 지원)"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-2-s2-image7.jpeg",
+              "alt": "리스크&이슈 관리 실무 과정 2쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-2-s2-image8.png",
+              "alt": "리스크&이슈 관리 실무 과정 2쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 2
+        },
+        {
+          "id": "section-3",
+          "heading": "교육 커리큘럼: 1일차",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습목표",
+                "교 육 내 용",
+                "교육시간"
+              ],
+              [
+                "I. 프로젝트 리스크 관리 방법론",
+                "1. 프로젝트 리스크 관리 개요",
+                "리스크 관리의 중요성\n리스크의 개념 이해\n프로젝트 리스크 관리 방법론의 종류\n리스크 관리 소프트웨어\n프로젝트 리스크 관리 역량 강화 방안\n리스크 유형 분류\n리스크 유형 별 리스크 대응 방안",
+                "2h"
+              ],
+              [
+                "",
+                "2. 프로젝트 리스크 관리 프로세스",
+                "리스크 관리 프로세스\n리스크 관리 프로세스의 데이터 흐름도(DFD)\n리스크 관리 프로세스와 프로젝트 관리 지식 영역과의 관계\nCPM을 활용한 리스크 통제\nEVM을 활용한 리스크 통제",
+                "2h"
+              ],
+              [
+                "II. 리스크 관리 프로세스",
+                "1. 리스크 관리 계획 수립",
+                "리스크 관리 계획 수립의 중요성\n리스크 관리 계획 수립의 도구와 기법 이해\n리스크 관리 계획을 위한 기획 회의\n리스크 관리 계획의 체크포인트: 프로세스, RBS, P-I 매트릭스 양식, 임계치, 예산, 리스크와 계약 종류의 관계 등",
+                "2h"
+              ],
+              [
+                "",
+                "2. 리스크 식별",
+                "리스크 식별의 필요성 이해\n리스크 식별 프로세스의 개요, DFD, ITTO\n산업 분야 별 리스크의 예\n브레인스토밍과 델파이기법\nSWOT 분석, 체크리스트, 원인 결과도\n리스크 발생의 원인 분석",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 3
+        },
+        {
+          "id": "section-4",
+          "heading": "교육 커리큘럼: 2일차",
+          "blocks": [
+            [
+              "실습 적용: 리스크와 이슈의 연결",
+              "발생 가능성이 있는 리스크와 이미 발생한 이슈를 구분합니다.",
+              "리스크 등록부의 원인·사건·영향과 이슈 대장의 현상·영향·조치를 연결합니다.",
+              "담당자·기한·상태·후속 의사결정을 기록하고 프로젝트 일정과 연계하여 관리합니다."
+            ]
+          ],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습목표",
+                "교 육 내 용",
+                "교육시간"
+              ],
+              [
+                "II. 리스크 관리 프로세스",
+                "3. 정성적 리스크 분석",
+                "정성적 리스크 분석 프로세스의 개요, DFD, ITTO\n리스크의 가능성, 영향도, 데이터 품질, 긴급성 평가\n확률 및 영향도 매트릭스\n리스크 유형 분류\n리스크 노출도, 리스크 등급, 쌍대 비교",
+                "1h"
+              ],
+              [
+                "",
+                "4. 정량적 리스크 분석",
+                "정량적 리스크 분석 프로세의 개요, DFD, ITTO\n3점 산정, 민감도 분석, PERT 기법, 몬테칼로 시뮬레이션, 기대 화폐 가치, 의사 결정 나무 분석",
+                "1h"
+              ],
+              [
+                "",
+                "5. 리스크 대응 계획 수립",
+                "리스크 대응 계획 수립 프로세스의 개요, DFD, ITTO\n부정적 리스크의 대응 계획\n긍정적 리스크의 대응 계획\n완화 계획, 비상 계획, 대체 계획(복구 계획)\n리스크 감시 및 조기 경보(Early Warning) 체계 수립",
+                "1h"
+              ],
+              [
+                "",
+                "6. 리스크 통제",
+                "리스크 통제 프로세스의 개요, DFD, ITTO\n리스크 재평가, 감사, 차이 및 추세 분석, 기술적 성과 측정, 예비분 분석, 회의(미팅)\n프로젝트 종료 시의 리스크 관리 활동\n리스크 체크 리스트",
+                "1h"
+              ],
+              [
+                "III. 프로젝트 리스크 관리 실습",
+                "4. 마무리",
+                "타사 모범 사례 소개\nMS Project와 Excel을 활용한 리스크 관리 실습 안내\n강사 개별 지도\n핵심 정리, 안내 사항 전달",
+                "4h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 4
+        }
+      ],
+      "group": "pm",
+      "time_note": false
+    },
+    {
+      "path": "pm-practice/agile-project",
+      "title": "애자일 프로젝트 실무 과정",
+      "subtitle": "스크럼, 칸반과 하이브리드 접근을 조직에 맞게 적용합니다",
+      "days": 2,
+      "hours": 16,
+      "highlights": [
+        "애자일 기본기",
+        "Scrum·Kanban·XP",
+        "리스크 관리",
+        "Tailoring·실천"
+      ],
+      "source_name": "3-3. 애자일(Agile) 프로젝트 실무.pptx",
+      "source_slides": 6,
+      "sections": [
+        {
+          "id": "section-1",
+          "heading": "교육 개요와 학습 목표",
+          "blocks": [
+            [
+              "교육 개요",
+              "교육 시간: 2일 (8시간 x 2일 = 16시간)",
+              "강사: 남웅찬 / 피엠오피스 대표",
+              "교육 목표",
+              "애자일(Agile) 방법론의 개념과 원리를 체계적으로 학습합니다.",
+              "회사와 업무에 맞게 애자일 방법론을 테일러링(Tailoring)합니다.",
+              "애자일과 하이브리드 방법론을 활용하여 프로젝트를 성공적으로 수행합니다.",
+              "교육 대상",
+              "전문적인 프로젝트 관리 기량의 개선을 희망하는 프로젝트 관리자",
+              "프로젝트 리더십과 조정 능력을 필요로 하는 개발자와 엔지니어",
+              "조직의 성장과 발전을 주도하는 임원과 관리자",
+              "애자일 지식을 강화하고 실무 이해를 원하는 모든 프로젝트 이해관계자"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-3-s1-image8.png",
+              "alt": "애자일 프로젝트 실무 과정 1쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-3-s1-image7.png",
+              "alt": "애자일 프로젝트 실무 과정 1쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 1
+        },
+        {
+          "id": "section-2",
+          "heading": "교육 커리큘럼 예: 1일차",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "오리엔테이션",
+                "교육 준비",
+                "수강생 지원 안내\n교육 개요\n기대 사항 수집",
+                "1h"
+              ],
+              [
+                "I. 기본 개념(Foundation Concepts)",
+                "1. 프로젝트(Project)의 이해",
+                "애자일의 등장 배경\n프로젝트(Project)와 프로젝트 관리(Project Management)의 특징\n성공적인 프로젝트 관리의 3 요소\n애자일(Agile) vs 예측형(Waterfall)",
+                "1h"
+              ],
+              [
+                "",
+                "2. 프로젝트 관리(Project Management)의 개요",
+                "프로젝트 관리 지식의 역사\n프로젝트 관리 지식 체계(PMBOK)의 이해",
+                "1h"
+              ],
+              [
+                "II. 애자일 접근(Agile Approaches)",
+                "1. 프로젝트 관리의 현실",
+                "프로젝트 실패 사례와 성공 사례\n애자일 핵심 성공 요인",
+                "1h"
+              ],
+              [
+                "",
+                "2. 애자일 개요(Agile Overview)",
+                "애자일 소개(Introducing Agile)\n애자일 서베이(Agile Survey)",
+                "1h"
+              ],
+              [
+                "",
+                "3. 애자일 프로젝트 라이프 사이클   (Agile Project Life Cycle)",
+                "프로젝트 라이프 사이클(Project Life Cycle)의 이해\n예측형 라이프 사이클(Predictive Life Cycle)\n적응형 라이프 사이클(Adaptive Life Cycle): 반복, 증분, 반복 기반 애자일, 플로우 기반 애자일\n하이브리드 라이프 사이클(Hybrid Life Cycle)",
+                "2h"
+              ],
+              [
+                "",
+                "4. 애자일 마음가짐(Agile Mindset)",
+                "애자일 선언문(Agile Manifesto)\n애자일 4대 가치(Agile 4 Value)\n애자일 12대 원칙(Agile 12 Principles)",
+                "1h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 2
+        },
+        {
+          "id": "section-3",
+          "heading": "교육 커리큘럼 예: 2일차",
+          "blocks": [],
+          "tables": [
+            [
+              [
+                "주제",
+                "학습 목표",
+                "교육 내용",
+                "교육 시간"
+              ],
+              [
+                "II. 애자일 접근(Agile Approaches)",
+                "5. 애자일 환경(Agile Environment)",
+                "애자일 환경 소개\n애자일 환경 구현 방법",
+                "1h"
+              ],
+              [
+                "III. 애자일 프로젝트 관리 방법론    (Agile PM Methodology)",
+                "1. 스크럼(Scrum) 기반 애자일",
+                "스크럼 개요\n스크럼 팀(Scrum Team)\n스크럼 기반 프로젝트 관리: 착수, 계획, 실행, 통제, 종료\n스크럼 마스터의 애자일 실천법\n제품 소유자의 애자일 실천법\n개발팀의 애자일 실천법",
+                "2h"
+              ],
+              [
+                "",
+                "2. 칸반(Kanban) 기반 애자일",
+                "칸반(Kanban)의 특징과 활용 가치\n칸반(Kanban) 활용 실천법",
+                "1h"
+              ],
+              [
+                "",
+                "3. XP 기반 애자일",
+                "XP(Extreme Programming) 개요\nXP(Extreme Programming) 실천법",
+                "1h"
+              ],
+              [
+                "",
+                "4. 애자일 리스크 관리",
+                "애자일 리스크 관리의 개요\n계획: 리스크 관리 계획 / 리스크 식별 / 리스크 분석 / 리스크 대응 계획\n관리: 리스크 대응 실행 / 리스크 감시",
+                "1h"
+              ],
+              [
+                "",
+                "5. 애자일 테일러링과 실천",
+                "애자일 테일러링\n애자일 실천 방안\n애자일 모범 적용 사례 소개\n애자일 도구 활용 데모\n심화 학습 안내\n확인 학습과 Q&A",
+                "2h"
+              ]
+            ]
+          ],
+          "images": [],
+          "source_slide": 3
+        },
+        {
+          "id": "section-4",
+          "heading": "애자일 프로젝트 관리가 필요한 이유",
+          "blocks": [
+            [
+              "불확실한 환경 속에서 프로젝트의 실패가 많아지고 있습니다."
+            ],
+            [
+              "과도한 변경이 발생하는 프로젝트도 많아지고 있습니다."
+            ],
+            [
+              "수 많은 방법론과 도구가",
+              "파도처럼 물려 오고 있습니다."
+            ],
+            [
+              "잘못된 애자일 지식도 넘쳐 나고 있습니다."
+            ],
+            [
+              "애자일 체계 확립으로 불확실성 해소"
+            ],
+            [
+              "빠른 대응과 성공적인 제품 출시"
+            ],
+            [
+              "Agile 기반의 프로젝트 관리 방법론"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-3-s4-image11.png",
+              "alt": "애자일 프로젝트 실무 과정 4쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-3-s4-image10.png",
+              "alt": "애자일 프로젝트 실무 과정 4쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 4
+        },
+        {
+          "id": "section-5",
+          "heading": "실무 교재와 학습 자료",
+          "blocks": [
+            [
+              "교재 분량: 1,200여 페이지",
+              "전문 강사의 깊이 있는 프로젝트 관리 지식 체계 해설을 제공합니다.",
+              "다양한 도해(Diagram)과 사례(Case Studies)를 제시하여 초보자도 체계적으로 프로젝트 관리 지식을 학습할 수 있습니다."
+            ],
+            [
+              "현실 세계의 다양한 애자일 트렌드와 통계 제시"
+            ],
+            [
+              "모든 도구, 기법, 문서, 지침에 관한 명쾌한 예시 제공"
+            ],
+            [
+              "정확하고 자세한 용어 해설"
+            ],
+            [
+              "풍부한 도해와 친절한 해설 제공"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-3-s5-image13.png",
+              "alt": "애자일 프로젝트 실무 과정 5쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-3-s5-image12.png",
+              "alt": "애자일 프로젝트 실무 과정 5쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-3-s5-image15.png",
+              "alt": "애자일 프로젝트 실무 과정 5쪽 교육·실습 자료"
+            },
+            {
+              "src": "/images/courses/3-3-s5-image14.jpg",
+              "alt": "애자일 프로젝트 실무 과정 5쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 5
+        },
+        {
+          "id": "section-6",
+          "heading": "조직의 애자일 체계 정착 지원",
+          "blocks": [
+            [
+              "애자일 프로젝트의 표준 확립",
+              "PMBOK 6판의 프로젝트 관리 프로세스와 애자일 접근을 바탕으로 학습합니다. 조직의 상황에 맞는 방법론 적용에 초점을 둡니다.",
+              "이론 학습 후, 실제 Best Practices를 통해 업무에 적합한 Agile 방법론을 선택하여 적용을 할 수 있도록 역량을 강화합니다.",
+              "모범 사례 검토와 벤치마크",
+              "애자일의 프로젝트의 국내외 모범 사례를 소개합니다.",
+              "사례 중심으로 실패 요인과 성공 요인을 집중 분석합니다.",
+              "완전한 노하우 전수",
+              "참여 기업의 애자일 프로젝트 관리 체계 정착을 위한 교재, 동영상, 서식(Template), 방법론 심화 학습 자료를 파일로 전달해 드립니다.",
+              "본 교육 과정은 지난 십 수년간 다양한 글로벌 기업 강의를 통해 검증/발전되었으며, 타 교육기관과 차별화된 커리쿨럼을 제공합니다."
+            ],
+            [
+              "기초부터 세부 프로세스까지 한 번에 학습"
+            ],
+            [
+              "Agile 방법론과 전통적인 Waterfall 방법론의 조화"
+            ]
+          ],
+          "tables": [],
+          "images": [
+            {
+              "src": "/images/courses/3-3-s6-image17.jpeg",
+              "alt": "애자일 프로젝트 실무 과정 6쪽 교육·실습 자료"
+            }
+          ],
+          "source_slide": 6
+        }
+      ],
+      "group": "pm",
+      "time_note": false
+    }
+  ],
+  "groups": [
+    {
+      "key": "ai",
+      "text": "AI 교육",
+      "link": "/ai-edu/",
+      "items": [
+        {
+          "text": "생성형 AI 기반 R&D 과제 관리",
+          "link": "/ai-edu/ai-rd-management.html"
+        },
+        {
+          "text": "Copilot for Microsoft Project",
+          "link": "/ai-edu/copilot-for-microsoft-project.html"
+        }
+      ]
+    },
+    {
+      "key": "ms",
+      "text": "MS Project",
+      "link": "/ms-project/",
+      "items": [
+        {
+          "text": "MS Project 핵심 실무 과정",
+          "link": "/ms-project/core-practice.html"
+        },
+        {
+          "text": "MS Project 전문가 과정",
+          "link": "/ms-project/expert.html"
+        },
+        {
+          "text": "MS Project Template 개발 과정",
+          "link": "/ms-project/template-development.html"
+        }
+      ]
+    },
+    {
+      "key": "pm",
+      "text": "PM 실무",
+      "link": "/pm-practice/",
+      "items": [
+        {
+          "text": "PM 실무 과정",
+          "link": "/pm-practice/project-management.html"
+        },
+        {
+          "text": "리스크&이슈 관리 실무 과정",
+          "link": "/pm-practice/risk-issue-management.html"
+        },
+        {
+          "text": "애자일 프로젝트 실무 과정",
+          "link": "/pm-practice/agile-project.html"
+        }
+      ]
+    }
+  ]
+}
