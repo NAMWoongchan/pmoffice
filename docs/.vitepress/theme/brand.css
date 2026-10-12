@@ -6,3 +6,4 @@
 .VPNavBarSearch{flex-grow:0!important;width:210px!important;margin-right:auto}.VPNavBarSearch .DocSearch-Button{width:190px!important}@media(max-width:767px){.VPNavBarSearch{width:auto!important}}
 @media(max-width:767px){.VPNavBarSearch .DocSearch-Button{width:32px!important}.hero h1{font-size:30px;line-height:1.5}.course-hours{font-size:11px;line-height:1.8}.course-card{gap:14px;padding:22px}.course-card .course-symbol{width:42px;height:56px}.course-card .course-label{font-size:9px}}
 @media(min-width:768px) and (max-width:959px){.VPNavBarSearch{width:40px!important}.VPNavBarSearch .DocSearch-Button{width:32px!important}.VPNavBarSearch .DocSearch-Button-Placeholder,.VPNavBarSearch .DocSearch-Button-Keys{display:none!important}.VPNavBarMenuLink{font-size:12px!important;padding:0 9px!important}}
+.experience-copy h1,.training-band h1{font-size:38px;letter-spacing:-1.5px;line-height:1.35}@media(max-width:767px){.experience-copy h1,.training-band h1{font-size:30px}}
