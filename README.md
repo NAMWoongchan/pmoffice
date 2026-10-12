@@ -1,6 +1,6 @@
-# PMOffice Wiki
+# PMOffice 피엠오피스
 
-프로젝트 관리와 실무 도구를 위한 공개 지식 공간입니다.
+프로젝트 관리 교육·컨설팅·PMS 개발과 AI 실무 교육 홈페이지입니다. 기존 지식 문서는 지식 공간에서 제공합니다.
 
 **[홈페이지 열기](https://namwoongchan.github.io/pmoffice-wiki-site/)**
 
@@ -24,3 +24,7 @@ VitePress 1.6.4 · Node.js 22 · pnpm 11.25.0 · `pnpm install --frozen-lockfile
 작업 기록은 제작 환경의 Root AGENTS.md '대화·작업 진행 TXT 기록 규칙 v1.4'를 따르며 공개 소스에 포함하지 않습니다.
 
 관련 근거: [VitePress 문서](https://vitepress.dev/) · [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages).
+
+
+## 홈페이지 콘텐츠 운영
+사업과 교육 콘텐츠는 docs/.vitepress/theme/content.json 및 MarketingPage.vue에서 관리합니다. 지식 게시글은 기존 Markdown 경로를 유지하고 새 문서 추가 시 공개 허용 목록·분류 목록·목차를 함께 갱신합니다. 다운로드 소개서는 docs/public/downloads에 저장합니다. 원본·작업 기록은 공개 소스에 포함하지 않습니다.

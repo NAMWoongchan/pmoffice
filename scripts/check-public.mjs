@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 const root = process.argv.includes('--dist') ? 'docs/.vitepress/dist' : 'docs'
 const privateMarkers = ['sources-and-writing', 'pmoffice-sources-writing', 'github.com/NAMWoongchan/pmoffice-wiki/', 'Source Policy', 'THREAD_REGISTRY', '인증 비밀']
-const allowedPages = new Set(['index.md', 'project-management.md', 'project-management/paradigm-shift.md', 'microsoft-project.md', 'generative-ai.md', 'pc-management/README.md', 'pc-management/high-performance-power.md'])
+const allowedPages = new Set(["about.md", "contact.md", "generative-ai.md", "index.md", "knowledge/index.md", "microsoft-project.md", "pc-management/README.md", "pc-management/high-performance-power.md", "project-management.md", "project-management/paradigm-shift.md", "services.md", "training/ai-rd-management.md", "training/copilot-for-microsoft-project.md", "training/index.md"])
 let files = 0
 function scan(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

@@ -1,0 +1,239 @@
+{
+  "services": [
+    {
+      "id": "microsoft-project",
+      "title": "Microsoft Project 교육",
+      "en": "Microsoft Project",
+      "text": "일정을 작성하는 도구에서, 프로젝트를 운영하는 실무 역량으로.",
+      "items": [
+        "MS Project 핵심 실무 과정",
+        "MS Project 전문가 과정",
+        "고객 맞춤형 Project Template 개발 실무 교육"
+      ],
+      "result": "WBS와 일정, 자원 배정, 기준선을 연결하여 프로젝트를 관리하는 방법을 학습합니다."
+    },
+    {
+      "id": "project-management",
+      "title": "프로젝트 관리 실무 교육",
+      "en": "Project Management",
+      "text": "방법론을 이해하고, 조직의 현장에서 실행할 수 있도록.",
+      "items": [
+        "프로젝트 관리 방법론 기초 · PM 양성",
+        "애자일 실무 · PMP 양성",
+        "프로젝트 공정 관리 · 리스크 관리"
+      ],
+      "result": "역할과 관리 절차를 이해하고, 프로젝트의 계획과 실행을 연결하는 실무 역량을 기릅니다."
+    },
+    {
+      "id": "practical-ai",
+      "title": "실전 AI 교육",
+      "en": "AI for Work",
+      "text": "생성형 AI를 프로젝트의 계획, 분석, 보고에 연결합니다.",
+      "items": [
+        "생성형 AI 기반 R&D 과제 관리",
+        "Copilot for Microsoft Project",
+        "Microsoft 365 Copilot · AI Agent 개발"
+      ],
+      "result": "프롬프트와 근거 자료를 다루고, 실제 업무 산출물에 AI를 적용하는 방법을 실습합니다."
+    },
+    {
+      "id": "consulting-pms",
+      "title": "컨설팅 · PMS 개발",
+      "en": "Consulting & Systems",
+      "text": "조직의 관리 체계부터, 현장에서 사용하는 시스템까지.",
+      "items": [
+        "Microsoft Project Template 작성",
+        "통합 프로젝트 관리 체계 수립 · 공정표 작성",
+        "공정 관리 컨설팅 · 고객 맞춤형 PMS 개발",
+        "PMS 사용자·관리자 교육"
+      ],
+      "result": "조직의 업무 방식과 관리 요구를 분석하여 프로젝트 관리 체계와 시스템 적용을 지원합니다."
+    }
+  ],
+  "copilot": {
+    "title": "Copilot for Microsoft Project",
+    "subtitle": "Microsoft Project와 Microsoft 365 Copilot을 연결하는 프로젝트 관리 실무",
+    "goal": "Microsoft Project로 프로젝트 일정을 구성하고, Microsoft 365 Copilot을 활용하여 요구사항 분석, WBS 초안, 진도 분석과 보고를 연결합니다. AI가 제안한 결과를 근거 자료와 프로젝트 관리 원칙으로 검토하는 역량을 기릅니다.",
+    "target": [
+      "프로젝트를 기획·수행·관리하는 PM과 R&D 실무자",
+      "일정과 보고 업무를 개선하려는 기업·공공기관 담당자",
+      "문서·스프레드시트 기본 사용이 가능하고 Project·Copilot 연계에 관심 있는 분"
+    ],
+    "outcomes": [
+      "요구사항과 원문 근거를 연결한 WBS",
+      "선후행·자원·기준선을 반영한 Project 일정표",
+      "Excel 기반 진도 분석표",
+      "위험·이슈 목록과 대응 초안",
+      "의사결정에 필요한 프로젝트 상태 보고서",
+      "업무에 다시 사용할 프롬프트와 검토 체크리스트"
+    ],
+    "modules": [
+      {
+        "day": "1일차",
+        "title": "근거를 읽고, 프로젝트를 설계합니다",
+        "hours": 8,
+        "lessons": [
+          [
+            "제품·사용 환경 구분",
+            2,
+            "Project 데스크톱, Copilot Chat, Microsoft 365 Copilot, Planner의 역할과 실습 환경 확인"
+          ],
+          [
+            "프롬프트·근거 자료 분석",
+            2,
+            "목표·맥락·입력 자료·출력 형식을 명확히 하고 요구사항의 근거 추적"
+          ],
+          [
+            "요구사항·WBS 작성",
+            4,
+            "R&D 사례의 산출물 분해, 작업 범위·완료 기준 정리와 AI 초안 검토"
+          ]
+        ]
+      },
+      {
+        "day": "2일차",
+        "title": "계획을 일정과 관리 데이터로 연결합니다",
+        "hours": 8,
+        "lessons": [
+          [
+            "Project 일정·선후행·자원·기준선",
+            4,
+            "작업·기간·관계·달력·자원 배정과 기준선 설정, 일정 논리 검토"
+          ],
+          [
+            "Excel 데이터와 Copilot을 활용한 진도·위험 분석",
+            4,
+            "Project 자료 내보내기, 데이터 정리, 계획 대비 진도 분석과 위험·이슈 검토"
+          ]
+        ]
+      },
+      {
+        "day": "3일차",
+        "title": "실행 현황을 공유하고, 결과를 검토합니다",
+        "hours": 8,
+        "lessons": [
+          [
+            "Word·Teams·PowerPoint 보고·협업",
+            3,
+            "상태 보고서, 회의 후속 조치와 발표 자료 초안 작성·검토"
+          ],
+          [
+            "Planner AI 활용",
+            2,
+            "Planner Agent 기능, 이용 조건과 업무 적용 시연·실습"
+          ],
+          [
+            "통합 실습·검토",
+            3,
+            "동일 R&D 사례의 계획·진도·위험·보고 결과 통합 및 상호 검토"
+          ]
+        ]
+      }
+    ],
+    "environment": [
+      "Windows PC와 사용 가능한 Microsoft Project 데스크톱 환경을 준비합니다.",
+      "앱 내 Copilot 실습에는 해당 Microsoft 365 앱과 Copilot 사용 권한이 필요합니다. Copilot Chat과 앱 내 기능의 범위는 구분합니다.",
+      "Planner Agent 이용에는 Microsoft Copilot 라이선스가 필요하며, 프리미엄 기능에는 추가 Planner 라이선스가 적용됩니다. 조직 설정과 실제 계정 접근을 사전에 확인합니다.",
+      "Project 자료를 Excel 등 지원되는 자료 형식으로 내보내어 Copilot 분석에 연결합니다. Project 내부 Copilot 패널이나 Planner와의 자동 동기화를 전제하지 않습니다.",
+      "사용 환경이 없는 기능은 강사 시연과 제공 데이터 실습으로 대체합니다. 기업 자료는 익명화하고 접근 권한을 확인합니다."
+    ],
+    "assessment": "산출물과 원문 근거의 일치, WBS 범위·완료 기준, 일정의 선후행·자원·기준선, 진도 분석의 계산·해석, 보고서의 사실·제안 구분을 검토합니다.",
+    "note": "신규 과정 설계안입니다. 기본 24시간, 입문 16시간, 기업 맞춤형 32시간으로 운영 구성을 제안합니다. 개강일·수강료·세부 운영은 협의합니다."
+  },
+  "rd": {
+    "title": "생성형 AI 기반 R&D 과제 관리",
+    "subtitle": "요구사항부터 결과보고까지, R&D 과제 관리에 AI를 연결합니다.",
+    "goal": "생성형 AI와 AI 에이전트의 핵심 개념을 이해하고 데이터 리터러시를 기반으로 R&D 과제 관리에 적용합니다. 프롬프트·컨텍스트 엔지니어링으로 요구사항과 근거 자료를 분석하고 WBS·일정·위험·변경·결과보고를 통합 관리하는 방법을 실습합니다.",
+    "target": [
+      "R&D 기획·수행·성과관리 경험이 있는 기업 재직자·공공기관 종사자",
+      "문서·스프레드시트의 기본 사용이 가능한 분",
+      "ChatGPT를 업무에 활용하려는 사용자"
+    ],
+    "modules": [
+      [
+        "AI 기본기",
+        "인재 모델의 변화, 데이터 리터러시, 프롬프트와 컨텍스트 엔지니어링"
+      ],
+      [
+        "AI 시대의 R&D 업그레이드",
+        "프로젝트 관리 방법론과 범위·일정·리스크·이슈 관리 실무"
+      ],
+      [
+        "ChatGPT 클라우드 프로젝트 실무",
+        "클라우드 환경·워크스페이스, 스킬·플러그인, R&D 프로젝트 사이트 개발 소스"
+      ],
+      [
+        "ChatGPT 앱 활용 실무",
+        "Windows Desktop의 Work·Codex, 로컬 환경·스킬·플러그인과 GitHub 연계"
+      ],
+      [
+        "AI 디자인 실무",
+        "멀티모달, 프로젝트 관리 일러스트·영상과 시각적 추론"
+      ],
+      [
+        "실전 AI 에이전트 활용법",
+        "범위·일정·리스크 관리 에이전트 커스터마이징, 멀티 에이전트 오케스트레이션과 도구 활용"
+      ],
+      [
+        "고객 맞춤형 프로젝트 실습",
+        "반도체·조선·로봇·모빌리티·제약·플랜트·우주항공·공공서비스 시나리오와 사례 공유"
+      ]
+    ],
+    "outcomes": [
+      "근거 자료와 요구사항 분석",
+      "WBS와 일정 관리 초안",
+      "위험·이슈·변경 관리 문서",
+      "결과보고와 시각 자료",
+      "업무에 적용할 프롬프트·스킬·에이전트 활용 방법"
+    ],
+    "environment": [
+      "실습용 Windows PC와 ChatGPT 사용 환경을 준비합니다.",
+      "Work·Codex·플러그인·에이전트의 이용 가능 여부는 계정·권한·제공 환경을 사전에 확인합니다.",
+      "기업 자료는 익명화하여 실습하며, 고객 맞춤형 범위와 필요한 도구를 교육 전 협의합니다."
+    ]
+  },
+  "sources": [
+    {
+      "label": "피엠오피스 소개 자료",
+      "url": "",
+      "publisher": "피엠오피스",
+      "date": null,
+      "use": "사업 분야·대표 경력·교육 사진·실적"
+    },
+    {
+      "label": "생성형 AI 기반 R&D 과제 관리 교육 원문",
+      "url": "",
+      "publisher": null,
+      "date": null,
+      "use": "R&D 과정 목표·대상·시간·커리큘럼"
+    },
+    {
+      "label": "Acepro Consulting 벤치마크",
+      "url": "https://aceproconsulting.com/blogs/microsoft-copilot-ms-project-2026/",
+      "publisher": "Acepro Consulting",
+      "date": "2026-05-06",
+      "use": "계획·위험·보고 시나리오 참고. 제품 기능 근거는 Microsoft 자료로 확인"
+    },
+    {
+      "label": "Microsoft 365 Copilot 완전 정복",
+      "url": "https://www.inflearn.com/course/일-잘하는-직장인의-비밀-micros?cid=337584",
+      "publisher": "한국마이크로소프트 · 인프런",
+      "date": "2025-07-28",
+      "use": "프롬프트·Copilot Chat·Microsoft 365 앱별 실무 학습"
+    },
+    {
+      "label": "Microsoft Planner FAQ",
+      "url": "https://support.microsoft.com/en-us/planner/frequently-asked-questions-about-microsoft-planner",
+      "publisher": "Microsoft",
+      "date": null,
+      "use": "Project 데스크톱과 Planner 구분·MPP 가져오기 범위"
+    },
+    {
+      "label": "Planner Agent 이용 안내",
+      "url": "https://support.microsoft.com/en-us/planner/copilot/access-planner-agent",
+      "publisher": "Microsoft",
+      "date": null,
+      "use": "Planner Agent 라이선스와 기능 이용 조건"
+    }
+  ]
+}
