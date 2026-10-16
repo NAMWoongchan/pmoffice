@@ -28,16 +28,23 @@ export default defineConfig({
     const h:any[]=[['link',{rel:'canonical',href:canonical}],['meta',{property:'og:type',content:'website'}],['meta',{property:'og:site_name',content:'PMOffice 피엠오피스'}],['meta',{property:'og:title',content:title}],['meta',{property:'og:description',content:description}],['meta',{property:'og:url',content:canonical}],['meta',{property:'og:locale',content:'ko_KR'}],['meta',{property:'og:image',content:image}],['meta',{property:'og:image:alt',content:'프로젝트 공정표와 진도 보고'}],['meta',{name:'twitter:card',content:'summary_large_image'}],['meta',{name:'twitter:title',content:title}],['meta',{name:'twitter:description',content:description}],['meta',{name:'twitter:image',content:image}]]
     const org={'@type':'Organization','@id':'https://pmoffice.co.kr/#organization',name:'피엠오피스',alternateName:'PMOffice',url:'https://pmoffice.co.kr/',logo:'https://pmoffice.co.kr/images/pmoffice-logo.png',email:'nam@pmoffice.co.kr',telephone:'02-532-8060'}
     const graph:any[]=[org]
+    if(relative==='consulting/experience.html') {
+      graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'홈',item:'https://pmoffice.co.kr/'},{'@type':'ListItem',position:2,name:'회사 소개',item:'https://pmoffice.co.kr/about.html'},{'@type':'ListItem',position:3,name:'주요 수행 실적',item:canonical}]})
+    }
     if(pageData.frontmatter.consultingKey) {
       graph.push({'@type':'Service','@id':canonical+'#service',name:title,description,url:canonical,provider:{'@id':org['@id']}})
-      graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'피엠오피스',item:'https://pmoffice.co.kr/'},{'@type':'ListItem',position:2,name:'컨설팅',item:'https://pmoffice.co.kr/consulting/'},...(relative==='consulting/'?[]:[{'@type':'ListItem',position:3,name:title,item:canonical}])]})
+      graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'피엠오피스',item:'https://pmoffice.co.kr/'},{'@type':'ListItem',position:2,name:'프로젝트 관리 컨설팅',item:'https://pmoffice.co.kr/consulting/'},...(relative==='consulting/'?[]:[{'@type':'ListItem',position:3,name:title,item:canonical}])]})
     }
     if(relative==='ms-project/introduction.html') graph.push({'@type':'WebPage',name:title,description,url:canonical,about:{'@type':'SoftwareApplication',name:'Microsoft Project',applicationCategory:'Project management',operatingSystem:'Windows'}})
     const course=education.courses.find(c=>relative===c.path+'.html'||relative===c.path.replace(/index$/,''))
     if(course && course.path!=='ms-project/index') graph.push({'@type':'Course','@id':canonical+'#course',name:course.title,description:course.subtitle,url:canonical,provider:{'@id':org['@id']}})
     const aiCourse=aiEducation.courses.find(c=>relative===c.path.slice(1)); if(aiCourse) graph.push({'@type':'Course','@id':canonical+'#course',name:aiCourse.title,description:aiCourse.summary,url:canonical,provider:{'@id':org['@id']}})
-    if(['ms-project/','ai-edu/','consulting/experience.html'].includes(relative))graph.push({'@type':'CollectionPage','@id':canonical+'#collection',name:title,description,url:canonical,isPartOf:{'@id':'https://pmoffice.co.kr/#website'}})
-    if(!pageData.frontmatter.consultingKey)graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'피엠오피스',item:'https://pmoffice.co.kr/'},...(relative?[{'@type':'ListItem',position:2,name:title,item:canonical}]:[])]})
+    if(['ms-project/','pm-practice/','ai-edu/','consulting/experience.html'].includes(relative))graph.push({'@type':'CollectionPage','@id':canonical+'#collection',name:title,description,url:canonical,isPartOf:{'@id':'https://pmoffice.co.kr/#website'}})
+    if(relative.startsWith('ms-project/')||relative.startsWith('pm-practice/')) {
+      const isMs=relative.startsWith('ms-project/');const parent=isMs?'MS Project 교육':'PM 실무 교육';const parentUrl='https://pmoffice.co.kr/'+(isMs?'ms-project/':'pm-practice/');
+      graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'홈',item:'https://pmoffice.co.kr/'},{'@type':'ListItem',position:2,name:parent,item:parentUrl},...(canonical===parentUrl?[]:[{'@type':'ListItem',position:3,name:title,item:canonical}])]})
+    }
+    if(!pageData.frontmatter.consultingKey&&relative!=='consulting/experience.html'&&!relative.startsWith('ms-project/')&&!relative.startsWith('pm-practice/'))graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'피엠오피스',item:'https://pmoffice.co.kr/'},...(relative?[{'@type':'ListItem',position:2,name:title,item:canonical}]:[])]})
     if(!relative)graph.push({'@type':'WebSite','@id':'https://pmoffice.co.kr/#website',name:'피엠오피스',url:'https://pmoffice.co.kr/',publisher:{'@id':org['@id']}})
     h.push(['script' ,{type:'application/ld+json'},JSON.stringify({'@context':'https://schema.org','@graph':graph}).replace(/</g,'\\u003c')])
     pageData.frontmatter.head=[...(pageData.frontmatter.head||[]),...h]

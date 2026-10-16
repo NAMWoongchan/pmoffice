@@ -31,3 +31,5 @@ export default {
 }
 
 
+
+import './academy-redesign.css'

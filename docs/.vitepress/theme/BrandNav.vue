@@ -5,12 +5,12 @@ import education from './education.json'
 import aiEducation from './ai-education.json'
 const container=ref(null),open=ref(''),mobile=ref(false)
 const groups=[
-{key:'ms',text:'MS Project 교육',link:'/ms-project/',items:[{text:'MS Project 소개',link:'/ms-project/introduction.html'},...education.groups.find(g=>g.key==='ms').items]},
-{key:'pm',text:'프로젝트 관리 컨설팅',link:'/consulting/pm.html',items:[{text:'컨설팅 종합 안내',link:'/consulting/'},{text:'EPC·R&D·글로벌 프로젝트',link:'/consulting/pm.html'},{text:'주요 수행 실적',link:'/consulting/experience.html'},{text:'AI 컨설팅',link:'/consulting/ai/'},{text:'ChatGPT 컨설팅',link:'/consulting/ai/chatgpt.html'},{text:'Microsoft Copilot 컨설팅',link:'/consulting/ai/copilot.html'}]},
-{key:'schedule',text:'공정표 작성 대행',link:'/consulting/scheduling.html'},
+{key:'about',text:'회사 소개',link:'/about.html',items:[{text:'피엠오피스 소개',link:'/about.html'},{text:'사업 분야',link:'/services.html'},{text:'주요 수행 실적',link:'/consulting/experience.html'},{text:'문의',link:'/contact.html'}]},
 {key:'ai',text:'AI 교육',link:'/ai-edu/',items:[{text:'AI 교육 전체 과정',link:'/ai-edu/'},...aiEducation.courses.map(c=>({text:c.title,link:c.path}))]},
-{key:'about',text:'피엠오피스',link:'/about.html',items:[{text:'피엠오피스 소개',link:'/about.html'},{text:'사업 분야',link:'/services.html'},{text:'주요 수행 실적',link:'/consulting/experience.html'},{text:'PM 실무 교육',link:'/pm-practice/'}]},
-{key:'knowledge',text:'지식 공간',link:'/knowledge/index.html'},{key:'contact',text:'문의',link:'/contact.html'}]
+{key:'ms',text:'MS Project 교육',link:'/ms-project/',items:[{text:'MS Project 소개',link:'/ms-project/introduction.html'},...education.groups.find(g=>g.key==='ms').items]},
+{key:'pm-education',text:'PM 실무 교육',link:'/pm-practice/',items:education.groups.find(g=>g.key==='pm').items},
+{key:'consulting',text:'프로젝트 관리 컨설팅',link:'/consulting/',items:[{text:'공정표 작성 대행',link:'/consulting/scheduling.html'},{text:'컨설팅 종합 안내',link:'/consulting/'},{text:'EPC·R&D·글로벌 프로젝트',link:'/consulting/pm.html'},{text:'AI 컨설팅',link:'/consulting/ai/'},{text:'ChatGPT 컨설팅',link:'/consulting/ai/chatgpt.html'},{text:'Microsoft Copilot 컨설팅',link:'/consulting/ai/copilot.html'}]},
+{key:'knowledge',text:'지식 공간',link:'/knowledge/index.html'}]
 const close=()=>{open.value='';mobile.value=false}
 function outside(event){if(container.value&&!container.value.contains(event.target))close()}
 function keyboard(event){if(event.key==='Escape')close()}
