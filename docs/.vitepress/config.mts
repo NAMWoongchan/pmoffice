@@ -42,6 +42,8 @@ export default defineConfig({
     pageData.frontmatter.head=[...(pageData.frontmatter.head||[]),...h]
   },
   head: [
+    ['meta', { name: 'naver-site-verification', content: '0112a94f32f342770002c2c6f0c4844e67ecb6c1' }],
+    ['meta', { name: 'google-site-verification', content: '2KwL-73r2J7M7jQ9o-w52Ntt4NSqYnBEm31rlS5KvQw' }],
     ['meta', { name: 'theme-color', content: '#ffffff' }],
     ['link', { rel: 'icon', href: '/pmoffice.svg', type: 'image/svg+xml' }]
   ],
