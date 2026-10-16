@@ -35,6 +35,6 @@ const filtered = computed(() => entries.filter(entry => selected.value === '전�
         <span class="document-status" :class="entry.status">{{ entry.status === 'published' ? '학습 교재' : entry.status === 'draft' ? '초안' : '검토·한계 명시' }}</span>
       </article>
     </section>
-    <footer class="wiki-footer"><span>PMOffice 지식 공간</span><span>각 문서에서 출처와 검증 범위를 확인하실 수 있습니다.</span></footer>
+    <footer class="wiki-footer"><span>PMOffice 지식 공간</span><span>프로젝트 관리와 AI 활용 실무 자료를 확인하십시오.</span></footer>
   </div>
 </template>

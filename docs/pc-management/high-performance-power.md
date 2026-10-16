@@ -10,7 +10,7 @@ description: "기업·공공기관에서 문서 작성과 자료 분석을 연�
 
 # 고성능 전원 관리: 연속 작업과 배터리 보호
 
-[테크 목차](README.md) · [PMOffice Wiki 홈](/index.md)
+[테크 목차](README.md) · [피엠오피스 홈](/index.md)
 
 기업·공공기관에서 문서 작성과 자료 분석을 연속 수행하는 담당자를 위한 PC 전원 설정 해설입니다. 작업 중단과 자료 손실을 줄이기 위해 설정 내용과 적용 조건, 복원 방법을 확인하십시오.
 
@@ -113,24 +113,5 @@ AC·DC에 같은 값을 저장했다는 사실이 전원 연결 중에도 배터
 | 실제 복원 성공 | 미검증 | 승인된 원래값 복원 후 재조회 |
 
 DC 실험은 전원 플러그 분리라는 물리적 조작이 필요합니다. 도구로 실제 전원 상태를 확인하지 않았다면 DC 유휴 검증 완료로 기록하면 안 됩니다. 시간 경과만 확인한 결과도 사용자 입력이 없었다는 증거와 구분합니다.
-
-## 8. 출처 등록과 관련 링크
-
-아래 발행기관은 Microsoft이며 확인일은 2026-10-11입니다. 정확한 발행 시각이 확인되지 않은 문서는 최종 갱신일도 확인 가능한 근거 없음으로 표기합니다.
-
-| ID | 출처 | 최종 갱신일 | 지원 내용 |
-|---|---|---|---|
-| S1 | [Powercfg 명령 문서](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/powercfg-command-line-options) | 확인 가능한 근거 없음 | 조회·AC/DC 저장·활성화·가져오기·내보내기 |
-| S2 | [Disk settings overview](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/disk-settings) | 확인 가능한 근거 없음 | 저장 장치 전원 관리 |
-| S3 | [System power states](https://learn.microsoft.com/en-us/windows/win32/power/system-power-states) | 확인 가능한 근거 없음 | S0·Modern Standby·S3·S4 구분 |
-| S4 | [MinPerformance](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-perf-state-engine-minperformance) | 확인 가능한 근거 없음 | 최소 성능 상태 |
-| S5 | [MaxPerformance](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/options-for-perf-state-engine-maxperformance) | 확인 가능한 근거 없음 | 최대 성능 상태 |
-| S6 | [Processor power management options](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options) | 확인 가능한 근거 없음 | CPU 정책·클래스·하드웨어 제약 |
-| S7 | [Battery settings overview](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/battery-settings) | 2022-01-21 | 경고·임계값·펌웨어 우선 조건 |
-| S8 | [Windows 성능 개선 안내](https://support.microsoft.com/en-us/windows/experience/performance-optimization/tips-to-improve-pc-performance-in-windows) | 확인 가능한 근거 없음 | 고성능 정책과 전력 가용성 고려 |
-
-
-
-사례의 설정값 근거: 사용자 승인 프로필, 적용 전·후 powercfg 로컬 조회, PC_Tech_Agent의 읽기 재조회. 사용자 운영 기록은 Root AGENTS.md의 대화·작업 진행 TXT 정책에 따라 로컬에서 보존하며 진단 원본은 저장소에 게시하지 않습니다.
 
 <!-- 제작 기록은 로컬 Root AGENTS.md의 대화·작업 진행 TXT 정책 v1.4에 따라 보존합니다. -->

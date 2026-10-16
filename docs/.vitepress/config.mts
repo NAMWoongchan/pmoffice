@@ -81,7 +81,7 @@ export default defineConfig({
           const relative = env.relativePath || ''
           const deck = education.courses.find(c => relative === c.path + '.md')
           const pageContent = relative==='consulting/experience.md' ? experience : relative==='ms-project/introduction.md' ? projectScreens.categories : relative.startsWith('consulting/') ? {page:consulting.pages[env.frontmatter.consultingKey],membership:consulting.membership} : deck || (relative.startsWith('pm-practice') ? education.courses.filter(c=>c.group==='pm') : null) || (relative.includes('copilot-for') ? publicContent.copilot : relative.includes('ai-rd') ? publicContent.rd : relative.startsWith('services') ? publicContent.services : relative.startsWith('ai-edu') ? [publicContent.rd, publicContent.copilot] : env.frontmatter?.description)
-          const flatten = (value: any): string => typeof value === 'string' ? value : Array.isArray(value) ? value.map(flatten).join(' ') : value && typeof value === 'object' ? Object.values(value).map(flatten).join(' ') : ''
+          const flatten = (value: any): string => typeof value === 'string' ? value : Array.isArray(value) ? value.map(flatten).join(' ') : value && typeof value === 'object' ? Object.entries(value).filter(([key])=>!['source','source_name','source_file','source_path','sourceSlides','source_slide','slides','referencePeriod','reviewedAt','sources'].includes(key)).map(([,entry])=>flatten(entry)).join(' ') : ''
           return `<h1 id="page-title">${escape(env.frontmatter?.title || 'PMOffice')}<a class="header-anchor" href="#page-title"></a></h1><p>${escape(flatten(pageContent))}</p>`
         },
 

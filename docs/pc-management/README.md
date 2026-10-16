@@ -10,7 +10,7 @@ description: "문서 작성·자료 분석·AI 작업을 장시간 수행하는 
 
 # 테크 (Tech)
 
-[PMOffice Wiki 홈](/index.md)
+[피엠오피스 홈](/index.md)
 
 문서 작성·자료 분석·AI 작업을 장시간 수행하는 담당자를 위해 전원·성능 설정과 작업 자료 보존 방법을 설명합니다.
 
@@ -20,9 +20,6 @@ description: "문서 작성·자료 분석·AI 작업을 장시간 수행하는 
 
 설정값 저장, 실제 동작, 성능 개선은 다른 검증 단계입니다. 배터리 경고 정확히 한 번과 실효 3% 최대 절전은 기본 설정만으로 보장하지 않습니다. [Microsoft 배터리 설정](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/battery-settings)을 참고하십시오.
 
-운영 기록은 로컬 Root AGENTS.md의 진행 TXT 정책에 따라 보존합니다. PC 식별정보·진단 원본은 게시하지 않습니다.
-
-관련 근거: [Microsoft 전원 관리 도구](https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/powercfg-command-line-options) · [Microsoft CPU 정책](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/configure-processor-power-management-options)
 
 
 <!-- 제작 기록은 로컬 Root AGENTS.md의 대화·작업 진행 TXT 정책 v1.4에 따라 보존합니다. -->
