@@ -1,6 +1,6 @@
 ---
 title: 리스크&이슈 관리 실무 과정
-description: 피엠오피스 리스크&이슈 관리 실무 과정 교육 내용과 커리큘럼
+description: "납기·사업비·성과에 영향을 주는 위험과 이슈를 구분하고, 대응 계획과 조치 현황을 관리합니다."
 layout: page
 sidebar: false
 outline: false

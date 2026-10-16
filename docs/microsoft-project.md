@@ -5,11 +5,12 @@ status: draft
 created: "2026-10-10"
 updated: "2026-10-11"
 version: "1.1"
+description: "기업 공정표와 국가연구개발 과제 일정의 작성·갱신에 필요한 Microsoft Project 학습 주제를 안내합니다. 일정·자원·기준선별 작성 예정 주제를 확인하십시오."
 ---
 
 # MS Project (Microsoft Project)
 
-Microsoft Project의 일정·자원·기준선 지식을 정리할 분야 안내입니다. 아래 목록은 작성 예정 주제입니다. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
+기업 공정표와 국가연구개발 과제 일정의 작성·갱신에 필요한 Microsoft Project 학습 주제를 안내합니다. 일정·자원·기준선별 작성 예정 주제를 확인하십시오. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
 
 | 분류 | 향후 작성 주제 |
 |---|---|

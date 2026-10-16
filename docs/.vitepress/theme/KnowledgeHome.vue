@@ -16,8 +16,8 @@ const filtered = computed(() => entries.filter(entry => selected.value === '전�
 <template>
   <div class="wiki-home">
     <header class="wiki-intro">
-      <h1 id="page-title" class="knowledge-title">지식 공간</h1>
-      <p>프로젝트 관리와 실무 도구를 위한 지식과 경험을 나눕니다.</p>
+      <h1 id="page-title" class="knowledge-title">기업·공공기관 프로젝트 관리 실무 자료</h1>
+      <p>공정표 작성, 사업 진도 보고와 AI 업무 적용에 참고할 교재·실무 해설을 확인하십시오.</p>
     </header>
     <nav class="category-filter" aria-label="분야별 문서 필터">
       <button v-for="category in categories" :key="category" :aria-pressed="selected === category" :class="{ selected: selected === category }" @click="selected = category">{{ category }}</button>

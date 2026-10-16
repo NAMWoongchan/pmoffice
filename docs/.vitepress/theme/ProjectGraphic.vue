@@ -1,10 +1,3 @@
-<template>
-<div class="project-art" aria-label="계획에서 실행과 보고까지 연결되는 프로젝트 관리 흐름">
-  <div class="art-orbit"></div><div class="art-dot dot-a"></div><div class="art-dot dot-b"></div>
-  <div class="schedule"><div class="schedule-title"><span class="tiny-logo">P</span> PROJECT FLOW <span class="schedule-more">···</span></div>
-    <div class="phase-labels"><span>Plan</span><span>Execute</span><span>Monitor</span><span>Complete</span></div>
-    <div class="schedule-grid"><div class="gantt g1"></div><div class="gantt g2"></div><div class="gantt g3"></div><div class="gantt g4"></div><div class="gantt g5"></div><div class="gantt g6"></div><div class="connector c1"></div><div class="connector c2"></div><div class="connector c3"></div></div>
-    <div class="schedule-foot"><span class="live-dot"></span> 하나의 계획, 연결되는 실행</div>
-  </div><div class="art-check"><strong>함께 연결합니다</strong><span>✓ &nbsp; 일정과 자원</span><span>✓ &nbsp; 실행 현황과 위험</span><span>✓ &nbsp; 분석과 보고</span></div>
-  <div class="art-caption">From plan to progress.</div>
-</div></template>
+<script setup>import {withBase} from 'vitepress'</script>
+<template><a class="home-project-screen" :href="withBase('/ms-project/introduction.html')" aria-label="Microsoft Project 공정표와 진도 관리 화면 보기"><img :src="withBase('/images/consulting/original-gantt.webp')" alt="Microsoft Project 공정표와 누적 진도" width="1076" height="761" fetchpriority="high"></a></template>
+<style scoped>.home-project-screen{display:block;background:#fff;border:1px solid #dbe5ed;border-radius:8px;box-shadow:0 12px 36px #16324b10;padding:8px}.home-project-screen img{display:block;width:100%;height:auto;max-height:450px;object-fit:contain}@media(max-width:700px){.home-project-screen{padding:5px}.home-project-screen img{max-height:340px}}</style>

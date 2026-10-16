@@ -3,7 +3,7 @@
     {
       "path": "ms-project/index",
       "title": "Microsoft Project 교육",
-      "subtitle": "일정, 자원, 비용을 연결하는 프로젝트 관리 실무 교육",
+      "subtitle": "기업 공정 관리와 국가연구개발 과제 관리에 필요한 일정·자원·비용·진도 보고 방법을 실습합니다.",
       "days": null,
       "hours": null,
       "highlights": [
@@ -373,7 +373,7 @@
     {
       "path": "ms-project/core-practice",
       "title": "MS Project 핵심 실무 과정",
-      "subtitle": "체계적인 일정 계획에서 실행·통제·보고까지",
+      "subtitle": "WBS 작성, 선후행 관계 설정, 기준선 저장과 진도 보고까지 직접 실습합니다.",
       "days": 4,
       "hours": 32,
       "highlights": [
@@ -924,7 +924,7 @@
     {
       "path": "ms-project/expert",
       "title": "MS Project 전문가 과정",
-      "subtitle": "EPC와 R&D의 현장 과제를 깊이 있게 다룹니다",
+      "subtitle": "EPC·국가연구개발 과제의 자원·비용·진도 분석과 통합 관리 방법을 실습합니다.",
       "days": 5,
       "hours": 40,
       "highlights": [
@@ -1443,7 +1443,7 @@
     {
       "path": "ms-project/template-development",
       "title": "MS Project Template 개발 과정",
-      "subtitle": "조직의 업무에 맞는 보기, 필드, 보고서를 개발합니다",
+      "subtitle": "기관·기업의 관리 항목과 보고 양식에 맞는 필드·보기·필터·보고서를 직접 개발합니다.",
       "days": 4,
       "hours": 32,
       "highlights": [
@@ -1776,7 +1776,7 @@
     {
       "path": "pm-practice/project-management",
       "title": "PM 실무 과정",
-      "subtitle": "프로젝트 단계별 방법론과 리더십을 실습으로 연결합니다",
+      "subtitle": "착수부터 종료까지 단계별 관리 문서 작성, 이해관계자 조정과 실행 현황 점검을 실습합니다.",
       "days": 3,
       "hours": 24,
       "highlights": [
@@ -2089,7 +2089,7 @@
     {
       "path": "pm-practice/risk-issue-management",
       "title": "리스크&이슈 관리 실무 과정",
-      "subtitle": "위협과 기회를 식별하고, 분석하고, 대응합니다",
+      "subtitle": "납기·사업비·성과에 영향을 주는 위험과 이슈를 구분하고, 대응 계획과 조치 현황을 관리합니다.",
       "days": 2,
       "hours": 16,
       "highlights": [
@@ -2275,7 +2275,7 @@
     {
       "path": "pm-practice/agile-project",
       "title": "애자일 프로젝트 실무 과정",
-      "subtitle": "스크럼, 칸반과 하이브리드 접근을 조직에 맞게 적용합니다",
+      "subtitle": "요구사항이 자주 바뀌는 과제에서 우선순위·협업·진행 현황을 관리하는 방법을 실습합니다.",
       "days": 2,
       "hours": 16,
       "highlights": [

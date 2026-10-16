@@ -1,6 +1,9 @@
 import { defineConfig } from 'vitepress'
 import publicContent from './theme/content.json'
+import consulting from './theme/consulting.json'
+import projectScreens from './theme/project-screens.json'
 import education from './theme/education.json'
+import experience from './theme/experience.json'
 import { textbookSidebar } from './textbook-sidebar'
 const sectionLink = (page: string, heading: string) => `${page}#${heading.normalize('NFKD')}`
 
@@ -13,6 +16,31 @@ export default defineConfig({
   cleanUrls: false,
   lastUpdated: true,
   sitemap: { hostname: 'https://pmoffice.co.kr/' },
+  transformPageData(pageData) {
+    if (pageData.relativePath==='404.md') {pageData.frontmatter.head=[...(pageData.frontmatter.head||[]),['meta',{name:'robots',content:'noindex'}]];return}
+    const relative=pageData.relativePath.replace(/index\.md$/,'').replace(/\.md$/,'.html')
+    const canonical=new URL(relative,'https://pmoffice.co.kr/').href
+    const title=pageData.frontmatter.title||pageData.title||'PMOffice 피엠오피스'
+    if(String(title).includes('피엠오피스'))pageData.frontmatter.titleTemplate=false
+    const description=pageData.frontmatter.description||pageData.description||'피엠오피스 교육·컨설팅'
+    const image='https://pmoffice.co.kr/images/consulting/'+(relative.startsWith('ms-project/')?'gantt-screen.png':relative==='consulting/experience.html'?'original-weight.png':relative==='consulting/scheduling.html'?'excel-schedule.png':relative.startsWith('ai-edu/')?'report-dashboard.png':'consulting-og.png')
+    const h:any[]=[['link',{rel:'canonical',href:canonical}],['meta',{property:'og:type',content:'website'}],['meta',{property:'og:site_name',content:'PMOffice 피엠오피스'}],['meta',{property:'og:title',content:title}],['meta',{property:'og:description',content:description}],['meta',{property:'og:url',content:canonical}],['meta',{property:'og:locale',content:'ko_KR'}],['meta',{property:'og:image',content:image}],['meta',{property:'og:image:alt',content:'프로젝트 공정표와 진도 보고'}],['meta',{name:'twitter:card',content:'summary_large_image'}],['meta',{name:'twitter:title',content:title}],['meta',{name:'twitter:description',content:description}],['meta',{name:'twitter:image',content:image}]]
+    const org={'@type':'Organization','@id':'https://pmoffice.co.kr/#organization',name:'피엠오피스',alternateName:'PMOffice',url:'https://pmoffice.co.kr/',logo:'https://pmoffice.co.kr/images/pmoffice-logo.png',email:'nam@pmoffice.co.kr',telephone:'02-532-8060'}
+    const graph:any[]=[org]
+    if(pageData.frontmatter.consultingKey) {
+      graph.push({'@type':'Service','@id':canonical+'#service',name:title,description,url:canonical,provider:{'@id':org['@id']}})
+      graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'피엠오피스',item:'https://pmoffice.co.kr/'},{'@type':'ListItem',position:2,name:'컨설팅',item:'https://pmoffice.co.kr/consulting/'},...(relative==='consulting/'?[]:[{'@type':'ListItem',position:3,name:title,item:canonical}])]})
+    }
+    if(relative==='ms-project/introduction.html') graph.push({'@type':'WebPage',name:title,description,url:canonical,about:{'@type':'SoftwareApplication',name:'Microsoft Project',applicationCategory:'Project management',operatingSystem:'Windows'}})
+    const course=education.courses.find(c=>relative===c.path+'.html'||relative===c.path.replace(/index$/,''))
+    if(course && course.path!=='ms-project/index') graph.push({'@type':'Course','@id':canonical+'#course',name:course.title,description:course.subtitle,url:canonical,provider:{'@id':org['@id']}})
+    if(relative.startsWith('ai-edu/')&&relative!=='ai-edu/') { const c=relative.includes('copilot-for')?publicContent.copilot:publicContent.rd;graph.push({'@type':'Course','@id':canonical+'#course',name:c.title,description:c.subtitle,url:canonical,provider:{'@id':org['@id']}}) }
+    if(['ms-project/','ai-edu/','consulting/experience.html'].includes(relative))graph.push({'@type':'CollectionPage','@id':canonical+'#collection',name:title,description,url:canonical,isPartOf:{'@id':'https://pmoffice.co.kr/#website'}})
+    if(!pageData.frontmatter.consultingKey)graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'피엠오피스',item:'https://pmoffice.co.kr/'},...(relative?[{'@type':'ListItem',position:2,name:title,item:canonical}]:[])]})
+    if(!relative)graph.push({'@type':'WebSite','@id':'https://pmoffice.co.kr/#website',name:'피엠오피스',url:'https://pmoffice.co.kr/',publisher:{'@id':org['@id']}})
+    h.push(['script' ,{type:'application/ld+json'},JSON.stringify({'@context':'https://schema.org','@graph':graph}).replace(/</g,'\\u003c')])
+    pageData.frontmatter.head=[...(pageData.frontmatter.head||[]),...h]
+  },
   head: [
     ['meta', { name: 'theme-color', content: '#ffffff' }],
     ['link', { rel: 'icon', href: '/pmoffice.svg', type: 'image/svg+xml' }]
@@ -50,7 +78,7 @@ export default defineConfig({
           const escape = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
           const relative = env.relativePath || ''
           const deck = education.courses.find(c => relative === c.path + '.md')
-          const pageContent = deck || (relative.startsWith('pm-practice') ? education.courses.filter(c=>c.group==='pm') : null) || (relative.includes('copilot-for') ? publicContent.copilot : relative.includes('ai-rd') ? publicContent.rd : relative.startsWith('services') ? publicContent.services : relative.startsWith('ai-edu') ? [publicContent.rd, publicContent.copilot] : env.frontmatter?.description)
+          const pageContent = relative==='consulting/experience.md' ? experience : relative==='ms-project/introduction.md' ? projectScreens.categories : relative.startsWith('consulting/') ? {page:consulting.pages[env.frontmatter.consultingKey],membership:consulting.membership} : deck || (relative.startsWith('pm-practice') ? education.courses.filter(c=>c.group==='pm') : null) || (relative.includes('copilot-for') ? publicContent.copilot : relative.includes('ai-rd') ? publicContent.rd : relative.startsWith('services') ? publicContent.services : relative.startsWith('ai-edu') ? [publicContent.rd, publicContent.copilot] : env.frontmatter?.description)
           const flatten = (value: any): string => typeof value === 'string' ? value : Array.isArray(value) ? value.map(flatten).join(' ') : value && typeof value === 'object' ? Object.values(value).map(flatten).join(' ') : ''
           return `<h1 id="page-title">${escape(env.frontmatter?.title || 'PMOffice')}<a class="header-anchor" href="#page-title"></a></h1><p>${escape(flatten(pageContent))}</p>`
         },

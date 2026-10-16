@@ -5,11 +5,12 @@ status: draft
 created: "2026-10-10"
 updated: "2026-10-11"
 version: "1.1"
+description: "기업·공공기관 담당자가 사업 범위, 일정·사업비·위험·품질을 관리할 때 참고할 학습 주제를 안내합니다. 아래 주제는 순차적으로 보완합니다."
 ---
 
 # 프로젝트 관리 (Project Management)
 
-PMOffice의 프로젝트 관리 지식을 정리할 분야 안내입니다. 아래 주제를 학습 교재와 실무 도구로 연결합니다. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
+기업·공공기관 담당자가 사업 범위, 일정·사업비·위험·품질을 관리할 때 참고할 학습 주제를 안내합니다. 아래 주제는 순차적으로 보완합니다. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
 
 | 분류 | 향후 작성 주제 |
 |---|---|

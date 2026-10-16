@@ -1,6 +1,6 @@
 ---
 title: MS Project 전문가 과정
-description: 피엠오피스 MS Project 전문가 과정 교육 내용과 커리큘럼
+description: "EPC·국가연구개발 과제의 자원·비용·진도 분석과 통합 관리 방법을 실습합니다."
 layout: page
 sidebar: false
 outline: false

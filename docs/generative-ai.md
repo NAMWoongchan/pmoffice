@@ -5,11 +5,12 @@ status: draft
 created: "2026-10-10"
 updated: "2026-10-11"
 version: "1.1"
+description: "사업계획서 검토, 보고서 작성, 자료 분석과 반복 업무에 생성형 AI를 활용하기 위한 학습 주제를 안내합니다. 아래 주제는 순차적으로 보완합니다."
 ---
 
 # 실전 AI (Applied AI)
 
-생성형 AI를 프로젝트 업무에 적용하기 위한 분야 안내입니다. 아래는 작성 예정 목록이며 특정 제품 기능이나 성능을 보장하지 않습니다. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
+사업계획서 검토, 보고서 작성, 자료 분석과 반복 업무에 생성형 AI를 활용하기 위한 학습 주제를 안내합니다. 아래 주제는 순차적으로 보완합니다. [분류 설계 근거: 제공 교재](https://docs.google.com/document/d/1uwurHY4hVby3HCqTQrf4UYp8QxR4RJuh/edit)
 
 | 분류 | 향후 작성 주제 |
 |---|---|
