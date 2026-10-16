@@ -5,7 +5,7 @@ import education from './education.json'
 import aiEducation from './ai-education.json'
 const container=ref(null),open=ref(''),mobile=ref(false)
 const groups=[
-{key:'about',text:'회사 소개',link:'/about.html',items:[{text:'피엠오피스 소개',link:'/about.html'},{text:'사업 분야',link:'/services.html'},{text:'주요 수행 실적',link:'/consulting/experience.html'},{text:'문의',link:'/contact.html'}]},
+{key:'about',text:'회사 소개',link:'/about.html',items:[{text:'피엠오피스 소개',link:'/about.html'},{text:'사업 분야',link:'/services.html'},{text:'주요 수행 실적',link:'/consulting/experience.html'},{text:'교육 컨설팅 문의',link:'/contact.html'}]},
 {key:'ai',text:'AI 교육',link:'/ai-edu/',items:[{text:'AI 교육 전체 과정',link:'/ai-edu/'},...aiEducation.courses.map(c=>({text:c.title,link:c.path}))]},
 {key:'ms',text:'MS Project 교육',link:'/ms-project/',items:[{text:'MS Project 소개',link:'/ms-project/introduction.html'},...education.groups.find(g=>g.key==='ms').items]},
 {key:'pm-education',text:'PM 실무 교육',link:'/pm-practice/',items:education.groups.find(g=>g.key==='pm').items},
