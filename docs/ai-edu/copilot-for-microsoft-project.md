@@ -1,11 +1,13 @@
 ---
-title: Copilot for Microsoft Project
-description: "Microsoft Project 공정표 자료를 활용한 Excel 분석과 Word 보고서 작성 등, 프로젝트 관리 업무별 Copilot 활용 방법을 실습합니다."
+titleTemplate: false
+title: "Copilot for Microsoft Planner & Project 실무 과정 | 피엠오피스"
+description: "협업 업무는 Planner로, 일정 논리는 Microsoft Project로. 제품별 AI 기능과 데이터 전달 범위를 구분하며 계획·진도·보고 업무를 실습합니다."
 layout: page
 sidebar: false
 outline: false
 editLink: false
 lastUpdated: false
+aiCourse: planner
 ---
 
-<MarketingPage page="copilot" />
+<AiEducation course-id="planner" />

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import publicContent from './theme/content.json'
+import aiEducation from './theme/ai-education.json'
 import consulting from './theme/consulting.json'
 import projectScreens from './theme/project-screens.json'
 import education from './theme/education.json'
@@ -34,7 +35,7 @@ export default defineConfig({
     if(relative==='ms-project/introduction.html') graph.push({'@type':'WebPage',name:title,description,url:canonical,about:{'@type':'SoftwareApplication',name:'Microsoft Project',applicationCategory:'Project management',operatingSystem:'Windows'}})
     const course=education.courses.find(c=>relative===c.path+'.html'||relative===c.path.replace(/index$/,''))
     if(course && course.path!=='ms-project/index') graph.push({'@type':'Course','@id':canonical+'#course',name:course.title,description:course.subtitle,url:canonical,provider:{'@id':org['@id']}})
-    if(relative.startsWith('ai-edu/')&&relative!=='ai-edu/') { const c=relative.includes('copilot-for')?publicContent.copilot:publicContent.rd;graph.push({'@type':'Course','@id':canonical+'#course',name:c.title,description:c.subtitle,url:canonical,provider:{'@id':org['@id']}}) }
+    const aiCourse=aiEducation.courses.find(c=>relative===c.path.slice(1)); if(aiCourse) graph.push({'@type':'Course','@id':canonical+'#course',name:aiCourse.title,description:aiCourse.summary,url:canonical,provider:{'@id':org['@id']}})
     if(['ms-project/','ai-edu/','consulting/experience.html'].includes(relative))graph.push({'@type':'CollectionPage','@id':canonical+'#collection',name:title,description,url:canonical,isPartOf:{'@id':'https://pmoffice.co.kr/#website'}})
     if(!pageData.frontmatter.consultingKey)graph.push({'@type':'BreadcrumbList',itemListElement:[{'@type':'ListItem',position:1,name:'피엠오피스',item:'https://pmoffice.co.kr/'},...(relative?[{'@type':'ListItem',position:2,name:title,item:canonical}]:[])]})
     if(!relative)graph.push({'@type':'WebSite','@id':'https://pmoffice.co.kr/#website',name:'피엠오피스',url:'https://pmoffice.co.kr/',publisher:{'@id':org['@id']}})
@@ -80,7 +81,8 @@ export default defineConfig({
           const escape = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
           const relative = env.relativePath || ''
           const deck = education.courses.find(c => relative === c.path + '.md')
-          const pageContent = relative==='consulting/experience.md' ? experience : relative==='ms-project/introduction.md' ? projectScreens.categories : relative.startsWith('consulting/') ? {page:consulting.pages[env.frontmatter.consultingKey],membership:consulting.membership} : deck || (relative.startsWith('pm-practice') ? education.courses.filter(c=>c.group==='pm') : null) || (relative.includes('copilot-for') ? publicContent.copilot : relative.includes('ai-rd') ? publicContent.rd : relative.startsWith('services') ? publicContent.services : relative.startsWith('ai-edu') ? [publicContent.rd, publicContent.copilot] : env.frontmatter?.description)
+          const aiPage=relative.startsWith('ai-edu/') ? (aiEducation.courses.find(c=>relative===c.path.slice(1).replace(/\.html$/,'.md'))||aiEducation) : null
+          const pageContent = aiPage || (relative==='consulting/experience.md' ? experience : relative==='ms-project/introduction.md' ? projectScreens.categories : relative.startsWith('consulting/') ? {page:consulting.pages[env.frontmatter.consultingKey],membership:consulting.membership} : deck || (relative.startsWith('pm-practice') ? education.courses.filter(c=>c.group==='pm') : null) || (relative.includes('copilot-for') ? publicContent.copilot : relative.includes('ai-rd') ? publicContent.rd : relative.startsWith('services') ? publicContent.services : relative.startsWith('ai-edu') ? [publicContent.rd, publicContent.copilot] : env.frontmatter?.description))
           const flatten = (value: any): string => typeof value === 'string' ? value : Array.isArray(value) ? value.map(flatten).join(' ') : value && typeof value === 'object' ? Object.entries(value).filter(([key])=>!['source','source_name','source_file','source_path','sourceSlides','source_slide','slides','referencePeriod','reviewedAt','sources'].includes(key)).map(([,entry])=>flatten(entry)).join(' ') : ''
           return `<h1 id="page-title">${escape(env.frontmatter?.title || 'PMOffice')}<a class="header-anchor" href="#page-title"></a></h1><p>${escape(flatten(pageContent))}</p>`
         },
