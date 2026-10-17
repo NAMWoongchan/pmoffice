@@ -38,3 +38,6 @@ const href=withBase
   <footer class="marketing-footer section-inner"><a class="footer-brand" :href="href('/')">PMOffice<span>피엠오피스</span></a><div><a :href="href('/about.html')">소개</a><a :href="href('/services.html')">사업 분야</a><a :href="href('/consulting/')">컨설팅</a><a :href="href('/ai-edu/')">AI 교육</a><a :href="href('/knowledge/index.html')">지식 공간</a></div><p>© {{new Date().getFullYear()}} PMOffice</p></footer>
 </div>
 </template>
+<style scoped>
+@media(max-width:767px){.contact-page{padding-top:100px}}
+</style>
