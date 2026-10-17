@@ -1,0 +1,200 @@
+[
+  {
+    "src": "/images/home/training-01-1537.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-01-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-01-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-01-1537.webp",
+        "width": 1537
+      }
+    ],
+    "width": 1537,
+    "height": 1023,
+    "alt": "프로젝트 관리 강연 현장",
+    "position": "57% 47%",
+    "mobilePosition": "65% 47%"
+  },
+  {
+    "src": "/images/home/training-02-1450.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-02-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-02-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-02-1450.webp",
+        "width": 1450
+      }
+    ],
+    "width": 1450,
+    "height": 1085,
+    "alt": "기업·공공기관 프로젝트 관리 집합 교육",
+    "position": "50% 49%",
+    "mobilePosition": "43% 47%"
+  },
+  {
+    "src": "/images/home/training-03-1600.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-03-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-03-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-03-1600.webp",
+        "width": 1600
+      }
+    ],
+    "width": 1600,
+    "height": 1200,
+    "alt": "프로젝트 관리 실무 교육",
+    "position": "43% 48%",
+    "mobilePosition": "27% 44%"
+  },
+  {
+    "src": "/images/home/training-04-1600.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-04-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-04-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-04-1600.webp",
+        "width": 1600
+      }
+    ],
+    "width": 1600,
+    "height": 1200,
+    "alt": "노트북으로 실습하는 프로젝트 관리 교육",
+    "position": "50% 49%",
+    "mobilePosition": "43% 46%"
+  },
+  {
+    "src": "/images/home/training-05-1600.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-05-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-05-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-05-1600.webp",
+        "width": 1600
+      }
+    ],
+    "width": 2796,
+    "height": 1574,
+    "alt": "기업 맞춤형 교육 참가자 단체 사진",
+    "position": "50% 46%",
+    "mobilePosition": "51% 46%"
+  },
+  {
+    "src": "/images/home/training-06-1600.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-06-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-06-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-06-1600.webp",
+        "width": 1600
+      }
+    ],
+    "width": 1672,
+    "height": 942,
+    "alt": "Microsoft Project 공정 관리 실습 현장",
+    "position": "50% 51%",
+    "mobilePosition": "48% 50%"
+  },
+  {
+    "src": "/images/home/training-07-1600.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-07-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-07-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-07-1600.webp",
+        "width": 1600
+      }
+    ],
+    "width": 1672,
+    "height": 942,
+    "alt": "기업 프로젝트 관리 방문 교육",
+    "position": "50% 50%",
+    "mobilePosition": "48% 50%"
+  },
+  {
+    "src": "/images/home/training-08-1600.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-08-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-08-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-08-1600.webp",
+        "width": 1600
+      }
+    ],
+    "width": 1672,
+    "height": 940,
+    "alt": "기업 실무진 프로젝트 관리 워크숍",
+    "position": "51% 48%",
+    "mobilePosition": "52% 46%"
+  },
+  {
+    "src": "/images/home/training-09-1493.webp",
+    "srcset": [
+      {
+        "src": "/images/home/training-09-640.webp",
+        "width": 640
+      },
+      {
+        "src": "/images/home/training-09-960.webp",
+        "width": 960
+      },
+      {
+        "src": "/images/home/training-09-1493.webp",
+        "width": 1493
+      }
+    ],
+    "width": 1493,
+    "height": 1054,
+    "alt": "피엠오피스 강사의 기업 현장 방문",
+    "position": "52% 47%",
+    "mobilePosition": "53% 44%"
+  }
+]
