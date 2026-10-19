@@ -1,0 +1,5 @@
+[functions.pms]
+# Authentication is checked against live database policy in every request,
+# including anonymous public reads; do not enable a service-role bypass.
+verify_jwt = false
+

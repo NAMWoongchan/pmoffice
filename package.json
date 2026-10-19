@@ -5,13 +5,24 @@
   "type": "module",
   "scripts": {
     "docs:dev": "vitepress dev docs --host 127.0.0.1",
-    "docs:build": "node scripts/check-public.mjs && vitepress build docs && node scripts/check-public.mjs --dist",
-    "docs:preview": "vitepress preview docs --host 127.0.0.1"
+    "docs:build": "node scripts/check-public.mjs && node scripts/build-pms.mjs && vitepress build docs && node scripts/check-public.mjs --dist",
+    "docs:preview": "vitepress preview docs --host 127.0.0.1",
+    "pms:build": "node scripts/build-pms.mjs",
+    "pms:test": "node --test tests/pms*.test.mjs"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "esbuild": "0.25.12",
+    "jsdom": "26.1.0",
+    "typescript": "5.9.3",
     "vitepress": "1.6.4"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.118.0"
+    "@supabase/supabase-js": "^2.118.0",
+    "fflate": "0.8.2",
+    "lucide-react": "1.31.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "vue": "3.5.43"
   }
 }

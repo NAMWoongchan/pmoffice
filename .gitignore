@@ -9,3 +9,11 @@ _3. Prompt/
 *결과안내*
 *.log
 .DS_Store
+pms-app/tests/
+pms-app/lib/write-access.ts
+pms-app/lib/connector*
+docs/public/pms/app/viewer.js
+docs/public/pms/app/viewer.css
+docs/public/pms/app/index.html
+.env*
+!.env.example

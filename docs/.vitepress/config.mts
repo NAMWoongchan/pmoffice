@@ -16,7 +16,7 @@ export default defineConfig({
   base: '/',
   cleanUrls: false,
   lastUpdated: true,
-  sitemap: { hostname: 'https://pmoffice.co.kr/', transformItems: items => items.filter(item => !item.url.startsWith('admin/')) },
+  sitemap: { hostname: 'https://pmoffice.co.kr/', transformItems: items => items.filter(item => !item.url.startsWith('admin/') && !item.url.startsWith('pms/')) },
   transformPageData(pageData) {
     if (pageData.relativePath==='404.md') {pageData.frontmatter.head=[...(pageData.frontmatter.head||[]),['meta',{name:'robots',content:'noindex'}]];return}
     const relative=pageData.relativePath.replace(/index\.md$/,'').replace(/\.md$/,'.html')
@@ -83,7 +83,7 @@ export default defineConfig({
       provider: 'local',
       options: {
         _render(src, env, md) {
-          if(env.relativePath?.startsWith('admin/')) return ''
+          if(env.relativePath?.startsWith('admin/') || env.relativePath?.startsWith('pms/')) return ''
           const html = md.render(src, env)
           if (env.frontmatter?.layout !== 'page' && env.relativePath !== 'knowledge/index.md') return html
           const escape = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')

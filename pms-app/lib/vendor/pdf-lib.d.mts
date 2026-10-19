@@ -1,0 +1,12 @@
+export const PDFDocument:any;
+export const PDFName:any;
+export const PDFHexString:any;
+export const rgb:any;
+export const pushGraphicsState:any;
+export const popGraphicsState:any;
+export const beginText:any;
+export const endText:any;
+export const setFillingRgbColor:any;
+export const setFontAndSize:any;
+export const setTextMatrix:any;
+export const showText:any;

@@ -1,0 +1,6 @@
+'use client';
+import {Book,Task} from '../lib/workbook';
+import {dataIssues,qualityReport} from '../lib/report-model';
+import TaskNameButton from './TaskNameButton';
+import ReportDownloads from './ReportDownloads';
+export default function DataReview({book,at,onEdit}:{book:Book;at:string;onEdit:(task:Task)=>void}){const issues=dataIssues(book,at);return <section className="panel"><div className="panel-head"><div><h2>데이터 검토 · {issues.length}개 확인 사항</h2><p className="muted">날짜·완료율·기간·실제 완료일·기관 배정·일정표 ID를 검사합니다.</p></div><ReportDownloads label="데이터 검토" getReports={c=>[qualityReport(book,c)]}/></div>{issues.length?<div className="table-scroll"><table className="report-table"><thead><tr><th>ID / WBS</th><th>작업 이름</th><th>참여기관</th><th>확인 사항</th></tr></thead><tbody>{issues.map((item,i)=><tr key={item.task.id+'-'+i}><td>{item.task.id} / {item.task.wbs}</td><td><TaskNameButton task={item.task} onOpen={onEdit}/></td><td>{item.task.org||'미배정'}</td><td>{item.issue}</td></tr>)}</tbody></table></div>:<p className="quality-clear">현재 검사 기준에서 날짜·완료율·기간·참여기관 오류가 발견되지 않았습니다.</p>}<p className="footnote">확인 필요 작업도 전체 건수에 포함합니다. 유효하지 않은 날짜는 연도별 집계에서 제외합니다. 원본 값을 확인하여 작업을 수정한 뒤 변경 게시 또는 다운로드로 보존하세요.</p></section>;}
