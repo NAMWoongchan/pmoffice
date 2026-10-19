@@ -46,7 +46,7 @@ onUnmounted(()=>{++epoch;subscription?.unsubscribe();clearInterval(timer)})
 <button :disabled="!accept||busy" @click="join">회원 가입 완료</button>
 </section>
 <template v-if="mode==='project'">
-<iframe v-if="access?.allowed" class="pms-frame" :src="'/pms/app/index.html?project='+encodeURIComponent(project)" title="프로젝트 현황과 보고서"></iframe>
+<iframe v-if="access?.canRead" class="pms-frame" :src="'/pms/app/index.html?project='+encodeURIComponent(project)" title="프로젝트 현황과 보고서"></iframe>
 <section v-else class="pms-notice"><h2>프로젝트 접근 확인</h2><p>{{access?.project?labels[access.project.access_mode]+' 프로젝트입니다.':'프로젝트가 게시되지 않았거나 접근 권한이 없습니다.'}}</p><p v-if="session">지정 회원 프로젝트는 운영자의 승인이 필요합니다.</p><button v-if="!session" :disabled="busy" @click="signin">Google로 계속하기</button><button @click="load">권한 다시 확인</button></section>
 </template>
 <section v-else class="pms-cards" aria-label="프로젝트 목록">

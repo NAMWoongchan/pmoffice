@@ -16,9 +16,10 @@ export function createHandler({rpc,github,origin='https://pmoffice.co.kr',dataRe
  const auth=request.headers.get('authorization')||'';
  const check=()=>rpc(auth,'pms_access',{p_slug:slug});
  let access=await check();
- if(!access?.allowed)fail(403,'프로젝트 열람 권한이 없습니다. Google 로그인과 회원 권한을 확인해 주세요.');
+ if(!access?.canRead)fail(403,'프로젝트 열람 권한이 없습니다. Google 로그인과 회원 권한을 확인해 주세요.');
  const isWrite=request.method==='POST';
- if((isWrite||action==='route')&&!access.admin)fail(403,'관리자만 게시할 수 있습니다.');
+ if(action==='route'&&!access.canManage)fail(403,'관리자만 주소를 생성할 수 있습니다.');
+ if(isWrite&&action!=='route'&&!access.canPublish)fail(403,'편집자 또는 관리자만 게시할 수 있습니다.');
  if(!dataRepo||!/^[-\w]+\/[-\w.]+$/.test(dataRepo))fail(503,'비공개 원본 저장소 연결이 필요합니다.');
  // Never serve customer data from a repository that has become public.
  const repo=await github('/repos/'+dataRepo);
@@ -27,6 +28,7 @@ export function createHandler({rpc,github,origin='https://pmoffice.co.kr',dataRe
  const current=await github(endpoint+'?ref='+encodeURIComponent(branch),{},true);
  let response;
  if(action==='route'&&isWrite){
+ if(!(await check()).canManage)fail(403,'관리 권한이 변경되었습니다.');
  const route='/repos/'+siteRepo+'/contents/docs/pms/'+slug+'/index.md';
  const exists=await github(route+'?ref='+encodeURIComponent(branch),{},true);
  if(exists)response=json({already_exists:true,url:origin+'/pms/'+slug+'/'});
@@ -45,7 +47,7 @@ export function createHandler({rpc,github,origin='https://pmoffice.co.kr',dataRe
  let name;try{name=decodeURIComponent(request.headers.get('x-filename')||'')}catch{fail(400,'파일명이 올바르지 않습니다.')}
  if(!/^[^\\/\x00-\x1f]{1,180}\.(xlsx|xlsm)$/i.test(name)||bytes[0]!==80||bytes[1]!==75)fail(400,'xlsx 또는 xlsm 파일만 게시할 수 있습니다.');
  if(request.headers.get('if-match')!==(current?.sha||'seed'))fail(409,'다른 게시본이 있습니다. 편집본을 다운로드하고 새로고침해 주세요.');
- access=await check();if(!access.admin)fail(403,'관리자 권한이 변경되었습니다.');
+ access=await check();if(!access.canPublish)fail(403,'게시 권한이 변경되었습니다.');
  const payload={schema:1,name,at:new Date().toISOString(),size:bytes.length,content:base64(bytes)};
  const result=await github(endpoint,{method:'PUT',body:{message:'Publish workbook: '+slug,branch,content:base64(new TextEncoder().encode(JSON.stringify(payload))),...(current?{sha:current.sha}:{})}});
  let audit=true;try{await rpc(auth,'pms_log_action',{p_slug:slug,p_action:'workbook.publish',p_details:{commit:result.commit.sha,blob:result.content.sha,size,name}})}catch{audit=false}
@@ -54,6 +56,7 @@ export function createHandler({rpc,github,origin='https://pmoffice.co.kr',dataRe
  if(!current)fail(404,'아직 게시된 원본이 없습니다.');
  const version=url.searchParams.get('version');
  if(version&&!/^[0-9a-f]{40}$/.test(version))fail(400,'잘못된 버전입니다.');
+ if(version&&!access.canPublish)fail(403,'이전 게시본은 편집자만 열 수 있습니다.');
  if(version){
  // A valid commit must have changed THIS project's path; arbitrary repository commits are rejected.
  const commit=await github('/repos/'+dataRepo+'/commits/'+version);
@@ -63,13 +66,15 @@ export function createHandler({rpc,github,origin='https://pmoffice.co.kr',dataRe
  if(payload.schema!==1||typeof payload.content!=='string'||!Number.isInteger(payload.size)||payload.size>MAX_BYTES)fail(502,'게시 원본 형식을 확인해 주세요.');
  const bytes=unbase64(payload.content);
  if(bytes.length!==payload.size||bytes[0]!==80||bytes[1]!==75)fail(502,'게시 원본 검증에 실패했습니다.');
- if(!(await check())?.allowed)fail(403,'열람 권한이 변경되었습니다.');
+ const latestAccess=await check();
+ if(!latestAccess?.canRead||(version&&!latestAccess.canPublish))fail(403,'열람 권한이 변경되었습니다.');
  response=new Response(bytes,{headers:{'Content-Type':/\.xlsm$/i.test(payload.name)?'application/vnd.ms-excel.sheet.macroEnabled.12':'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','Cache-Control':'private, no-store','ETag':current.sha,'X-Filename':encodeURIComponent(payload.name)}});
  }else if(action==='meta'&&request.method==='GET'){
  const commits=current?await github('/repos/'+dataRepo+'/commits?sha='+encodeURIComponent(branch)+'&path='+encodeURIComponent(path)+'&per_page=50'):[];
  const payload=current?await github(endpoint+'?ref='+encodeURIComponent(branch),{raw:true}):null;
- // Only administrators need history. Current data remains protected for every request.
- response=json({canPublish:access.admin,current:current?{etag:current.sha,name:encodeURIComponent(payload.name),at:payload.at}:null,versions:access.admin?commits.map(c=>({id:c.sha,at:c.commit.committer.date,name:encodeURIComponent('게시본.xlsx'),size:0})):[]});
+ // Editors need history for recovery; recheck after repository requests.
+ access=await check();if(!access.canRead)fail(403,'열람 권한이 변경되었습니다.');
+ response=json({canPublish:access.canPublish,current:current?{etag:current.sha,name:encodeURIComponent(payload.name),at:payload.at}:null,versions:access.canPublish?commits.map(c=>({id:c.sha,at:c.commit.committer.date,name:encodeURIComponent('게시본.xlsx'),size:0})):[]});
  }else fail(400,'지원하지 않는 요청입니다.');
  for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response;
  }catch(e){
