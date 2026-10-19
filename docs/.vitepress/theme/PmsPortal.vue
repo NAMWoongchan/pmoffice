@@ -40,14 +40,14 @@ onUnmounted(()=>{++epoch;subscription?.unsubscribe();clearInterval(timer)})
 <section v-if="mode==='callback'"><h2>로그인을 확인하고 있습니다.</h2><a href="/pms/">목록으로 돌아가기</a></section>
 <template v-else>
 <section v-if="session&&!account?.member&&!account?.admin" class="pms-notice">
-<h2>회원 가입 확인</h2><p>Google로 확인한 계정으로 프로젝트 서비스를 이용합니다. 가입만으로 지정 회원 프로젝트의 권한이 부여되지는 않습니다.</p>
+<h2>회원 가입 확인</h2><p>Google로 확인한 계정으로 프로젝트 서비스를 이용합니다. 가입만으로 지정 그룹·개인 프로젝트의 권한이 부여되지는 않습니다.</p>
 <p><a href="/pms/terms.html">서비스 이용 안내·개인정보 처리 안내</a></p>
 <label><input type="checkbox" v-model="accept">안내를 확인했으며 회원 가입에 동의합니다.</label>
 <button :disabled="!accept||busy" @click="join">회원 가입 완료</button>
 </section>
 <template v-if="mode==='project'">
 <iframe v-if="access?.canRead" class="pms-frame" :src="'/pms/app/index.html?project='+encodeURIComponent(project)" title="프로젝트 현황과 보고서"></iframe>
-<section v-else class="pms-notice"><h2>프로젝트 접근 확인</h2><p>{{access?.project?labels[access.project.access_mode]+' 프로젝트입니다.':'프로젝트가 게시되지 않았거나 접근 권한이 없습니다.'}}</p><p v-if="session">지정 회원 프로젝트는 운영자의 승인이 필요합니다.</p><button v-if="!session" :disabled="busy" @click="signin">Google로 계속하기</button><button @click="load">권한 다시 확인</button></section>
+<section v-else class="pms-notice"><h2>프로젝트 접근 확인</h2><p>{{access?.project?labels[access.project.access_mode]+' 프로젝트입니다.':'프로젝트가 게시되지 않았거나 접근 권한이 없습니다.'}}</p><p v-if="session">지정 그룹·개인 프로젝트는 운영자의 승인이 필요합니다.</p><button v-if="!session" :disabled="busy" @click="signin">Google로 계속하기</button><button @click="load">권한 다시 확인</button></section>
 </template>
 <section v-else class="pms-cards" aria-label="프로젝트 목록">
 <a v-for="p in rows" :key="p.slug" :href="'/pms/'+p.slug+'/'" class="pms-card"><span>{{p.customer}}</span><h2>{{p.title}}</h2><p>{{p.description}}</p><strong>{{labels[p.access_mode]}}</strong><span v-if="p.status!=='published'"> · {{p.status==='draft'?'초안':'보관'}}</span><div class="pms-card-arrow">프로젝트 열기 →</div></a>
