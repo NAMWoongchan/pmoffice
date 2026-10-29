@@ -57,6 +57,7 @@ export function createMemberHandler(deps){return async request=>{
   if(action==='create'){validateEmail(b.email);validatePassword(b.password)}
   if(action==='update'&&b.email!==undefined)validateEmail(b.email);
   if(action==='password')validatePassword(b.password);
+  if(action==='password'&&await deps.rpc(token,'member_password_target',{p_user:b.user_id})!==true)fail(403,'관리자 계정은 일괄 비밀번호 변경 대상에서 제외됩니다.');
   op={token,id:b.request_id,action,target:b.user_id||null};
   const previous=await deps.rpc(token,'member_operation',{p_request:op.id,p_action:action,p_target:op.target});
   if(previous.state==='complete')return response({ok:true,user_id:previous.target_id,replayed:true});

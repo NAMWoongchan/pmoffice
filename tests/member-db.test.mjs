@@ -89,6 +89,20 @@ test('real inherited membership policies: group migration, email accounts, withd
  await rpc('select member_admin_withdraw($1)',[id(9)]);await uid(9);await assert.rejects(()=>rpc('select pms_task_policy($1)',['korail']));
  assert.equal((await db.query("select count(*)::int n from public.member_mail_messages m join public.member_mail_jobs j on j.id=m.job_id where j.kind='signup_admin' and m.recipient<>'namwoongchan@gmail.com' and m.state in('queued','sending')")).rows[0].n,0);
 
+ await db.exec(fs.readFileSync('supabase/migrations/202610290006_bulk_passwords.sql','utf8'));
+ await uid(1);let resetRows=(await rpc('select member_password_targets(0) a')).rows[0].a;
+ assert.equal(resetRows.find(x=>x.id===id(1)).is_admin,true);
+ assert.equal((await rpc('select member_password_target($1) a',[id(1)])).rows[0].a,false);
+ assert.equal((await rpc('select member_password_target($1) a',[id(2)])).rows[0].a,true);
+ await db.query('insert into admin_roles(user_id) values($1)',[id(2)]);
+ assert.equal((await rpc('select member_password_target($1) a',[id(2)])).rows[0].a,false);
+ assert.equal((await rpc('select member_password_target($1) a',[id(999)])).rows[0].a,false);
+ await uid(3);await assert.rejects(()=>rpc('select member_password_targets(0)'));
+ await assert.rejects(()=>rpc('select member_password_target($1)',[id(2)]));
+ await uid(null);await db.exec('set role anon');await assert.rejects(()=>db.query('select member_password_targets(0)'));
+ await db.exec('reset role');
+
+
  // Actual SQL pagination, server login sessions, revoked/expired sessions and access control.
  await uid(1);
  let count=0;

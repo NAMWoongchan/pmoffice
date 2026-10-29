@@ -2,13 +2,14 @@
 import {ref,onMounted,onUnmounted} from 'vue'
 import PmsGroups from './PmsGroups.vue'
 import MemberAdmin from './MemberAdmin.vue'
+import MemberPasswordBulk from './MemberPasswordBulk.vue'
 import MemberGroups from './MemberGroups.vue'
 import MemberMail from './MemberMail.vue'
 import MemberHistory from './MemberHistory.vue'
 import KnowledgeImport from './KnowledgeImport.vue'
 import {call,action,api,client,labels} from './pms-client.js'
 const allowed=ref(false),rows=ref([]),selected=ref(null),message=ref(''),busy=ref(false),members=ref([]),history=ref([]),matches=ref([]),search=ref(''),expires=ref(''),role=ref('viewer'),meta=ref(null),tab=ref(locationSafeHash())
-function locationSafeHash(){return typeof location!=='undefined'&&['projects','members','groups','mail','knowledge','history'].includes(location.hash.slice(1))?location.hash.slice(1):'inquiries'}
+function locationSafeHash(){return typeof location!=='undefined'&&['projects','members','passwords','groups','mail','knowledge','history'].includes(location.hash.slice(1))?location.hash.slice(1):'inquiries'}
 function chooseTab(value){tab.value=value;if(typeof window!=='undefined')window.history.replaceState(null,'',window.location.pathname+(value==='inquiries'?'':'#'+value))}
 let sub,timer
 const blank=()=>({slug:'',title:'',customer:'',description:'',access_mode:'assigned',status:'draft',listed:false,version:0})
@@ -40,9 +41,9 @@ onMounted(async()=>{await verify();sub=client().auth.onAuthStateChange(e=>{if(e=
 onUnmounted(()=>{sub?.unsubscribe();clearInterval(timer)})
 </script>
 <template>
-<nav class="pms-admin-tabs" aria-label="관리 기능"><button v-if="allowed" class="pms-member-info" :aria-pressed="tab==='members'" @click="chooseTab('members')">회원정보</button><button :aria-pressed="tab==='inquiries'" @click="chooseTab('inquiries')">고객 문의</button><button v-if="allowed" :aria-pressed="tab==='projects'" @click="chooseTab('projects')">프로젝트 관리</button><button v-for="(label,key) in {groups:'그룹 관리',mail:'메일 발송',knowledge:'지식 관리',history:'변경 이력'}" v-if="allowed" :key="key" :aria-pressed="tab===key" @click="chooseTab(key)">{{label}}</button><a href="/pms/">고객 프로젝트 목록 ↗</a></nav>
+<nav class="pms-admin-tabs" aria-label="관리 기능"><button v-if="allowed" class="pms-member-info" :aria-pressed="tab==='members'" @click="chooseTab('members')">회원정보</button><button :aria-pressed="tab==='inquiries'" @click="chooseTab('inquiries')">고객 문의</button><button v-if="allowed" :aria-pressed="tab==='projects'" @click="chooseTab('projects')">프로젝트 관리</button><button v-for="(label,key) in {passwords:'비밀번호 일괄 변경',groups:'그룹 관리',mail:'메일 발송',knowledge:'지식 관리',history:'변경 이력'}" v-if="allowed" :key="key" :aria-pressed="tab===key" @click="chooseTab(key)">{{label}}</button><a href="/pms/">고객 프로젝트 목록 ↗</a></nav>
 <InquiryAdmin v-if="tab==='inquiries'||!allowed" />
-<MemberAdmin v-else-if="tab==='members'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
+<MemberAdmin v-else-if="tab==='members'" /><MemberPasswordBulk v-else-if="tab==='passwords'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
 <header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
 <p role="status" aria-live="polite">{{message}}</p>
 <div class="pms-admin-grid"><aside><button class="pms-project-row" v-for="p in rows" :key="p.slug" @click="open(p)" :disabled="busy"><strong>{{p.title}}</strong><span>{{p.customer}} · {{labels[p.access_mode]}}</span><small>/pms/{{p.slug}}/ · {{p.status}}</small></button></aside>
