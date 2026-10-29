@@ -1,62 +1,48 @@
-# PMOffice PMS deployment and recovery
+# PMOffice 회원·고객 프로젝트 운영과 복구
 
-Release preparation: group and individual viewer/editor roles implemented. Production status is recorded separately; do not merge until the protected API is deployed and verified.
+이 문서는 현재 코드의 배포·운영 절차입니다. 실제 배포와 실계정 검증 상태는 운영 프로젝트의 최신 기록에서 별도로 확인합니다.
 
-## Architecture
+## 구성과 접근 권한
 
-- Existing public homepage: VitePress on GitHub Pages, same domain and existing inquiry Admin.
-- /pms/: project catalog; /pms/<slug>/: generic project shell. Titles, permissions and customer data load at runtime.
-- Supabase: existing Google authentication, profiles and current server-side is_admin. PMS tables have RLS and no direct anon/authenticated grants.
-- Private repository: NAMWoongchan/pmoffice-pms-data; projects/<slug>/workbook.json is the versioned source. It contains the original Excel bytes, not a spreadsheet re-creation.
-- Supabase Edge pms function checks current project access before GitHub reads and again before sending file bytes. It fails closed if the data repository is public.
-- The shared viewer supports PMOffice Excel workbooks with a master sheet named 사업 일정표 and one schedule sheet per organization token. Different spreadsheet schemas and entirely different site applications need an adapter.
+- 공개 홈페이지는 기존 도메인의 VitePress·GitHub Pages를 유지합니다. 회원 관리·그룹 관리·메일 발송·지식 관리는 기존 `/admin/`에 통합합니다.
+- 관리자 권한은 기존 단일 Google 관리자 식별자와 서버 `is_admin` 검사로 유지합니다. 이메일 표시값·회원 등급·편집자 역할로 관리자 권한을 추론하지 않습니다.
+- 고객 프로젝트는 모두 지정 그룹 전용입니다. `/pms/`와 개별 프로젝트의 제목·설명·원본은 현재 유효한 그룹 권한이 있을 때만 반환합니다. 신규 프로젝트는 지정 그룹 전용 초안으로 생성합니다.
+- Google·이메일 회원 모두 같은 계정 상태와 그룹 정책을 적용합니다. 개인별 기존 권한은 역할·만료를 보존한 전환 그룹으로 이전하며 기존 개인 권한 경로는 사용하지 않습니다.
+- 그룹과 구성원의 활성 상태·만료일, 프로젝트 상태를 서버에서 검사합니다. 여러 유효 그룹이 겹치면 높은 역할을 적용하며, 열람자는 읽기·다운로드, 편집자는 게시·이전 버전 복원을 수행합니다.
+- 프로젝트 원본은 비공개 `NAMWoongchan/pmoffice-pms-data`의 `projects/<slug>/workbook.json`에 원본 Excel 바이트와 버전 이력으로 보존합니다. 저장소가 공개로 바뀌면 PMS API는 차단합니다.
+- 지원 원본은 `사업 일정표`와 기관 토큰별 시트를 가진 PMOffice Excel 구조이며 파일당 8MiB 이하입니다. 다른 데이터 구조나 별도 애플리케이션은 어댑터가 필요합니다. 기존 시트·VBA·재계산·내보내기 검증 범위는 그대로 구분합니다.
 
-## Required production setup
+## 운영 반영 순서
 
-1. Preserve the existing DB definitions and take the available backup before applying supabase/migrations/202610200001_pms.sql, then 202610200002_pms_groups.sql. Requires the existing profiles, service_settings, account_ok and is_admin. This migration adds PMS tables/functions only; no existing inquiry/account function is replaced.
-2. In GitHub, create a fine-grained token limited to NAMWoongchan/pmoffice-pms-data and NAMWoongchan/pmoffice, Contents read/write plus required Metadata read. The operator enters it directly in Supabase Edge secrets as PMS_GITHUB_TOKEN. Never enter it in this repository, browser code or a chat.
-3. Other server configuration: PMS_DATA_REPO=NAMWoongchan/pmoffice-pms-data; PMS_SITE_REPO=NAMWoongchan/pmoffice; PMS_ALLOWED_ORIGIN=https://pmoffice.co.kr. SUPABASE_URL and SUPABASE_ANON_KEY are standard function environment values.
-4. Deploy supabase/functions/pms. Gateway JWT verification is disabled only for this function because public reads must work; every request performs live RPC authorization with the caller token. There is NO service-role authorization bypass. Do not weaken policies in other functions.
-5. Add the exact redirect https://pmoffice.co.kr/pms/callback.html to the existing Supabase OAuth allow list without removing the existing admin callback. Reuse the configured Google provider. Verify the Google audience allows real customers.
-6. Run real anonymous/member/assigned-member/admin tests against API and direct file requests. Test access revocation, suspended profiles, expired grants, stale update SHA, Google callback, logout, and token failure. Local mock UI and PGlite tests do not establish production authentication.
-7. After owner approval of the public/member choice, publish the Korail project through Admin; initial SQL creates a draft; the approved launch changes Korail to public, listed and published after API verification. The imported workbook already resides in the private repository.
-8. Merge the homepage branch and verify GitHub Pages completion and /pms/, /pms/korail/, /admin/, /admin/callback.html and the existing inquiry flow.
-9. An old public source URL remains public independently. Restrict/unpublish the old ChatGPT Site before claiming that the project is member-only across all addresses; retain its source backup.
+1. 현재 소스와 변경 대상 DB 기록·함수를 백업합니다. 기존 회원·문의·PMS 마이그레이션을 다시 실행하지 않습니다.
+2. 기존 운영 DB에는 `202610290001_member_access.sql`을 한 번 적용하고 `202610290002_member_private_rls.sql`로 모든 신규 공개·비공개 관리 테이블의 RLS 활성화를 확인하고 `202610290003_member_mail_bridge.sql`을 적용합니다. 새 설치는 기존 회원·교육·통합 정회원·문의·PMS 스키마가 선행 조건입니다.
+3. `member-admin`과 `member-file` 함수를 배포합니다. `member-admin`은 공개 가입만 허용하며 나머지 변경은 유효 사용자·현재 계정 상태·서버 관리자 권한 또는 본인 재확인을 검사합니다. 관리자 Auth 키는 서버 표준 환경변수에서만 읽으며 브라우저·기록·저장소에 넣지 않습니다.
+4. 함수 게이트웨이 검증과 별개로 사용자 토큰을 `auth.getUser` 및 현재 DB 정책으로 검증합니다. 본문 API·파일 API는 요청마다 현재 권한을 확인하며 파일 전송 전에도 재검사합니다. `member-file`은 비공개 파일을 no-store 응답으로 제공하고 서명 URL을 장기간 발급하지 않습니다.
+5. 기존 Google 제공자와 허용된 `/pms/callback.html`을 통합 회원 콜백으로 재사용합니다. 기존 `/admin/callback.html`과 관리자 로그인은 유지합니다. 신규 가입은 서버 `createUser` 경로로 처리하여 이메일 인증·초대·설정 링크 메일을 발생시키지 않습니다. 회원 보안 자동 알림도 비활성 상태인지 확인합니다.
+6. 기존 문의 Apps Script에 `supabase/operations/member-mail.gs`를 포함하고 기존 `processQueue`에서 `processMemberMail_`을 호출합니다. 기존 서버 연결키·실행 계정·트리거를 재사용하며 새 키를 생성하거나 공개하지 않습니다. 문의 알림도 관리자 단일 수신으로 제한합니다.
+7. 홈페이지를 배포하고 관리자 지식 관리에서 검증된 비공개 이전 ZIP을 가져옵니다. 본문·파일 해시를 저장 전 검증하며 원문·이미지를 공개 저장소·검색 색인에 넣지 않습니다.
+8. 익명 직접 URL·REST·파일 차단, 관리자 로그인, 일반/권한 회원, 회수·만료·탈퇴, 메일 수신자를 실제 환경에서 검증합니다. 로컬 PGlite·모의 UI 통과와 실제 플랫폼 시험을 구분합니다.
 
-## Admin operations
+## 회원과 메일
 
-- New project: choose unique lowercase slug → save draft → create homepage address → wait for GitHub Pages build → upload a matching Excel → choose access and listed → publish.
-- Public: everyone can retrieve workbook and reports. Members: all active Google members who accepted current signup policy. Assigned: active individual or manually managed group grants.
-- Listed shows the project title/description in the catalog even to users who cannot read its workbook. Turn it off for private customer metadata.
-- Search an existing Google member by email, grant/revoke access and optionally set expiry.
-- Upload commits the original workbook to private GitHub. Optimistic concurrency compares blob SHA; conflicts do not overwrite a newer workbook.
-- Version recovery opens an authorized historical commit in the viewer and publishes it as a new commit. Previously downloaded files cannot be recalled.
-- Audit: DB records settings and membership changes. GitHub is the durable commit history for workbook versions. A failed post-commit DB audit must be reconciled from GitHub.
+- 관리자 직접 등록은 이메일·이름·소속·초기 비밀번호를 입력합니다. 직접 가입자는 자신의 비밀번호를 설정합니다. 비밀번호 원문을 저장·조회·내보내기 하지 않으며 최초 로그인 변경을 강제하지 않습니다.
+- 관리자 등록과 회원 본인 동의는 별도 기록입니다. 신규 가입 안내는 `member-v1.1`, 기존 가입 동의는 이전 버전을 유지합니다. 기존 가입 확인 API만 호출해 신규 필수 회원정보를 우회할 수 없습니다.
+- 회원은 내 정보에서 프로필과 PMOffice 비밀번호를 수정합니다. 민감한 변경은 현재 비밀번호 또는 최근 Google 재인증을 확인합니다. Google 계정 자체 비밀번호는 변경하지 않습니다.
+- 탈퇴는 이용 중지·기존 세션의 자료 접근 차단·이력 보존 방식입니다. 재가입이나 상태 변경으로 과거 그룹 권한을 자동 복구하지 않습니다.
+- 자동 메일은 `namwoongchan@gmail.com`의 새 문의·새 가입 알림뿐입니다. 회원에게는 자동 메일을 보내지 않습니다.
+- 수동 메일은 관리자만 그룹·회원 선택 → 수신자·본문 확인 → 발송을 실행합니다. 주소 중복을 제거하고 개별 발송하며, 표시명은 `피엠오피스(nam@pmoffice.co.kr)`, 회신 주소는 `nam@pmoffice.co.kr`입니다. 실제 발신 주소는 기존 Google 실행 계정입니다.
+- 발송 상태는 queued/sending/sent/failed/unknown/cancelled로 구분합니다. sent는 MailApp 요청 성공이며 받은편지함 도착 보장이 아닙니다. unknown과 오래된 sending을 자동 재발송하지 않습니다.
 
-## Validation and limits
+## 복구와 한계
 
-Commands: pnpm install --frozen-lockfile; pnpm run pms:test; pnpm run docs:build.
-Customer-fixture regression tests are private and excluded from Git.
-Builds must never contain an XLSM/XLSX, source JSON fixture, token, public workbook fallback or legacy ChatGPT owner-header authentication.
-Google login requires normal provider account/consent steps; an exact one-click count or guaranteed One Tap display is not promised.
-PMS supports files up to 8 MiB and lists the last 50 Git commits per project.
-Visibility revocation blocks subsequent API requests; the screen rechecks every 30 seconds. Already delivered/downloaded data cannot be remotely erased.
-GitHub API quotas and the configured Supabase plan may limit throughput. No paid upgrade is included.
+- 원본 게시·복원에는 현재 blob SHA 확인을 유지합니다. 충돌 시 최신본을 조회하고 원본을 강제 덮어쓰지 않습니다.
+- 장애 시 고객 프로젝트를 계속 비공개로 유지하고 보호 본문·파일을 차단합니다. 예전 공개 설정이나 보호 본문이 포함된 이전 정적 사이트를 그대로 재배포하지 않습니다.
+- 계정 생성의 부분 실패는 보상 처리와 관리자 작업 이력으로 추적합니다. 결과 미확인 요청을 임의로 성공 처리하거나 메일을 중복 발송하지 않습니다.
+- 이미 내려받은 데이터, 과거 공개 Git 이력, 다른 주소의 기존 공개 사이트는 이번 도메인의 접근 회수로 소급 회수되지 않습니다. 다른 사이트의 공개 중지는 별도 범위입니다.
 
-## Rollback
+## 공식 참고
 
-Revert only the PMS homepage commit through a new Git commit to restore the previous public UI.
-Archive/unpublish the PMS project or disable the pms function to stop new reads.
-Do not delete the private repository or rewrite its commit history. Do not drop existing membership/inquiry objects.
-The SQL additions can remain disabled while investigating; preserve pms_audit and membership history.
-
-## References
-
-- https://supabase.com/docs/guides/auth/social-login/auth-google — existing Google provider and PKCE callback.
-- https://supabase.com/docs/guides/database/postgres/row-level-security — database access boundary.
-- https://docs.github.com/en/rest/repos/contents — source writes with current blob SHA.
-
-
-## Group and editor roles
-
-New projects default to public visibility but remain draft until explicitly published. Draft/archived projects are administrator-only. Public visitors can read/download; only active Google members with a valid editor grant or administrators may publish/restore. Personal and active group grants combine by highest valid role; revoking one grant does not cancel other grants. Group removal, disablement and expiry take effect on subsequent server requests. Only admins can manage groups, permissions, project settings and create routes. The pms_access response exposes canRead, canPublish, canManage and keeps allowed/admin compatibility fields. Never infer admin from editor.
+- [Supabase Auth](https://supabase.com/docs/guides/auth): 인증·계정 관리
+- [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security): 데이터 접근 경계
+- [Google MailApp](https://developers.google.com/apps-script/reference/mail/mail-app): 발송과 표시명·회신 주소
+- [GitHub Contents API](https://docs.github.com/en/rest/repos/contents): 원본 버전 저장과 충돌 검사

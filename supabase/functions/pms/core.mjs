@@ -16,7 +16,7 @@ export function createHandler({rpc,github,origin='https://pmoffice.co.kr',dataRe
  const auth=request.headers.get('authorization')||'';
  const check=()=>rpc(auth,'pms_access',{p_slug:slug});
  let access=await check();
- if(!access?.canRead)fail(403,'프로젝트 열람 권한이 없습니다. Google 로그인과 회원 권한을 확인해 주세요.');
+ if(!access?.canRead)fail(403,'프로젝트 열람 권한이 없습니다. 로그인과 그룹 권한을 확인해 주세요.');
  const isWrite=request.method==='POST';
  if(action==='route'&&!access.canManage)fail(403,'관리자만 주소를 생성할 수 있습니다.');
  if(isWrite&&action!=='route'&&!access.canPublish)fail(403,'편집자 또는 관리자만 게시할 수 있습니다.');

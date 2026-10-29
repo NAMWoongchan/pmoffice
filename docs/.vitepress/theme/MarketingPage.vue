@@ -1,4 +1,5 @@
 <script setup>
+import {memberAccount} from './member-service.js'
 import { computed } from 'vue'
 import { withBase } from 'vitepress'
 import content from './content.json'
@@ -35,7 +36,7 @@ const href=withBase
   <section v-if="false" class="knowledge-section section-inner"><div class="section-heading split"><div><h2>실무 지식을 함께 나눕니다.</h2><p>교육과 컨설팅의 다음 단계, 실무에 필요한 지식 공간.</p></div><a class="text-link" :href="href('/knowledge/index.html')">지식 공간 보기 ↗</a></div><div class="knowledge-grid"><a v-for="item in knowledge" :key="item[0]" :href="href(item[1])"><h3>{{item[0]}} ↗</h3><p>{{item[2]}}</p></a></div></section>
   <section v-if="page==='contact'" class="section-inner contact-page"><h1 id="page-title">제안 요청</h1><p>문의 주시면 자세한 안내 자료를 메일로 보내 드립니다.</p></section><InquiryPanel v-if="page==='contact'" compact />
   <section v-if="!['home','contact'].includes(page)" class="contact-band"><div class="section-inner"><div><h2>프로젝트 유형과 필요한 산출물을 알려주십시오. 교육·컨설팅 범위를 구체적으로 제안하겠습니다.</h2><a class="contact-cta" :href="href('/contact.html')">교육·컨설팅 문의 ↗</a></div><div><p>관리 대상 사업과 필요한 공정표·보고서,<br>교육 대상과 희망 일정을 알려주십시오.</p><div class="contact-links"><a href="mailto:nam@pmoffice.co.kr">nam@pmoffice.co.kr</a><a href="tel:025328060">02-532-8060</a></div></div></div></section>
-  <footer class="marketing-footer section-inner"><a class="footer-brand" :href="href('/')">PMOffice<span>피엠오피스</span></a><div><a :href="href('/about.html')">소개</a><a :href="href('/services.html')">사업 분야</a><a :href="href('/consulting/')">컨설팅</a><a :href="href('/ai-edu/')">AI 교육</a><a :href="href('/knowledge/index.html')">지식 공간</a></div><p>© {{new Date().getFullYear()}} PMOffice</p></footer>
+  <footer class="marketing-footer section-inner"><a class="footer-brand" :href="href('/')">PMOffice<span>피엠오피스</span></a><div><a :href="href('/about.html')">소개</a><a :href="href('/services.html')">사업 분야</a><a :href="href('/consulting/')">컨설팅</a><a :href="href('/ai-edu/')">AI 교육</a><a v-if="memberAccount?.member" :href="href('/knowledge/index.html')">지식 공간</a></div><p>© {{new Date().getFullYear()}} PMOffice</p></footer>
 </div>
 </template>
 <style scoped>

@@ -3,3 +3,9 @@
 # including anonymous public reads; do not enable a service-role bypass.
 verify_jwt = false
 
+[functions.member-admin]
+verify_jwt = false
+
+[functions.member-file]
+verify_jwt = false
+

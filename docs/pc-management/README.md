@@ -1,25 +1,12 @@
 ---
-page_id: pc-management
-title: "테크"
-status: reviewed_with_limits
-created: "2026-10-11"
-updated: "2026-10-11"
-version: "1.1"
-description: "문서 작성·자료 분석·AI 작업을 장시간 수행하는 담당자를 위해 전원·성능 설정과 작업 자료 보존 방법을 설명합니다."
+layout: page
+sidebar: false
+aside: false
+title: 지식 공간
+search: false
+head:
+  - - meta
+    - name: robots
+      content: noindex, nofollow
 ---
-
-# 테크 (Tech)
-
-[피엠오피스 홈](/index.md)
-
-문서 작성·자료 분석·AI 작업을 장시간 수행하는 담당자를 위해 전원·성능 설정과 작업 자료 보존 방법을 설명합니다.
-
-| 문서 | 활용 |
-|---|---|
-| [고성능 전원 관리 상세 해설](high-performance-power.md) | AC/DC 연속 작업, CPU 상태, 덮개, 배터리 3%, 복원·검증 |
-
-설정값 저장, 실제 동작, 성능 개선은 다른 검증 단계입니다. 배터리 경고 정확히 한 번과 실효 3% 최대 절전은 기본 설정만으로 보장하지 않습니다. [Microsoft 배터리 설정](https://learn.microsoft.com/en-us/windows-hardware/customize/power-settings/battery-settings)을 참고하십시오.
-
-
-
-<!-- 제작 기록은 로컬 Root AGENTS.md의 대화·작업 진행 TXT 정책 v1.4에 따라 보존합니다. -->
+<MemberKnowledge path="/pc-management/README.html" />

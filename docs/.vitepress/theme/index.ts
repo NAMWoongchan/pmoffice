@@ -1,3 +1,5 @@
+import MemberPortal from './MemberPortal.vue'
+import MemberKnowledge from './MemberKnowledge.vue'
 import PmsPortal from './PmsPortal.vue'
 import PmsAdmin from './PmsAdmin.vue'
 import InquiryAdmin from './InquiryAdmin.vue'
@@ -30,9 +32,10 @@ import './education.css'
 export default {
   extends: DefaultTheme,
   Layout: () => h(DefaultTheme.Layout, null, { 'doc-before': () => h(PageStatus), 'nav-bar-content-after': () => h(BrandNav) }),
-  enhanceApp({ app }) { app.component('PmsPortal',PmsPortal); app.component('PmsAdmin',PmsAdmin); app.component('InquiryAdmin',InquiryAdmin); app.component('AiEducation',AiEducation); app.component('MainLanding',MainLanding); app.component('CoreServices',CoreServices); app.component('ExperiencePage',ExperiencePage); app.component('ExperienceProof',ExperienceProof); app.component('InquiryPanel',InquiryPanel); app.component('AiLearning',AiLearning); app.component('EducationSupport',EducationSupport); app.component('ProjectIntroduction', ProjectIntroduction); app.component('ConsultingPage', ConsultingPage); app.component('ConsultingTeaser', ConsultingTeaser); app.component('WikiHome', Home); app.component('KnowledgeHome', KnowledgeHome); app.component('MarketingPage', MarketingPage); app.component('EducationPage', EducationPage) }
+  enhanceApp({ app }) { app.component('MemberPortal',MemberPortal); app.component('MemberKnowledge',MemberKnowledge); app.component('PmsPortal',PmsPortal); app.component('PmsAdmin',PmsAdmin); app.component('InquiryAdmin',InquiryAdmin); app.component('AiEducation',AiEducation); app.component('MainLanding',MainLanding); app.component('CoreServices',CoreServices); app.component('ExperiencePage',ExperiencePage); app.component('ExperienceProof',ExperienceProof); app.component('InquiryPanel',InquiryPanel); app.component('AiLearning',AiLearning); app.component('EducationSupport',EducationSupport); app.component('ProjectIntroduction', ProjectIntroduction); app.component('ConsultingPage', ConsultingPage); app.component('ConsultingTeaser', ConsultingTeaser); app.component('WikiHome', Home); app.component('KnowledgeHome', KnowledgeHome); app.component('MarketingPage', MarketingPage); app.component('EducationPage', EducationPage) }
 }
 
 
 
 import './academy-redesign.css'
+import './member.css'

@@ -9,5 +9,5 @@ head:
     - name: robots
       content: noindex, nofollow
 ---
-<PmsPortal mode="callback" />
+<MemberPortal mode="callback" />
 

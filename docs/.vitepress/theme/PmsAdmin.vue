@@ -1,11 +1,16 @@
 <script setup>
 import {ref,onMounted,onUnmounted} from 'vue'
 import PmsGroups from './PmsGroups.vue'
+import MemberAdmin from './MemberAdmin.vue'
+import MemberGroups from './MemberGroups.vue'
+import MemberMail from './MemberMail.vue'
+import MemberHistory from './MemberHistory.vue'
+import KnowledgeImport from './KnowledgeImport.vue'
 import {call,action,client,labels} from './pms-client.js'
 const allowed=ref(false),rows=ref([]),selected=ref(null),message=ref(''),busy=ref(false),members=ref([]),history=ref([]),matches=ref([]),search=ref(''),expires=ref(''),role=ref('viewer'),meta=ref(null),tab=ref(locationSafeHash())
-function locationSafeHash(){return typeof location!=='undefined'&&location.hash==='#projects'?'projects':'inquiries'}
+function locationSafeHash(){return typeof location!=='undefined'&&['projects','members','groups','mail','knowledge','history'].includes(location.hash.slice(1))?location.hash.slice(1):'inquiries'}
 let sub,timer
-const blank=()=>({slug:'',title:'',customer:'',description:'',access_mode:'public',status:'draft',listed:false,version:0})
+const blank=()=>({slug:'',title:'',customer:'',description:'',access_mode:'assigned',status:'draft',listed:false,version:0})
 async function verify(){try{allowed.value=await call('is_admin');if(allowed.value)rows.value=await call('pms_catalog');else clear()}catch{clear()}}
 function clear(){allowed.value=false;rows.value=[];selected.value=null;members.value=[];history.value=[];matches.value=[];meta.value=null}
 async function run(fn){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false}}
@@ -28,9 +33,9 @@ onMounted(async()=>{await verify();sub=client().auth.onAuthStateChange(e=>{if(e=
 onUnmounted(()=>{sub?.unsubscribe();clearInterval(timer)})
 </script>
 <template>
-<nav class="pms-admin-tabs" aria-label="관리 기능"><button :aria-pressed="tab==='inquiries'" @click="tab='inquiries'">고객 문의</button><button v-if="allowed" :aria-pressed="tab==='projects'" @click="tab='projects'">프로젝트 관리</button><a href="/pms/">고객 프로젝트 목록 ↗</a></nav>
+<nav class="pms-admin-tabs" aria-label="관리 기능"><button :aria-pressed="tab==='inquiries'" @click="tab='inquiries'">고객 문의</button><button v-if="allowed" :aria-pressed="tab==='projects'" @click="tab='projects'">프로젝트 관리</button><button v-for="(label,key) in {members:'회원 관리',groups:'그룹 관리',mail:'메일 발송',knowledge:'지식 관리',history:'변경 이력'}" v-if="allowed" :key="key" :aria-pressed="tab===key" @click="tab=key">{{label}}</button><a href="/pms/">고객 프로젝트 목록 ↗</a></nav>
 <InquiryAdmin v-if="tab==='inquiries'||!allowed" />
-<main v-else class="pms-admin">
+<MemberAdmin v-else-if="tab==='members'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
 <header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
 <p role="status" aria-live="polite">{{message}}</p>
 <div class="pms-admin-grid"><aside><button class="pms-project-row" v-for="p in rows" :key="p.slug" @click="open(p)" :disabled="busy"><strong>{{p.title}}</strong><span>{{p.customer}} · {{labels[p.access_mode]}}</span><small>/pms/{{p.slug}}/ · {{p.status}}</small></button></aside>
@@ -39,9 +44,9 @@ onUnmounted(()=>{sub?.unsubscribe();clearInterval(timer)})
 <label>주소 이름<input v-model="selected.slug" :disabled="selected.version>0" required pattern="[a-z][a-z0-9-]{1,47}" maxlength="48" placeholder="korail"></label>
 <label>프로젝트명<input v-model="selected.title" required maxlength="160"></label>
 <label>기업·기관<input v-model="selected.customer" maxlength="120"></label>
-<label>공개 범위<select v-model="selected.access_mode"><option v-for="(label,key) in labels" :value="key">{{label}}</option></select></label>
+<p>접근 범위: 지정 그룹 회원</p>
 <label>운영 상태<select v-model="selected.status"><option value="draft">초안</option><option value="published">게시</option><option value="archived">보관</option></select></label>
-<label class="pms-check"><input type="checkbox" v-model="selected.listed">프로젝트 목록에 제목·설명 표시</label>
+<p>프로젝트 목록과 제목·설명도 허용된 그룹 회원에게만 표시됩니다.</p>
 </div><label>소개<textarea v-model="selected.description" maxlength="1000" rows="3"></textarea></label>
 <p v-if="selected.access_mode==='public'">전체 공개를 저장하면 로그인하지 않은 고객도 원본과 보고서를 볼 수 있습니다.</p>
 <p v-else-if="selected.access_mode==='members'">Google로 가입을 완료한 모든 유효 회원이 볼 수 있습니다.</p><p v-else>아래에서 지정한 개인 또는 그룹의 유효 회원만 볼 수 있습니다.</p>
@@ -49,11 +54,9 @@ onUnmounted(()=>{sub?.unsubscribe();clearInterval(timer)})
 <template v-if="selected.version">
 <section><h2>배포 주소</h2><p><a :href="'/pms/'+selected.slug+'/'" target="_blank" rel="noopener">/pms/{{selected.slug}}/ ↗</a></p><button @click="route" :disabled="busy">홈페이지 주소 생성</button><p>새 주소는 GitHub Pages 배포 후 사용할 수 있습니다. 주소 생성은 프로젝트의 공개 범위를 바꾸지 않습니다.</p></section>
 <section><h2>원본과 게시 이력</h2><p>현재 게시본: {{meta?.current?decodeURIComponent(meta.current.name):'미등록 또는 연결 확인 필요'}}</p><label>엑셀 원본 게시<input type="file" accept=".xlsx,.xlsm" :disabled="busy||!meta" @change="upload"></label><p>원본은 비공개 GitHub 저장소에 버전별로 보존합니다. 8MB 이하, 사업 일정표와 기관별 시트로 구성된 PMOffice 엑셀 구조를 지원합니다.</p><p>이전 게시본 열기·복원은 프로젝트 화면의 ‘파일 게시’에서 이용하세요.</p></section>
-<section><h2>개인별 권한</h2><p>전체 공개에서도 게시·복원에는 편집자 권한이 필요합니다. 여러 권한이 겹치면 높은 권한을 적용합니다.</p><label>부여할 역할<select v-model="role"><option value="viewer">열람자</option><option value="editor">편집자</option></select></label><form @submit.prevent="find"><label>가입 회원 이메일 검색<input v-model="search" minlength="3" maxlength="120" placeholder="이메일 3자 이상"></label><button :disabled="busy">회원 찾기</button></form><label>접근 만료 일시(선택)<input v-model="expires" type="datetime-local"></label><ul><li v-for="u in matches" :key="u.id">{{u.email}} · {{u.status}} <button @click="grant(u.id,true)" :disabled="busy">접근 허용</button></li></ul>
-<ul><li v-for="m in members" :key="m.user_id">{{m.email}} · {{m.role==='editor'?'편집자':'열람자'}} · {{m.active?'허용':'회수'}} · {{m.expires_at||'만료 없음'}} <button @click="grant(m.user_id,true)" :disabled="busy">선택한 역할·만료 적용</button> <button v-if="m.active" @click="grant(m.user_id,false,m.role)" :disabled="busy">접근 회수</button></li></ul></section>
 <PmsGroups :project="selected.slug" :key="selected.slug" /><section><h2>변경 이력</h2><ol><li v-for="h in history" :key="h.id">{{new Date(h.created_at).toLocaleString('ko-KR')}} · {{h.action}}</li></ol></section>
 </template>
-</section><section v-else><h2>관리할 프로젝트를 선택하세요.</h2><p>새 프로젝트는 전체 공개 설정의 초안으로 시작하며 게시 전에는 관리자만 볼 수 있습니다.</p></section>
+</section><section v-else><h2>관리할 프로젝트를 선택하세요.</h2><p>새 프로젝트는 지정 그룹 전용 초안으로 시작하며 게시 전에는 관리자만 볼 수 있습니다.</p></section>
 </div>
 </main>
 </template>
