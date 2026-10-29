@@ -49,6 +49,7 @@ export function createMemberHandler(deps){return async request=>{
     const found=await deps.rpc(token,'member_bulk_lookup',{p_email:email});const conflict=found&&(found.status!=='active'||found.withdrawn_at||(found.banned_until&&Date.parse(found.banned_until)>Date.now())||found.display_name!==row.name.trim()||found.company!==row.company.trim());
     rows.push({email,existing:!!found,conflict:conflict?'기존 회원정보 또는 이용 상태가 명단과 다릅니다.':''});}return response({rows});
   }
+  if(action==='provision-profile'){if(b.password!==undefined)fail(400,'이 등록 방식에는 비밀번호를 입력하지 않습니다.');return response(await provisionMember(deps,token,user,b,{withoutPassword:true}));}
   if(action==='provision')return response(await provisionMember(deps,token,user,b));
   if(!['create','update','password','withdraw'].includes(action)||!UUID.test(b.request_id||''))fail(400,'요청 형식이 올바르지 않습니다.');
   if(action!=='create'&&!UUID.test(b.user_id||''))fail(400,'회원을 선택해 주세요.');
@@ -95,8 +96,8 @@ export function createMemberHandler(deps){return async request=>{
 }};
 
 // One row per request, no password persistence or invitation/reset-email APIs.
-export async function provisionMember(deps,token,actor,b){
- validateProfile(b);validateEmail(b.email);validatePassword(b.password);if(!bulkCompanies.includes(b.company))fail(400,'지원하는 기업을 선택해 주세요.');
+export async function provisionMember(deps,token,actor,b,{withoutPassword=false}={}){
+ validateProfile(b);validateEmail(b.email);if(!withoutPassword)validatePassword(b.password);if(!bulkCompanies.includes(b.company))fail(400,'지원하는 기업을 선택해 주세요.');
  if(!UUID.test(b.request_id||'')||!b.position?.trim())fail(400,'직함과 요청 번호를 확인해 주세요.');
  let existing=await deps.rpc(token,'member_bulk_lookup',{p_email:b.email});
  const mine=existing?.provision_request===b.request_id;
@@ -106,14 +107,14 @@ export async function provisionMember(deps,token,actor,b){
  if(op.state==='complete')return {ok:true,user_id:op.target_id,replayed:true};
  let target=existing?.id;
  try{
-  if(!target){const u=await deps.createUser({email:b.email.trim().toLowerCase(),password:b.password,email_confirm:true,app_metadata:{member_created_by:actor.id,member_request_id:b.request_id},user_metadata:{name:b.name.trim()}});target=u.id}
+  if(!target){const u=await deps.createUser({email:b.email.trim().toLowerCase(),...(!withoutPassword?{password:b.password}:{}),email_confirm:true,app_metadata:{member_created_by:actor.id,member_request_id:b.request_id},user_metadata:{name:b.name.trim()}});target=u.id}
   await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target});
   if(action==='create')await deps.rpc(token,'member_admin_register',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind});
-  else await deps.updateUser(target,{password:b.password});
+  else if(!withoutPassword)await deps.updateUser(target,{password:b.password});
   await deps.rpc(token,'member_profile_save',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind});
   await deps.rpc(token,'member_position_save',{p_user:target,p_position:b.position});
   await deps.rpc(token,'member_bulk_attach',{p_user:target,p_company:b.company});
-  if(deps.verifyPassword)await deps.verifyPassword(b.email.trim().toLowerCase(),b.password,target);
+  if(!withoutPassword&&deps.verifyPassword)await deps.verifyPassword(b.email.trim().toLowerCase(),b.password,target);
   await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target,p_state:'complete'});
   return {ok:true,user_id:target};
  }catch{if(target)await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target,p_state:'recovery_required'}).catch(()=>{});fail(503,'일부 단계가 저장되었을 수 있습니다. 행 상태를 확인하고 같은 요청 번호로 재시도해 주세요.')}
