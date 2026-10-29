@@ -1,4 +1,4 @@
-import {patchTasksRemote as patchTasks} from './workbook-engine.mjs';
+import {patchTasksChainedRemote as patchTasks} from './workbook-engine.mjs';
 import {createHandler} from './core.mjs';
 const supabase=Deno.env.get('SUPABASE_URL')!;
 const key=Deno.env.get('SUPABASE_ANON_KEY')!;

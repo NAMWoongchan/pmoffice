@@ -1,10 +1,10 @@
 import {SaxesParser} from 'saxes';
 import {address,colName,type Cell,type Change} from './workbook';
 // A streaming parser builds only worksheet values; it never creates a full DOM per cell.
-export function readSheet(text:string,strings:string[]){
+export function readSheet(text:string,strings:string[],options:{skipBlank?:boolean}={}){
  if(/<!DOCTYPE|<!ENTITY|<\w+:c[\s>]/i.test(text))throw Error('지원하지 않는 Excel XML 형식입니다.');
  const cells:Record<string,Cell>={},widths:Record<number,number>={},heights:Record<number,number>={},hiddenCols:number[]=[],merges:string[]=[];
- let rows=0,cols=0,current:any=null,mode='',value='',formula='',inline='';
+ const seen=new Set<string>();let rows=0,cols=0,current:any=null,mode='',value='',formula='',inline='';
  const p=new SaxesParser({xmlns:false});
  p.on('opentag',(tag:any)=>{const a=tag.attributes,n=tag.name;
   if(n==='c'){current={a:a.r,t:a.t||'',s:Number(a.s||0)};value='';formula='';inline='';}
@@ -17,7 +17,7 @@ export function readSheet(text:string,strings:string[]){
  p.on('closetag',(tag:any)=>{const n=tag.name;if(['v','f','t'].includes(n)){mode='';return;}if(n!=='c'||!current)return;
   let v:any=value;if(current.t==='s')v=strings[Number(value)]??'';else if(current.t==='inlineStr')v=inline;else if(current.t==='b')v=value==='1';else if(current.t!=='str'&&current.t!=='e'&&v!=='')v=Number(v);
   if(!/^[A-Z]+[1-9][0-9]*$/.test(current.a))throw Error('Excel 셀 주소가 올바르지 않습니다.');
-  if(cells[current.a])throw Error('Excel 셀 주소가 중복되었습니다.');cells[current.a]={v,f:formula||undefined,s:current.s,t:current.t};
+  if(seen.has(current.a))throw Error('Excel 셀 주소가 중복되었습니다.');seen.add(current.a);if(!options.skipBlank||v!==''||formula)cells[current.a]={v,f:formula||undefined,s:current.s,t:current.t};
   if(v!==''||formula){const a=address(current.a);rows=Math.max(rows,a.r);cols=Math.max(cols,a.c);}current=null;
  });p.write(text).close();return {cells,rows,cols,widths,heights,hiddenCols,merges};
 }
@@ -36,7 +36,9 @@ export function patchSheet(text:string,updates:Change[]){
   let i=0;body=body.replace(/<c\b[^>]*?\br=["']([A-Z]+[0-9]+)["'][^>]*(?:\/>|>[\s\S]*?<\/c>)/g,(cell,a)=>{let before='';while(i<more.length&&address(more[i].address).c<address(a).c)before+=cellXml(more[i++]);return before+cell;});
   const tail=more.slice(i).map(ch=>cellXml(ch)).join('');body=body.includes('<extLst')?body.replace('<extLst',tail+'<extLst'):body+tail;return '<row'+attrs+'>'+body+'</row>';
  });
- for(const [r,more]of [...byRow.entries()].sort((a,b)=>a[0]-b[0])){const row='<row r="'+r+'">'+more.sort((a,b)=>address(a.address).c-address(b.address).c).map(ch=>cellXml(ch)).join('')+'</row>';const positions=[...text.matchAll(/<row\b[^>]*?\br=["']([0-9]+)["']/g)];const before=positions.find(m=>Number(m[1])>r);if(before)text=text.slice(0,before.index)+row+text.slice(before.index);else text=text.replace('</sheetData>',row+'</sheetData>');}
+ const extraRows=[...byRow.entries()].sort((a,b)=>a[0]-b[0]).map(([r,more])=>({r,xml:'<row r="'+r+'">'+more.sort((a,b)=>address(a.address).c-address(b.address).c).map(ch=>cellXml(ch)).join('')+'</row>'}));let extraIndex=0;
+ text=text.replace(/<row\b[^>]*?\br=["']([0-9]+)["'][^>]*>/g,(whole,row)=>{let before='';while(extraIndex<extraRows.length&&extraRows[extraIndex].r<Number(row))before+=extraRows[extraIndex++].xml;return before+whole;});
+ if(extraIndex<extraRows.length)text=text.replace('</sheetData>',extraRows.slice(extraIndex).map(row=>row.xml).join('')+'</sheetData>');
  const dim=text.match(/<dimension\b[^>]*?\bref=["']([^"']+)["']/);if(dim){const last=address(dim[1].split(':').at(-1)!);for(const ch of updates){const a=address(ch.address);last.c=Math.max(last.c,a.c);last.r=Math.max(last.r,a.r);}text=text.replace(dim[0],dim[0].replace(dim[1],'A1:'+colName(last.c)+last.r));}
  return text;
 }

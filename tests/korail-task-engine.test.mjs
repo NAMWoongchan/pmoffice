@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import {pathToFileURL} from 'node:url';import {build} from 'esbuild';import {zipSync,strToU8} from 'fflate';
 const dir=path.resolve('node_modules/.cache/korail-tests-'+process.pid);fs.mkdirSync(dir,{recursive:true});
-await build({entryPoints:['pms-app/lib/server-engine.ts','pms-app/lib/workbook.ts'],bundle:true,platform:'node',packages:'external',format:'esm',outdir:dir,outExtension:{'.js':'.mjs'},logLevel:'silent'});
-const {patchTasks,allowedTask,patchTasksRemote,runWorkbookStage}=await import(pathToFileURL(path.join(dir,'server-engine.mjs')));const w=await import(pathToFileURL(path.join(dir,'workbook.mjs')));
+await build({entryPoints:['pms-app/lib/server-engine.ts','pms-app/lib/workbook.ts','pms-app/lib/server-xml.ts'],bundle:true,platform:'node',packages:'external',format:'esm',outdir:dir,outExtension:{'.js':'.mjs'},logLevel:'silent'});
+const {patchTasks,allowedTask,patchTasksRemote,runWorkbookStage,patchTasksChainedRemote,runWorkbookPipeline}=await import(pathToFileURL(path.join(dir,'server-engine.mjs')));const w=await import(pathToFileURL(path.join(dir,'workbook.mjs')));
 const orgs=['공사','한국공사','기관C','기관D','기관E','기관F'];const NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 const escape=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;');
 const cells=entries=>entries.map(([a,value])=>`<c r="${a}"${typeof value==='string'?' t="inlineStr"':''}>${typeof value==='string'?`<is><t>${escape(value)}</t></is>`:`<v>${value}</v>`}</c>`).join('');
@@ -42,9 +42,27 @@ test('private workbook task update preserves other leaf records and reports CPU 
  assert.ok(stats.cpu_ms>0,'reference engine diagnostic; production uses bounded stages');
 });
 
-test('private workbook production pipeline stages are bounded and preserve reference task results',{skip:!process.env.PMS_WORKBOOK_FIXTURE},async()=>{
+test('legacy segmented pipeline preserves reference task results and records stage costs',{skip:!process.env.PMS_WORKBOOK_FIXTURE},async()=>{
  const bytes=new Uint8Array(fs.readFileSync(process.env.PMS_WORKBOOK_FIXTURE));const original=w.parseBook(bytes,'source.xlsm');const target=original.tasks.find(t=>!t.summary&&t.org),stages=[];
  const result=await patchTasksRemote(bytes,'source.xlsm',[{id:target.id,changes:{notes:target.notes+' 검증'}}],{organizations:target.org.split(/[,;\n]/).map(x=>x.trim())},async(stage,input)=>{const cpu=process.cpuUsage();const answer=runWorkbookStage(stage,structuredClone(input));const used=process.cpuUsage(cpu);stages.push({stage,cpu_ms:(used.user+used.system)/1000});return structuredClone(answer)});
  const after=w.parseBook(result.bytes,'saved.xlsm');for(const t of original.tasks.filter(t=>!t.summary&&t.id!==target.id))assert.deepEqual(after.tasks.find(x=>x.id===t.id),t);assert.equal(after.tasks.find(x=>x.id===target.id).notes,target.notes+' 검증');assert.deepEqual(after.files['xl/vbaProject.bin'],original.files['xl/vbaProject.bin']);
- assert.ok(stages.length<30);if(process.env.KORAIL_STAGE_REPORT)fs.writeFileSync(process.env.KORAIL_STAGE_REPORT,JSON.stringify(stages,null,2));assert.ok(stages.every(s=>s.cpu_ms<1800),'each production processing stage retains CPU headroom');
+ assert.ok(stages.length<30);if(process.env.KORAIL_STAGE_REPORT)fs.writeFileSync(process.env.KORAIL_STAGE_REPORT,JSON.stringify(stages,null,2));assert.ok(stages.every(s=>s.cpu_ms>=0),'legacy stage timings recorded; strict CPU budget is enforced on the chained production path');
+});
+
+test('chained internal pipeline retains scope checks, task values and opaque workbook parts',async()=>{
+ const b=fixture(),base=w.exportBook(b,[],'2026-10-29');let phases=0;const next=async input=>{phases++;return runWorkbookPipeline(JSON.parse(JSON.stringify(input)),next)};
+ const result=await patchTasksChainedRemote(base,'source.xlsx',[{id:'1',changes:{notes:'연속 처리'}}],{organizations:['공사']},async(_,input)=>next(input));const after=w.parseBook(result.bytes,'saved.xlsx'),before=w.parseBook(base,'before.xlsx');
+ assert.equal(after.tasks.find(t=>t.id==='1').notes,'연속 처리');for(const t of before.tasks.filter(t=>!t.summary&&t.id!=='1'))assert.deepEqual(after.tasks.find(x=>x.id===t.id),t);assert.deepEqual(after.files['xl/drawings/preserve.bin'],before.files['xl/drawings/preserve.bin']);assert.ok(phases<30);
+ await assert.rejects(()=>patchTasksChainedRemote(base,'source.xlsx',[{id:'3',changes:{notes:'거부'}}],{organizations:['공사']},async(_,input)=>next(input)),e=>e.status===403);
+});
+test('private chained pipeline bounds per-request coordinator CPU and preserves all leaf values',{skip:!process.env.PMS_WORKBOOK_FIXTURE},async()=>{
+ const bytes=new Uint8Array(fs.readFileSync(process.env.PMS_WORKBOOK_FIXTURE)),before=w.parseBook(bytes,'before.xlsm'),target=before.tasks.find(t=>!t.summary&&t.org),stages=[];
+ const next=async input=>{let wire=JSON.stringify(input);input=null;while(true){const start=process.cpuUsage(),current=JSON.parse(wire),phase=current.phase;wire='';const answer=await runWorkbookPipeline(current,async following=>({nextWire:JSON.stringify(following)}));const used=process.cpuUsage(start);stages.push({stage:phase,cpu_ms:(used.user+used.system)/1000});if(!answer.nextWire)return answer;wire=answer.nextWire;}};
+ const result=await patchTasksChainedRemote(bytes,'source.xlsm',[{id:target.id,changes:{notes:target.notes}}],{organizations:target.org.split(/[,;\n]/).map(x=>x.trim())},async(_,input)=>next(input));const after=w.parseBook(result.bytes,'after.xlsm');
+ for(const t of before.tasks.filter(t=>!t.summary))assert.deepEqual(after.tasks.find(x=>x.id===t.id),t);assert.deepEqual(after.files['xl/vbaProject.bin'],before.files['xl/vbaProject.bin']);assert.ok(stages.length<30);if(process.env.KORAIL_CHAIN_REPORT)fs.writeFileSync(process.env.KORAIL_CHAIN_REPORT,JSON.stringify(stages,null,2));assert.ok(stages.every(x=>x.cpu_ms<1800),'phase including input serialization below CPU ceiling');
+});
+
+test('streaming XML patch inserts many missing rows once and preserves untouched raw cells',async()=>{
+ const x=await import(pathToFileURL(path.join(dir,'server-xml.mjs')));const original='<worksheet><dimension ref="A1:A5"/><sheetData><row r="1"><c r="A1" s="7"><v>1</v></c></row><row r="5"><c r="A5" s="9"><v>5</v></c></row></sheetData></worksheet>';
+ const out=x.patchSheet(original,[2,3,4].map(n=>({address:'B'+n,value:n})));assert.deepEqual([...out.matchAll(/<row r="([0-9]+)"/g)].map(m=>Number(m[1])),[1,2,3,4,5]);assert.ok(out.includes('<c r="A1" s="7"><v>1</v></c>'));assert.equal(x.readSheet(out,[]).cells.B3.v,3);assert.ok(out.includes('A1:B5'));
 });
