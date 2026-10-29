@@ -5,7 +5,7 @@ import {memberRpc,memberApi} from './member-service.js'
 import {MEMBER_PAGE_SIZE,formatMemberDate,memberLoginLabel} from './member-table.js'
 const rows=ref([]),selected=ref(null),search=ref(''),appliedSearch=ref(''),page=ref(0),hasNext=ref(false),busy=ref(false),message=ref(''),password=ref(''),confirmWithdraw=ref(false),showBulk=ref(false),requestId=ref(crypto.randomUUID()),loaded=ref(false),updatedAt=ref(null),autoRefresh=ref(true),editorPanel=ref(null)
 let epoch=0,timer
-async function run(fn){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;password.value=''}}
+async function run(fn,clearPassword=false){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;if(clearPassword)password.value=''}}
 async function load(targetPage=page.value,query=appliedSearch.value){
  const id=++epoch
  try{const data=await memberRpc('member_admin_list',{p_search:query,p_offset:targetPage*MEMBER_PAGE_SIZE});if(id!==epoch)return
@@ -15,9 +15,9 @@ async function load(targetPage=page.value,query=appliedSearch.value){
 function find(){if(!busy.value)run(()=>load(0,search.value))}
 function move(delta){if(busy.value||page.value+delta<0||(delta>0&&!hasNext.value))return;run(()=>load(page.value+delta))}
 async function choose(row){selected.value=row?{...row}:{id:null,email:'',display_name:'',company:'',position:'',member_kind:'business',status:'active'};password.value='';confirmWithdraw.value=false;requestId.value=crypto.randomUUID();await nextTick();editorPanel.value?.focus({preventScroll:true});editorPanel.value?.scrollIntoView?.({block:'start',behavior:'auto'})}
-async function save(){await run(async()=>{const s=selected.value;await memberApi({action:s.id?'update':'create',request_id:requestId.value,user_id:s.id,email:s.email,name:s.display_name,company:s.company,position:s.position||'',kind:s.member_kind,...(!s.id?{password:password.value}:{})});await load();message.value=s.id?'회원정보를 저장했습니다.':'회원을 등록했습니다. 회원에게 자동 메일은 발송하지 않습니다.';selected.value=null;requestId.value=crypto.randomUUID()})}
-async function setPassword(){await run(async()=>{await memberApi({action:'password',request_id:crypto.randomUUID(),user_id:selected.value.id,password:password.value});message.value='PMOffice 비밀번호를 변경했습니다. 회원에게 자동 메일은 발송하지 않습니다.'})}
-async function withdraw(){if(!confirmWithdraw.value)return;await run(async()=>{const result=await memberApi({action:'withdraw',request_id:crypto.randomUUID(),user_id:selected.value.id});await load();selected.value=null;message.value=result.warning||'탈퇴 처리했습니다. 기존 세션의 자료 접근도 차단됩니다.'})}
+async function save(){await run(async()=>{const s=selected.value;await memberApi({action:s.id?'update':'create',request_id:requestId.value,user_id:s.id,email:s.email,name:s.display_name,company:s.company,position:s.position||'',kind:s.member_kind,...(!s.id?{password:password.value}:{})});await load();message.value=s.id?'회원정보를 저장했습니다.':'회원을 등록했습니다. 회원에게 자동 메일은 발송하지 않습니다.';selected.value=null;requestId.value=crypto.randomUUID()},true)}
+async function setPassword(){await run(async()=>{await memberApi({action:'password',request_id:crypto.randomUUID(),user_id:selected.value.id,password:password.value});message.value='PMOffice 비밀번호를 변경했습니다. 회원에게 자동 메일은 발송하지 않습니다.'},true)}
+async function withdraw(){if(!confirmWithdraw.value)return;await run(async()=>{const result=await memberApi({action:'withdraw',request_id:crypto.randomUUID(),user_id:selected.value.id});await load();selected.value=null;message.value=result.warning||'탈퇴 처리했습니다. 기존 세션의 자료 접근도 차단됩니다.'},true)}
 onMounted(()=>{run(()=>load());timer=setInterval(()=>{if(autoRefresh.value&&!busy.value&&document.visibilityState==='visible')run(()=>load())},30000)})
 onUnmounted(()=>{++epoch;clearInterval(timer);rows.value=[];selected.value=null;password.value=''})
 </script>
