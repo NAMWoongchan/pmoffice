@@ -54,7 +54,7 @@ export function refreshNativeDashboard(b:Book,selection?:MilestoneSelection):Cha
  // Drop old dashboard cache entries, including its former O:Q detail panel.
  b.computed=[...new Map([...(b.computed||[]).filter(c=>c.sheet!==DASHBOARD),...out].map(c=>[c.sheet+'!'+c.address,c])).values()];return out;
 }
-export function writeNativeDashboard(b:Book,files:Record<string,Uint8Array>){
+export function writeNativeDashboard(b:Book,files:Record<string,Uint8Array>,options:{preserveCoreLayout?:boolean}={}){
  const s=b.sheets.find(s=>s.name===DASHBOARD),core=b.sheets.find(s=>s.name==='_MSP_C0');if(!s||!core||!b.milestoneSelection)return;
  const styles=xml(strFromU8(files['xl/styles.xml'])),root=styles.documentElement;
  function collection(name:string){let e=list(styles,name)[0];if(!e){e=styles.createElementNS(NS,name);root.appendChild(e);}return e;}
@@ -96,5 +96,6 @@ export function writeNativeDashboard(b:Book,files:Record<string,Uint8Array>){
  for(const e of list(wb,'definedName'))if(e.getAttribute('name')==='_xlnm.Print_Area'&&Number(e.getAttribute('localSheetId'))===b.sheets.indexOf(s))e.textContent=`'${DASHBOARD}'!$A$1:$M$${s.rows}`;
  files['xl/workbook.xml']=serialize(wb);files['xl/styles.xml']=serialize(styles);
  // Keep hidden helpers hidden after extending beyond the old fixed index.
+ if(options.preserveCoreLayout)return;
  const db=xml(strFromU8(files[core.path]));let cols=list(db,'cols')[0];if(!cols){cols=db.createElementNS(NS,'cols');db.documentElement.insertBefore(cols,list(db,'sheetData')[0]);}for(const e of list(cols,'col')){const lo=Number(e.getAttribute('min')),hi=Number(e.getAttribute('max'));if(lo<=58&&hi>=52)e.setAttribute('hidden','1');}files[core.path]=serialize(db);
 }

@@ -1,8 +1,13 @@
+import {patchTasksRemote as patchTasks} from './workbook-engine.mjs';
 import {createHandler} from './core.mjs';
 const supabase=Deno.env.get('SUPABASE_URL')!;
 const key=Deno.env.get('SUPABASE_ANON_KEY')!;
 const token=Deno.env.get('PMS_GITHUB_TOKEN')?.trim();
 const handler=createHandler({
+ patchTasks:(bytes:Uint8Array,name:string,updates:any,policy:any)=>patchTasks(bytes,name,updates,policy,async(stage:string,input:any)=>{
+  const response=await fetch(supabase+'/functions/v1/pms-workbook',{method:'POST',headers:{Authorization:'Bearer '+Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),'Content-Type':'application/json'},body:JSON.stringify({stage,input})});
+  const result=await response.json();if(!response.ok)throw Object.assign(Error(result.error||'작업 처리 단계를 확인해 주세요.'),{status:[400,403,413].includes(response.status)?response.status:503});return result;
+ }),
  origin:Deno.env.get('PMS_ALLOWED_ORIGIN')||'https://pmoffice.co.kr',
  dataRepo:Deno.env.get('PMS_DATA_REPO'),
  siteRepo:Deno.env.get('PMS_SITE_REPO')||'NAMWoongchan/pmoffice',

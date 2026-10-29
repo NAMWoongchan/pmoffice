@@ -8,6 +8,8 @@
     "docs:build": "node scripts/check-public.mjs && node scripts/build-pms.mjs && vitepress build docs && node scripts/check-public.mjs --dist",
     "docs:preview": "vitepress preview docs --host 127.0.0.1",
     "pms:build": "node scripts/build-pms.mjs",
+    "pms:server": "node scripts/build-pms-server.mjs",
+    "korail:test": "node --test tests/korail*.test.mjs tests/member*.test.mjs",
     "pms:test": "node --test tests/pms*.test.mjs"
   },
   "devDependencies": {
@@ -20,9 +22,11 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
     "fflate": "0.8.2",
+    "linkedom": "0.18.12",
     "lucide-react": "1.31.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
+    "saxes": "6.0.0",
     "vue": "3.5.43"
   }
 }

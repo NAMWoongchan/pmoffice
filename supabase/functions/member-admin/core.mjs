@@ -1,6 +1,8 @@
+const bulkCompanies=['한국철도공사','샬롬엔지니어링','투아이시스','알에프컴','KTL','국립한국교통대학교'];
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fail=(status,message)=>{throw Object.assign(Error(message),{status})};
 export function validateProfile(b){
+ if(b.position!==undefined&&(typeof b.position!=='string'||b.position.length>120))fail(400,'직함을 확인해 주세요.');
  if(!['business','individual'].includes(b.kind)||typeof b.name!=='string'||!b.name.trim()||b.name.length>120||typeof b.company!=='string'||b.company.length>200||(b.kind==='business'&&!b.company.trim()))fail(400,'이름과 회사·소속을 확인해 주세요.');
 }
 export function validatePassword(value){if(typeof value!=='string'||value.length<8||value.length>128)fail(400,'비밀번호는 8자 이상 128자 이하로 입력해 주세요.')}
@@ -37,9 +39,17 @@ export function createMemberHandler(deps){return async request=>{
    }
    try{await deps.rpc(token,'member_profile_save',{p_user:user.id,p_name:b.name,p_company:b.company,p_kind:b.kind})}
    catch{fail(409,'인증 정보는 저장되었을 수 있습니다. 회원정보를 새로 조회한 후 다시 저장해 주세요.')}
+   if(b.position!==undefined)await deps.rpc(token,'member_position_save',{p_user:user.id,p_position:b.position});
    return response({ok:true});
   }
   if(account.admin!==true||!await deps.isAdmin(token))fail(403,'관리자 권한이 필요합니다.');
+  if(action==='bulk-preview'){
+   if(!Array.isArray(b.rows)||!b.rows.length||b.rows.length>100)fail(400,'등록 명단을 확인해 주세요.');const rows=[],emails=new Set();
+   for(const row of b.rows){validateProfile(row);validateEmail(row.email);if(!bulkCompanies.includes(row.company))fail(400,'지원하는 기업을 선택해 주세요.');const email=row.email.trim().toLowerCase();if(emails.has(email))fail(400,'중복 이메일을 확인해 주세요.');emails.add(email);
+    const found=await deps.rpc(token,'member_bulk_lookup',{p_email:email});const conflict=found&&(found.status!=='active'||found.withdrawn_at||(found.banned_until&&Date.parse(found.banned_until)>Date.now())||found.display_name!==row.name.trim()||found.company!==row.company.trim());
+    rows.push({email,existing:!!found,conflict:conflict?'기존 회원정보 또는 이용 상태가 명단과 다릅니다.':''});}return response({rows});
+  }
+  if(action==='provision')return response(await provisionMember(deps,token,user,b));
   if(!['create','update','password','withdraw'].includes(action)||!UUID.test(b.request_id||''))fail(400,'요청 형식이 올바르지 않습니다.');
   if(action!=='create'&&!UUID.test(b.user_id||''))fail(400,'회원을 선택해 주세요.');
   if(action==='create'||action==='update')validateProfile(b);
@@ -83,3 +93,28 @@ export function createMemberHandler(deps){return async request=>{
   return response({error:recovery?'계정 정리가 필요합니다. 관리자 처리 이력을 확인해 주세요.':message},status);
  }
 }};
+
+// One row per request, no password persistence or invitation/reset-email APIs.
+export async function provisionMember(deps,token,actor,b){
+ validateProfile(b);validateEmail(b.email);validatePassword(b.password);if(!bulkCompanies.includes(b.company))fail(400,'지원하는 기업을 선택해 주세요.');
+ if(!UUID.test(b.request_id||'')||!b.position?.trim())fail(400,'직함과 요청 번호를 확인해 주세요.');
+ let existing=await deps.rpc(token,'member_bulk_lookup',{p_email:b.email});
+ const mine=existing?.provision_request===b.request_id;
+ if(existing&&(existing.status!=='active'||existing.withdrawn_at||(existing.banned_until&&Date.parse(existing.banned_until)>Date.now())||(!mine&&(existing.display_name!==b.name.trim()||existing.company!==b.company.trim()))))fail(409,'기존 회원정보 또는 이용 상태가 명단과 다릅니다. 관리자 확인이 필요합니다.');
+ const action=!existing||mine?'create':'update';
+ const op=await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:existing?.id||null});
+ if(op.state==='complete')return {ok:true,user_id:op.target_id,replayed:true};
+ let target=existing?.id;
+ try{
+  if(!target){const u=await deps.createUser({email:b.email.trim().toLowerCase(),password:b.password,email_confirm:true,app_metadata:{member_created_by:actor.id,member_request_id:b.request_id},user_metadata:{name:b.name.trim()}});target=u.id}
+  await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target});
+  if(action==='create')await deps.rpc(token,'member_admin_register',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind});
+  else await deps.updateUser(target,{password:b.password});
+  await deps.rpc(token,'member_profile_save',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind});
+  await deps.rpc(token,'member_position_save',{p_user:target,p_position:b.position});
+  await deps.rpc(token,'member_bulk_attach',{p_user:target,p_company:b.company});
+  if(deps.verifyPassword)await deps.verifyPassword(b.email.trim().toLowerCase(),b.password,target);
+  await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target,p_state:'complete'});
+  return {ok:true,user_id:target};
+ }catch{if(target)await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target,p_state:'recovery_required'}).catch(()=>{});fail(503,'일부 단계가 저장되었을 수 있습니다. 행 상태를 확인하고 같은 요청 번호로 재시도해 주세요.')}
+}

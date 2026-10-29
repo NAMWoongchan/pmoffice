@@ -7,6 +7,7 @@ const userClient=(token:string)=>createClient(url,key,{...opts,global:{headers:{
 const unwrap=({data,error}:any)=>{if(error)throw error;return data}
 const rpc=async(token:string,name:string,args:object)=>unwrap(await userClient(token).rpc(name,args))
 Deno.serve(createMemberHandler({rpc,
+ verifyPassword:async(email:string,password:string,id:string)=>{const c=createClient(url,key,opts);const {data,error}=await c.auth.signInWithPassword({email,password});if(error||data.user?.id!==id)throw Error('초기 로그인 확인이 필요합니다.');await c.auth.signOut({scope:'local'})},
  authenticate:async(token:string)=>{const {data,error}=await admin.auth.getUser(token);return error?null:data.user},
  isAdmin:async(token:string)=>await rpc(token,'is_admin',{})===true,
  createUser:async(attrs:any)=>unwrap(await admin.auth.admin.createUser(attrs)).user,

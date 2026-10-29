@@ -9,3 +9,7 @@ verify_jwt = false
 [functions.member-file]
 verify_jwt = false
 
+
+# Internal CPU-bounded XML stages: service-role header required, no user/anonymous access.
+[functions.pms-workbook]
+verify_jwt = true
