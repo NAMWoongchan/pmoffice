@@ -58,7 +58,7 @@ export function runWorkbookStage(stage:string,input:any){
   for(const job of input.jobs)if(job.updates.length)files[job.path]=new TextEncoder().encode(patchSheet(new TextDecoder().decode(files[job.path]),job.updates));
   return Object.fromEntries(Object.entries(files).map(([k,v])=>[k,encodeBytes(v)]));
  }
- if(stage==='zip'){const files=Object.fromEntries(Object.entries(input.files).map(([k,v])=>[k,decodeBytes(v as string)]));const size=Object.values(files).reduce((n,v)=>n+v.length,0);return encodeBytes(zipSync(files,{level:size<7.8*1024*1024?0:1}));}
+ if(stage==='zip'){const files=Object.fromEntries(Object.entries(input.files).map(([k,v])=>[k,decodeBytes(v as string)]));return encodeBytes(zipSync(files,{level:1}));}
  fail(400,'지원하지 않는 처리 단계입니다.');
 }
 
