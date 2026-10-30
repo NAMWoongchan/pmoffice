@@ -7,7 +7,7 @@ import {organizationNames} from './milestones';
 Object.assign(globalThis,{DOMParser:ServerParser,XMLSerializer:class {serializeToString(node:any){return node.toString()}}});
 const allowed=['name','pct','duration','start','finish','actualFinish','predecessors','successors','notes','milestone'];
 function fail(status:number,message:string):never{throw Object.assign(Error(message),{status})}
-export function allowedTask(task:any,policy:any){return !task.summary&&(policy?.admin===true||organizationNames(task.org).some(n=>policy?.organizations?.includes(n)))}
+export function allowedTask(task:any,policy:any){return !task.summary&&(policy?.admin===true||policy?.allTasks===true||organizationNames(task.org).some(n=>policy?.organizations?.includes(n)))}
 export function applyTaskEdits(book:any,updates:any,policy:any){
  if(!Array.isArray(updates)||!updates.length||updates.length>100)fail(400,'수정할 작업을 1~100개 선택해 주세요.');
  const seen=new Set<string>(),edits:any[]=[],assignments:any[]=[];

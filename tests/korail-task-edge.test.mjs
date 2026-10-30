@@ -2,3 +2,15 @@ import test from 'node:test';import assert from 'node:assert/strict';import {cre
 function setup({finalDenied=false,stale=false,foreign=false}={}){let checks=0,writes=0;const policy={admin:false,organizations:['기업A']};const handler=createHandler({dataRepo:'owner/private',rpc:async(_,name)=>name==='pms_access'?{canRead:true,canManage:false}:name==='pms_task_policy'?(++checks===2&&finalDenied?{organizations:[]}:policy):{},patchTasks:(_bytes,_name,updates,p)=>{if(foreign||!p.organizations.includes('기업A'))throw Object.assign(Error('Denied'),{status:403});return {bytes:new Uint8Array([80,75,3,4]),assignments:[{id:'10',org:'기업A',summary:false}],fields:[{id:'10',fields:['notes']}]};},github:async(path,opts={})=>{if(path==='/repos/owner/private')return {private:true};if(opts.method==='PUT'){writes++;assert.equal(opts.body.sha,'current');return {content:{sha:'next'},commit:{sha:'a'.repeat(40)}}}if(opts.raw)return {schema:1,name:'source.xlsx',size:4,content:'UEsDBA=='};return {sha:'current'}}});const request=()=>new Request('https://api.test?project=korail&action=tasks',{method:'POST',headers:{'Content-Type':'application/json','If-Match':stale?'old':'current'},body:JSON.stringify({updates:[{id:'10',changes:{notes:'changed'}}]})});return {handler,request,get writes(){return writes}}}
 test('assigned task patches use atomic current revision and disclose no other project path',async()=>{const f=setup();const r=await f.handler(f.request());assert.equal(r.status,200);assert.equal(f.writes,1);assert.equal((await r.json()).etag,'next')});
 test('task patch stale revision, foreign assignment and revoked existing session never write',async()=>{for(const [options,status]of [[{stale:true},409],[{foreign:true},403],[{finalDenied:true},403]]){const f=setup(options);assert.equal((await f.handler(f.request())).status,status);assert.equal(f.writes,0)}});
+
+test('project-wide task edits recheck full permission before committing and never allow full publish',async()=>{
+ for(const revoke of [false,true]){
+  let policies=0,writes=0;
+  const h=createHandler({dataRepo:'owner/private',rpc:async(_,n)=>n==='pms_access'?{canRead:true,canManage:false}:n==='pms_task_policy'?{admin:false,allTasks:!(++policies===2&&revoke),organizations:['한국철도공사']}:null,
+   patchTasks:()=>({bytes:new Uint8Array([80,75,3,4]),assignments:[{id:'10',org:'다른기관',summary:false}],fields:[{id:'10',fields:['notes']}]}),
+   github:async(p,o={})=>{if(p==='/repos/owner/private')return {private:true};if(o.method==='PUT'){writes++;return {content:{sha:'next'},commit:{sha:'a'.repeat(40)}}}return o.raw?{schema:1,name:'source.xlsx',size:4,content:'UEsDBA=='}:{sha:'current'}}});
+  const req=action=>new Request('https://api.test?project=korail&action='+action,{method:'POST',headers:{'Content-Type':'application/json','If-Match':'current'},body:JSON.stringify({updates:[{id:'10',changes:{notes:'same'}}]})});
+  assert.equal((await h(req('tasks'))).status,revoke?403:200);assert.equal(writes,revoke?0:1);
+  assert.equal((await h(req('publish'))).status,403);
+ }
+});

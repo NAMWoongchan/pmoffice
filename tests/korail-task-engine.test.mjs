@@ -66,3 +66,16 @@ test('streaming XML patch inserts many missing rows once and preserves untouched
  const x=await import(pathToFileURL(path.join(dir,'server-xml.mjs')));const original='<worksheet><dimension ref="A1:A5"/><sheetData><row r="1"><c r="A1" s="7"><v>1</v></c></row><row r="5"><c r="A5" s="9"><v>5</v></c></row></sheetData></worksheet>';
  const out=x.patchSheet(original,[2,3,4].map(n=>({address:'B'+n,value:n})));assert.deepEqual([...out.matchAll(/<row r="([0-9]+)"/g)].map(m=>Number(m[1])),[1,2,3,4,5]);assert.ok(out.includes('<c r="A1" s="7"><v>1</v></c>'));assert.equal(x.readSheet(out,[]).cells.B3.v,3);assert.ok(out.includes('A1:B5'));
 });
+
+test('full task permission covers every institution and unassigned leaf without administrator permission',()=>{
+ const b=fixture(),base=w.exportBook(b,[],'2026-10-30'),before=w.parseBook(base,'before.xlsx');
+ const rows=before.tasks.filter(t=>!t.summary);
+ const result=patchTasks(base,'source.xlsx',rows.map(t=>({id:t.id,changes:{notes:'full-access '+t.id}})),{admin:false,allTasks:true,organizations:['한국철도공사']});
+ const after=w.parseBook(result.bytes,'after.xlsx');
+ for(const t of rows)assert.equal(after.tasks.find(x=>x.id===t.id).notes,'full-access '+t.id);
+ assert.equal(allowedTask({summary:false,org:''},{allTasks:true}),true);
+ assert.equal(allowedTask({summary:false,org:'다른기관'},{allTasks:'true'}),false);
+ assert.equal(allowedTask({summary:false,org:'다른기관'},{allTasks:false,organizations:['한국철도공사']}),false);
+ assert.equal(allowedTask({summary:true,org:'한국철도공사'},{allTasks:true}),false,'summary values remain calculated from child tasks');
+ assert.throws(()=>patchTasks(base,'source.xlsx',[{id:rows[0].id,changes:{org:'다른기관'}}],{allTasks:true}),e=>e.status===400);
+});

@@ -54,7 +54,7 @@ export function createHandler({rpc,github,patchTasks,origin='https://pmoffice.co
  if(result.bytes.length>MAX_BYTES)fail(413,'저장할 원본이 최대 크기를 초과합니다.');
  access=await check();if(!access.canRead)fail(403,'열람 권한이 변경되었습니다.');
  // Re-evaluate current grants against the ORIGINAL assignments before the atomic Git CAS.
- const finalPolicy=await rpc(auth,'pms_task_policy',{p_slug:slug});if(!result.assignments?.every(t=>!t.summary&&(finalPolicy.admin===true||t.org.split(/[,;\n]/).map(n=>n.trim()).some(n=>finalPolicy.organizations?.includes(n)))))fail(403,'작업 편집 권한이 변경되었습니다.');
+ const finalPolicy=await rpc(auth,'pms_task_policy',{p_slug:slug});if(!result.assignments?.every(t=>!t.summary&&(finalPolicy.admin===true||finalPolicy.allTasks===true||t.org.split(/[,;\n]/).map(n=>n.trim()).some(n=>finalPolicy.organizations?.includes(n)))))fail(403,'작업 편집 권한이 변경되었습니다.');
  if(action==='task-check'){response=json({ok:true,tasks:result.assignments.length,bytes:result.bytes.length,source_bytes:original.length,mode:'dry-run-no-write'});}
  else{const updated={...payload,at:new Date().toISOString(),size:result.bytes.length,content:base64(result.bytes)};
  const saved=await github(endpoint,{method:'PUT',body:{message:'Update assigned tasks: '+slug,branch,sha:current.sha,content:base64(new TextEncoder().encode(JSON.stringify(updated)))}});

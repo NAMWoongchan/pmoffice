@@ -23,6 +23,7 @@ test('real inherited membership policies: group migration, email accounts, withd
  await db.exec(fs.readFileSync('supabase/migrations/202610290003_member_mail_bridge.sql','utf8'));
  await db.exec(fs.readFileSync('supabase/migrations/202610290004_korail_tasks.sql','utf8'));
  await db.exec(fs.readFileSync('supabase/migrations/202610290005_member_table_sessions.sql','utf8'));
+ await db.exec(fs.readFileSync('supabase/migrations/202610300001_korail_full_tasks.sql','utf8'));
  assert.equal((await db.query("select count(*)::int n from pg_class c join pg_namespace n on n.oid=c.relnamespace where c.relkind='r' and n.nspname in('public','pmoffice_private') and c.relname like 'member_%' and not c.relrowsecurity")).rows[0].n,0,'every new public and private member table has RLS');
  const uid=async n=>{await db.exec('reset role');await db.query("select set_config('test.uid',$1,false)",[n?id(n):''])};
  const access=async slug=>(await db.query('select public.pms_access($1) a',[slug])).rows[0].a;
@@ -79,7 +80,13 @@ test('real inherited membership policies: group migration, email accounts, withd
  await rpc('select member_position_save($1,$2)',[id(9),'책임연구원']);
  await rpc('select member_bulk_attach($1,$2)',[id(9),'한국철도공사']);
  assert.equal((await rpc('select member_bulk_lookup($1) a',['NEW9@EXAMPLE.TEST'])).rows[0].a.position,'책임연구원');
- await uid(9);let policy=(await rpc('select pms_task_policy($1) a',['korail'])).rows[0].a;assert.deepEqual(policy.organizations,['한국철도공사']);assert.equal(policy.admin,false);
+ await uid(9);let policy=(await rpc('select pms_task_policy($1) a',['korail'])).rows[0].a;assert.deepEqual(policy.organizations,['한국철도공사']);assert.equal(policy.admin,false);assert.equal(policy.allTasks,true);assert.equal((await access('korail')).canManage,false);assert.equal((await access('korail')).canPublish,false);
+ const korailGroup=(await db.query("select group_id from pms_org_grants where project_slug='korail' and org_name='한국철도공사'")).rows[0].group_id;
+ await uid(1);await db.query('update pms_group_members set active=false where group_id=$1 and user_id=$2',[korailGroup,id(9)]);
+ await uid(9);assert.equal((await rpc("select pms_task_policy('korail') a")).rows[0].a.allTasks,false);
+ await uid(1);await db.query('update pms_group_members set active=true where group_id=$1 and user_id=$2',[korailGroup,id(9)]);
+ await uid(3);assert.equal((await db.query("select coalesce((pms_access('korail')->>'canRead')::boolean,false) a")).rows[0].a,false);
+ await uid(9);
  await assert.rejects(()=>rpc('select pms_set_org_grant($1,$2,$3,true)',['korail','다른기관',id(1)]));
  await assert.rejects(()=>rpc('select member_bulk_lookup($1)',['namwoongchan@gmail.com']));
  await assert.rejects(()=>rpc('select member_position_save($1,$2)',[id(1),'위조']));
