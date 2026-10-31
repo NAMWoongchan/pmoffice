@@ -37,6 +37,13 @@ async function workerAuth(request,env){const value=request.headers.get('Authoriz
 export async function handle(request,env){
  try{
  const url=new URL(request.url),auth=request.headers.get('Authorization');
+ // Only enable after custom-domain DNS and HTTPS have been verified.
+ if(env.CANONICAL_HOST==='ebooks.pmoffice.co.kr'&&url.hostname.endsWith('.pages.dev')){
+  if(!['GET','HEAD'].includes(request.method))throw new HttpError(403,'피엠오피스 이북 주소로 다시 접속해 주세요.');
+  const destination=new URL(url.pathname+url.search,'https://ebooks.pmoffice.co.kr');
+  return new Response(null,{status:307,headers:{...HEADERS,Location:destination.href}});
+ }
+
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:HEADERS});
  if(request.method!=='GET'&&request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)throw new HttpError(403,'허용되지 않은 요청 출처입니다.');

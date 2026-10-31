@@ -6,13 +6,13 @@ import aiEducation from './ai-education.json'
 import {memberAccount,memberSession,memberProjects,initializeMember,memberLogout} from './member-service.js'
 const container=ref(null),open=ref(''),mobile=ref(false)
 const publicGroups=[
-{key:'ebooks',text:'E-book',link:'/ebooks/'},
+
 {key:'about',text:'회사 소개',link:'/about.html',items:[{text:'피엠오피스 소개',link:'/about.html'},{text:'사업 분야',link:'/services.html'},{text:'주요 수행 실적',link:'/consulting/experience.html'},{text:'교육 컨설팅 문의',link:'/contact.html'}]},
 {key:'ai',text:'AI 교육',link:'/ai-edu/',items:[{text:'AI 교육 전체 과정',link:'/ai-edu/'},...aiEducation.courses.map(c=>({text:c.title,link:c.path}))]},
 {key:'ms',text:'MS Project 교육',link:'/ms-project/',items:[{text:'MS Project 소개',link:'/ms-project/introduction.html'},...education.groups.find(g=>g.key==='ms').items]},
 {key:'pm-education',text:'PM 실무 교육',link:'/pm-practice/',items:education.groups.find(g=>g.key==='pm').items},
 {key:'consulting',text:'프로젝트 관리 컨설팅',link:'/consulting/',items:[{text:'공정표 작성 대행',link:'/consulting/scheduling.html'},{text:'컨설팅 종합 안내',link:'/consulting/'},{text:'EPC·R&D·글로벌 프로젝트',link:'/consulting/pm.html'},{text:'AI 컨설팅',link:'/consulting/ai/'},{text:'ChatGPT 컨설팅',link:'/consulting/ai/chatgpt.html'},{text:'Microsoft Copilot 컨설팅',link:'/consulting/ai/copilot.html'}]}]
-const groups=computed(()=>[...publicGroups,{key:'members',text:'회원 전용',link:memberAccount.value?.member?'/knowledge/index.html':'/login.html',items:memberAccount.value?.member?[{text:'지식 공간',link:'/knowledge/index.html'},...(memberAccount.value.admin||memberProjects.value.length?[{text:'고객 프로젝트',link:'/pms/'}]:[])]:undefined}])
+const groups=computed(()=>[...publicGroups,{key:'members',text:'회원 전용',link:memberAccount.value?.member?'/knowledge/index.html':'/login.html',items:[{text:'이북 서비스',link:'/ebooks/'},...(memberAccount.value?.member?[{text:'지식 공간',link:'/knowledge/index.html'},...(memberAccount.value.admin||memberProjects.value.length?[{text:'고객 프로젝트',link:'/pms/'}]:[])]:[])]}])
 const close=()=>{open.value='';mobile.value=false}
 function outside(event){if(container.value&&!container.value.contains(event.target))close()}
 function keyboard(event){if(event.key==='Escape')close()}

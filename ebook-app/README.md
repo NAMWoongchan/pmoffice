@@ -83,3 +83,7 @@ python ebook-app/converter/converter.py run
 - [Cloudflare Pages 고급 모드](https://developers.cloudflare.com/pages/functions/advanced-mode/): `_worker.js` 배포.
 
 제작·검증 기록에는 제작 환경 Root AGENTS.md의 진행 TXT 정책을 적용하며 고객 데이터와 함께 공개 소스에 포함하지 않습니다.
+
+## 고객 주소와 전체 화면
+
+고객 링크는 ebooks.pmoffice.co.kr만 사용합니다. DNS와 HTTPS 활성화를 확인한 후 서버 CANONICAL_HOST=ebooks.pmoffice.co.kr을 설정하면 Pages 기본 주소의 화면 요청은 같은 경로의 고객 주소로 이동합니다. DNS가 준비되기 전에는 설정하지 않습니다. 전체 화면 버튼 또는 F로 읽기 화면을 넓히고 Esc로 돌아옵니다. 지원하지 않는 브라우저는 창 안에서 읽기 화면을 확대합니다.

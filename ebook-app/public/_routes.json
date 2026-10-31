@@ -1,1 +1,1 @@
-{"version":1,"include":["/api/*"],"exclude":[]}
+{"version":1,"include":["/*"],"exclude":["/pdfjs/*","/cmaps/*","/standard_fonts/*","/wasm/*","/app.js","/style.css","/favicon.svg"]}
