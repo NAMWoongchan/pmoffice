@@ -7,3 +7,4 @@ for(const file of ['index.html','_routes.json','_redirects','_headers'])fs.copyF
 fs.copyFileSync('src/style.css',path.join(out,'style.css'));
 const pdfRoot=process.env.PDFJS_ROOT||path.dirname(require.resolve('pdfjs-dist/package.json'));fs.cpSync(path.join(pdfRoot,'build'),path.join(out,'pdfjs'),{recursive:true});fs.cpSync(path.join(pdfRoot,'cmaps'),path.join(out,'cmaps'),{recursive:true});fs.cpSync(path.join(pdfRoot,'standard_fonts'),path.join(out,'standard_fonts'),{recursive:true});fs.cpSync(path.join(pdfRoot,'wasm'),path.join(out,'wasm'),{recursive:true});
 console.log('이북 앱 빌드 완료: dist (고객 데이터·비밀값 미포함)');
+fs.copyFileSync(path.join(pdfRoot,'LICENSE'),path.join(out,'pdfjs','LICENSE'));

@@ -17,6 +17,14 @@ python -m unittest discover -s ebook-app/converter -p 'test_*.py'
 
 DB 시험은 이 저장소의 기존 회원 fixture·마이그레이션을 실제 PGlite에 적용합니다. `tests/ui.smoke.mjs`는 Playwright가 준비된 개발 환경에서 화면과 PDF.js를 검사하며 API는 시험 fixture입니다. `?demo=1` 예시는 localhost에서만 활성화됩니다.
 
+화면만 확인하려면 빌드 후 
+
+`powershell
+node ebook-app/scripts/preview.mjs
+` 
+
+표시된 localhost 주소의 예시 데이터 화면을 사용합니다. 실제 회원·저장 API가 연결된 운영 서비스는 아닙니다.
+
 ## 운영 연결 순서
 
 1. **회원 DB**: 기존 회원·그룹 마이그레이션 적용 여부와 백업을 확인한 뒤 `supabase/migrations/202610310001_ebooks.sql`만 추가 적용합니다. 기존 마이그레이션을 다시 실행하지 않습니다. 신규 테이블은 `pmoffice_private`에 있고 직접 접근은 차단됩니다.
@@ -44,6 +52,8 @@ python ebook-app/converter/converter.py run
 - 원본의 애니메이션·내장 영상·음성·글꼴을 검토한 뒤 소유자 또는 관리자가 검토 완료를 선택해야 공유할 수 있습니다. 클릭 분기·대화형 슬라이드 쇼·발표자 노트·OCR은 지원하지 않습니다.
 - 처리 임대는 15분이며 45초마다 갱신합니다. PC 중단 후 만료된 작업은 재시도하고, 3회 반복 중단은 실패로 전환합니다. 내용이 달라진 재시도 결과는 덮어쓰지 않고 오류로 남깁니다.
 - 사용자에게 열려 있던 프레젠테이션은 닫지 않으며, 임시 보안 설정은 복원합니다. 변환 프로그램은 고객 업로드를 실행 가능한 코드로 취급하지 않습니다.
+
+보호 파일은 1 MiB 저장 조각과 최대 8 MiB 범위 요청으로 전달합니다. 무료 Worker의 하위 요청 수를 넘기지 않도록 브라우저와 PC가 범위를 나누어 받으며, 인코딩에는 nodejs_compat의 Buffer를 사용합니다. 무료 CPU 한도 적합성은 실제 Cloudflare 배포 후 측정해야 합니다.
 
 ## 관리자·공유·사용량
 
