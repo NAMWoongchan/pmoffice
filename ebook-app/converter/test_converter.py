@@ -17,6 +17,7 @@ class ConverterChecks(unittest.TestCase):
    for _ in range(201):doc.new_page()
    doc.save(root/'big.pdf');doc.close()
    with self.assertRaises(ValueError):convert(root/'big.pdf',root/'result')
+   doc=fitz.open(root/'big.pdf');doc.delete_page(200);doc.save(root/'valid200.pdf');doc.close();self.assertEqual(convert(root/'valid200.pdf',root/'valid-result')['pages'],200)
  def test_archive_rejection(self):
   with tempfile.TemporaryDirectory() as d:
    p=pathlib.Path(d)/'unsafe.pptx'

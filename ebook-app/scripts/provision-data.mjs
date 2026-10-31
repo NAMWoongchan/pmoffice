@@ -1,5 +1,8 @@
 // Explicit operator command. Existing/public repositories are never overwritten or made private automatically.
-const owner=process.env.EBOOK_GITHUB_OWNER||'NAMWoongchan',name='pmoffice-ebook-data',token=process.env.GITHUB_ADMIN_TOKEN;
+import {spawnSync} from 'node:child_process';
+const owner=process.env.EBOOK_GITHUB_OWNER||'NAMWoongchan',name='pmoffice-ebook-data';let token=process.env.GITHUB_ADMIN_TOKEN;
+// Explicit opt-in to the existing OS Git credential manager. Its output stays in memory.
+if(!token&&process.argv.includes('--git-credential')){const result=spawnSync('git',['-c','credential.interactive=never','credential','fill'],{input:'protocol=https\nhost=github.com\n\n',encoding:'utf8',env:{...process.env,GIT_TERMINAL_PROMPT:'0',GCM_INTERACTIVE:'never'},windowsHide:true});if(result.status===0)token=result.stdout.split(/\r?\n/).find(line=>line.startsWith('password='))?.slice(9)}
 if(!token)throw Error('Set GITHUB_ADMIN_TOKEN in this process environment using your secret manager. Do not put it in a file or chat.');
 async function request(path,options={}){return fetch('https://api.github.com'+path,{...options,headers:{Authorization:'Bearer '+token,'User-Agent':'PMOffice-Ebook-Provision','X-GitHub-Api-Version':'2022-11-28',Accept:'application/vnd.github+json',...options.headers}})}
 const existing=await request(`/repos/${owner}/${name}`);

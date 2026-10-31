@@ -9,3 +9,5 @@ head:
       content: noindex, nofollow
 ---
 <EbookBridge />
+
+<!-- 제작 기록에는 Root AGENTS.md 진행 TXT 정책을 적용합니다. -->

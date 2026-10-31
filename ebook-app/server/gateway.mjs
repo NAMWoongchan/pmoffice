@@ -1,4 +1,5 @@
 import {byteRange,chunkWindow,LIMITS} from '../shared.mjs';
+import {Buffer} from 'node:buffer';
 const HEADERS={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'};
 export class HttpError extends Error{constructor(status,message){super(message);this.status=status}}
 const json=(v,status=200)=>new Response(JSON.stringify(v),{status,headers:{...HEADERS,'Content-Type':'application/json;charset=utf-8'}});
@@ -9,9 +10,9 @@ async function rpc(env,action,p,auth,internal=false){
  const response=await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${internal?'ebook_internal':'ebook_api'}`,{method:'POST',headers:{apikey:key,...(internal?{Authorization:`Bearer ${key}`}:(auth?{Authorization:auth}:{})),'Content-Type':'application/json'},body:JSON.stringify({p_action:action,p})});
  const result=await response.json();if(!response.ok)throw new HttpError(result.code==='42501'?403:409,result.code==='42501'?'이북 이용 권한을 확인해 주세요.':result.message||'요청을 처리하지 못했습니다.');return result;
 }
-async function github(env,path,options={}){const r=await fetch(`https://api.github.com/repos/${env.GITHUB_DATA_REPO}${path}`,{...options,headers:{Authorization:`Bearer ${env.GITHUB_DATA_TOKEN}`,'User-Agent':'PMOffice-Ebooks','X-GitHub-Api-Version':'2022-11-28',Accept:'application/vnd.github+json',...options.headers}});if(r.status===429||r.status===403)throw new HttpError(503,'GitHub 사용 한도 또는 연결 권한을 확인해 주세요.');return r}
+async function github(env,path,options={}){if(path.startsWith('/contents/')&&!options.method&&env.GITHUB_DATA_BRANCH)path+='?ref='+encodeURIComponent(env.GITHUB_DATA_BRANCH);const r=await fetch(`https://api.github.com/repos/${env.GITHUB_DATA_REPO}${path}`,{...options,headers:{Authorization:`Bearer ${env.GITHUB_DATA_TOKEN}`,'User-Agent':'PMOffice-Ebooks','X-GitHub-Api-Version':'2022-11-28',Accept:'application/vnd.github+json',...options.headers}});if(r.status===429||r.status===403)throw new HttpError(503,'GitHub 사용 한도 또는 연결 권한을 확인해 주세요.');return r}
 async function requirePrivate(env){if(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(env.GITHUB_DATA_REPO||''))throw new HttpError(503,'비공개 저장소 설정이 필요합니다.');const r=await github(env,'');const d=await r.json();if(!r.ok||d.private!==true)throw new HttpError(503,'고객 파일 저장소는 비공개여야 합니다.');}
-function base64(bytes){let s='';for(let i=0;i<bytes.length;i+=16384)s+=String.fromCharCode(...bytes.subarray(i,i+16384));return btoa(s)}
+function base64(bytes){return Buffer.from(bytes.buffer,bytes.byteOffset,bytes.byteLength).toString('base64')}
 async function putChunk(env,a,idx,bytes){
  await requirePrivate(env);const object_path=pathFor(a,idx),sha256=await digest(bytes);
  const route='/contents/'+object_path, existing=await github(env,route);let previous;
@@ -23,6 +24,7 @@ async function putChunk(env,a,idx,bytes){
 }
 async function streamAsset(env,a,range){
  let window;try{window=byteRange(range,a.bytes)}catch{return new Response(null,{status:416,headers:{...HEADERS,'Content-Range':`bytes */${a.bytes}`}})}
+ if(window.end-window.start+1>8*1024*1024)throw new HttpError(413,'파일은 8 MiB 이하 범위로 나누어 요청해 주세요.');
  await rpc(env,'delivery',{bytes:window.end-window.start+1},null,true);
  await requirePrivate(env);
  const chunks=chunkWindow(a.chunks,window.start,window.end);let at=0;
@@ -39,6 +41,11 @@ export async function handle(request,env){
  if(request.method!=='GET'&&request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)throw new HttpError(403,'허용되지 않은 요청 출처입니다.');
  if(!env.SUPABASE_URL||!env.SUPABASE_ANON_KEY)throw new HttpError(503,'회원 서비스 연결 설정이 필요합니다.');
  if(url.pathname==='/api/config'&&request.method==='GET')return json({supabaseUrl:env.SUPABASE_URL,supabaseKey:env.SUPABASE_ANON_KEY,appOrigin:url.origin});
+ if(url.pathname==='/api/storage-health'&&request.method==='GET'){
+  const account=await rpc(env,'session',{},auth);if(!account.admin)throw new HttpError(403,'관리자 권한이 필요합니다.');await requirePrivate(env);
+  const repo=await (await github(env,'')).json();const response=await fetch('https://api.github.com/rate_limit',{headers:{Authorization:`Bearer ${env.GITHUB_DATA_TOKEN}`,'User-Agent':'PMOffice-Ebooks',Accept:'application/vnd.github+json'}});if(!response.ok)throw new HttpError(503,'GitHub 요청량을 확인하지 못했습니다.');const rate=await response.json();
+  return json({private:repo.private,sizeKiB:repo.size,defaultBranch:repo.default_branch,core:rate.resources.core});
+ }
  if(url.pathname==='/api/rpc'&&request.method==='POST'){
   const raw=await request.text();if(raw.length>20000)throw new HttpError(413,'요청이 너무 큽니다.');const {action,p={}}=JSON.parse(raw);
   if(!['session','list','folder_save','create','get','update','share','archive','approve','submit','admin','settings','group_policy'].includes(action))throw new HttpError(400,'잘못된 요청입니다.');

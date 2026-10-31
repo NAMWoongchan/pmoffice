@@ -113,14 +113,17 @@ class Remote:
         thread=threading.Thread(target=heartbeat,daemon=True);thread.start()
         try:
             source=work/('source.'+book['format'])
-            with self.http.get(self.url+'/api/worker/source',params=lease,stream=True,timeout=120) as r:
-                r.raise_for_status()
-                with source.open('wb') as dest:
-                    size=0
-                    for part in r.iter_content(CHUNK):
-                        size+=len(part)
-                        if size>MAX_BYTES: raise ValueError('Downloaded source exceeds limit')
-                        dest.write(part)
+            with source.open('wb') as dest:
+                size=0;step=8*1024*1024
+                for offset in range(0,book['source_bytes'],step):
+                    end=min(book['source_bytes']-1,offset+step-1)
+                    with self.http.get(self.url+'/api/worker/source',params=lease,headers={'Range':f'bytes={offset}-{end}'},stream=True,timeout=120) as r:
+                        r.raise_for_status()
+                        if r.status_code!=206 or r.headers.get('Content-Range')!=f'bytes {offset}-{end}/{book["source_bytes"]}':raise ValueError('Invalid source range response')
+                        for part in r.iter_content(CHUNK):
+                            size+=len(part)
+                            if size>MAX_BYTES:raise ValueError('Downloaded source exceeds limit')
+                            dest.write(part)
             if source.stat().st_size!=book['source_bytes']: raise ValueError('Source size mismatch')
             out=work/'result'
             # A separate process makes the overall conversion deadline enforceable.

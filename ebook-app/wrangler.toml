@@ -1,6 +1,7 @@
 name = "pmoffice-ebooks"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-10-31"
+compatibility_flags = ["nodejs_compat"]
 # Secrets are configured in the dashboard, NEVER in this file:
 # SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY,
 # GITHUB_DATA_REPO, GITHUB_DATA_TOKEN, CONVERTER_TOKEN
