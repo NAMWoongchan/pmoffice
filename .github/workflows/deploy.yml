@@ -25,6 +25,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir ebook-app install --frozen-lockfile
       - run: pnpm run docs:build
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "docs:dev": "vitepress dev docs --host 127.0.0.1",
-    "docs:build": "node scripts/check-public.mjs && node scripts/build-pms.mjs && vitepress build docs && node scripts/check-public.mjs --dist",
+    "docs:build": "node scripts/check-public.mjs && node scripts/build-pms.mjs && node scripts/build-ebook-site.mjs && vitepress build docs && node scripts/check-public.mjs --dist",
     "docs:preview": "vitepress preview docs --host 127.0.0.1",
     "pms:build": "node scripts/build-pms.mjs",
     "pms:server": "node scripts/build-pms-server.mjs",

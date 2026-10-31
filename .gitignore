@@ -17,3 +17,7 @@ docs/public/pms/app/viewer.css
 docs/public/pms/app/index.html
 .env*
 !.env.example
+
+# Generated first-party ebook frontend; never publish the server Worker here.
+docs/public/ebook-app/
+docs/public/ebooks/view.html

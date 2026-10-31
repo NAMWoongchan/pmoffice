@@ -34,11 +34,11 @@ async function streamAsset(env,a,range){
  return new Response(body,{status:window.status,headers:{...HEADERS,'Content-Type':a.mime,'Content-Length':String(window.end-window.start+1),'Accept-Ranges':'bytes',...(window.status===206?{'Content-Range':`bytes ${window.start}-${window.end}/${a.bytes}`}:{}) ,'Content-Disposition':a.kind==='source'?'attachment; filename="original.'+(a.mime==='application/pdf'?'pdf':'pptx')+'"':'inline'}});
 }
 async function workerAuth(request,env){const value=request.headers.get('Authorization')||'';if(!env.CONVERTER_TOKEN||!value.startsWith('Bearer ')||await digest(new TextEncoder().encode(value.slice(7)))!==await digest(new TextEncoder().encode(env.CONVERTER_TOKEN)))throw new HttpError(403,'변환 프로그램 인증에 실패했습니다.');}
-export async function handle(request,env){
+async function handleRequest(request,env){
  try{
  const url=new URL(request.url),auth=request.headers.get('Authorization');
  // Only enable after custom-domain DNS and HTTPS have been verified.
- if(env.CANONICAL_HOST==='ebooks.pmoffice.co.kr'&&url.hostname.endsWith('.pages.dev')){
+ if(env.CANONICAL_HOST==='ebooks.pmoffice.co.kr'&&url.hostname.endsWith('.pages.dev')&&!url.pathname.startsWith('/api/')){
   if(!['GET','HEAD'].includes(request.method))throw new HttpError(403,'피엠오피스 이북 주소로 다시 접속해 주세요.');
   const destination=new URL(url.pathname+url.search,'https://ebooks.pmoffice.co.kr');
   return new Response(null,{status:307,headers:{...HEADERS,Location:destination.href}});
@@ -46,7 +46,7 @@ export async function handle(request,env){
 
  if(!url.pathname.startsWith('/api/'))return env.ASSETS.fetch(request);
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:HEADERS});
- if(request.method!=='GET'&&request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)throw new HttpError(403,'허용되지 않은 요청 출처입니다.');
+ if(request.method!=='GET'&&request.headers.get('Origin')&&! [url.origin,'https://pmoffice.co.kr'].includes(request.headers.get('Origin')))throw new HttpError(403,'허용되지 않은 요청 출처입니다.');
  if(!env.SUPABASE_URL||!env.SUPABASE_ANON_KEY)throw new HttpError(503,'회원 서비스 연결 설정이 필요합니다.');
  if(url.pathname==='/api/config'&&request.method==='GET')return json({supabaseUrl:env.SUPABASE_URL,supabaseKey:env.SUPABASE_ANON_KEY,appOrigin:url.origin});
  if(url.pathname==='/api/storage-health'&&request.method==='GET'){
@@ -85,4 +85,15 @@ export async function handle(request,env){
  }catch(error){return json({error:error instanceof HttpError?error.message:'요청을 완료하지 못했습니다.'},error.status||500)}
 }
 export async function boundedBody(request,max){const reader=request.body?.getReader();if(!reader)throw new HttpError(400,'파일이 없습니다.');const parts=[];let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>max){await reader.cancel();throw new HttpError(413,'파일 조각 한도 초과');}parts.push(value)}const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length}return bytes.buffer}
+export async function handle(request,env){
+ const response=await handleRequest(request,env);
+ if(request.headers.get('Origin')!=='https://pmoffice.co.kr')return response;
+ const headers=new Headers(response.headers);
+ headers.set('Access-Control-Allow-Origin','https://pmoffice.co.kr');
+ headers.set('Access-Control-Allow-Methods','GET,POST,PUT,OPTIONS');
+ headers.set('Access-Control-Allow-Headers','Authorization,Content-Type,Range,X-Ebook-Share');
+ headers.set('Access-Control-Expose-Headers','Content-Range,Accept-Ranges,Content-Length,Content-Type');
+ headers.append('Vary','Origin');
+ return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
+}
 export default {fetch:handle};

@@ -19,7 +19,7 @@ onUnmounted(()=>{document.removeEventListener('fullscreenchange',fullscreenChang
         <h1>여러분의 파일,<br>최고의 <em>이북</em>이<br>되다.</h1>
         <p class="ep-lead">PDF와 PowerPoint에 새로운 읽는 경험을.<br>넘기고, 펼치고, 링크로 나누는 온라인 이북.</p>
         <div class="ep-actions">
-          <a class="ep-button ep-primary" href="https://ebooks.pmoffice.co.kr/">이북 서비스 열기 <span aria-hidden="true">↗</span></a>
+          <a class="ep-button ep-primary" href="/ebooks/view.html" target="_self">이북 서비스 열기 <span aria-hidden="true">↗</span></a>
           <a class="ep-button ep-secondary" href="/signup.html">회원 가입</a>
         </div>
         <a class="ep-preview-link" href="#ebook-experience">책장을 직접 넘겨 보세요 <span aria-hidden="true">↓</span></a>
@@ -81,7 +81,7 @@ onUnmounted(()=>{document.removeEventListener('fullscreenchange',fullscreenChang
       <span class="ep-final-symbol" aria-hidden="true">↗</span>
       <h2>여러분의 파일이 가진 가능성,<br>지금 펼쳐 보세요.</h2>
       <p>피엠오피스에 회원 가입하고 새로운 이북 경험을 만나보세요.<br>자세한 내용은 <strong>‘이북 서비스 열기’</strong>를 클릭해 보세요.</p>
-      <div class="ep-actions"><a class="ep-button ep-primary" href="https://ebooks.pmoffice.co.kr/">이북 서비스 열기 <span aria-hidden="true">↗</span></a><a class="ep-button ep-secondary" href="/signup.html">회원 가입</a><a class="ep-contact" href="/contact.html">교육·컨설팅 상담 →</a></div>
+      <div class="ep-actions"><a class="ep-button ep-primary" href="/ebooks/view.html" target="_self">이북 서비스 열기 <span aria-hidden="true">↗</span></a><a class="ep-button ep-secondary" href="/signup.html">회원 가입</a><a class="ep-contact" href="/contact.html">교육·컨설팅 상담 →</a></div>
       <p class="ep-availability">이북 서비스는 현재 순차 개방 중입니다. 회원 가입과 이 페이지의 미리보기는 지금 이용하실 수 있습니다.</p>
     </div>
   </section>

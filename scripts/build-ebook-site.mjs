@@ -1,0 +1,10 @@
+import fs from 'node:fs';import path from 'node:path';import {spawnSync} from 'node:child_process';
+const root=process.cwd(),app=path.join(root,'ebook-app'),dist=path.join(app,'dist'),publicRoot=path.join(root,'docs/public'),target=path.join(publicRoot,'ebook-app');
+const build=spawnSync(process.execPath,['build.mjs'],{cwd:app,stdio:'inherit',windowsHide:true});if(build.status!==0)process.exit(build.status||1);
+fs.mkdirSync(target,{recursive:true});for(const name of ['app.js','style.css','favicon.svg'])fs.copyFileSync(path.join(dist,name),path.join(target,name));
+for(const name of ['pdfjs','cmaps','standard_fonts','wasm'])fs.cpSync(path.join(dist,name),path.join(target,name),{recursive:true});
+if(fs.existsSync(path.join(target,'_worker.js')))throw Error('Server code must not be staged as public client assets');
+const output=path.join(publicRoot,'ebooks/view.html');fs.mkdirSync(path.dirname(output),{recursive:true});if(fs.existsSync(output)&&!fs.readFileSync(output,'utf8').includes('data-pmoffice-ebook-shell'))throw Error('Existing non-generated ebook entry found; preserve it');
+fs.writeFileSync(output,`<!doctype html><html lang="ko" data-pmoffice-ebook-shell><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://*.supabase.co https://pmoffice-ebooks.pages.dev; object-src 'none'; base-uri 'self'"><title>피엠오피스 E-book 생성기</title><link rel="icon" href="/ebook-app/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/ebook-app/style.css"></head><body><div id="app">이북 서비스를 연결하고 있습니다.</div><script type="module" src="/ebook-app/app.js"></script></body></html>`);
+console.log('First-party ebook frontend staged without server code or private credentials.');
+

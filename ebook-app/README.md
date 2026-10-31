@@ -86,4 +86,8 @@ python ebook-app/converter/converter.py run
 
 ## 고객 주소와 전체 화면
 
-고객 링크는 ebooks.pmoffice.co.kr만 사용합니다. DNS와 HTTPS 활성화를 확인한 후 서버 CANONICAL_HOST=ebooks.pmoffice.co.kr을 설정하면 Pages 기본 주소의 화면 요청은 같은 경로의 고객 주소로 이동합니다. DNS가 준비되기 전에는 설정하지 않습니다. 전체 화면 버튼 또는 F로 읽기 화면을 넓히고 Esc로 돌아옵니다. 지원하지 않는 브라우저는 창 안에서 읽기 화면을 확대합니다.
+고객 화면과 공유 링크는 https://pmoffice.co.kr/ebooks/view.html을 사용합니다. ebooks.pmoffice.co.kr은 DNS 연결 후 추가 주소로 사용할 수 있습니다. DNS와 HTTPS 활성화를 확인한 후 서버 CANONICAL_HOST=ebooks.pmoffice.co.kr을 설정하면 Pages 기본 주소의 화면 요청은 같은 경로의 고객 주소로 이동합니다. DNS가 준비되기 전에는 설정하지 않습니다. 전체 화면 버튼 또는 F로 읽기 화면을 넓히고 Esc로 돌아옵니다. 지원하지 않는 브라우저는 창 안에서 읽기 화면을 확대합니다.
+
+## 홈페이지 내 서비스 주소
+
+홈페이지의 이북 메뉴는 /ebooks/view.html로 연결합니다. 브라우저 앱은 홈페이지에서 제공하며 /ebook-app 아래에는 공개 클라이언트 파일만 복사합니다. 보호 API는 정확한 https://pmoffice.co.kr Origin에만 CORS를 허용하며 기존 회원/자료 권한을 계속 검사합니다. 빌드 전에 pnpm --dir ebook-app install --frozen-lockfile을 실행합니다. DNS 미연결 상태에서도 이 경로로 앱을 열 수 있지만 실제 파일 처리 개방 조건은 유지합니다.
