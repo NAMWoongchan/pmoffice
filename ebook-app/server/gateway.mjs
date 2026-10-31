@@ -2,13 +2,14 @@ import {byteRange,chunkWindow,LIMITS} from '../shared.mjs';
 import {Buffer} from 'node:buffer';
 const HEADERS={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'};
 export class HttpError extends Error{constructor(status,message){super(message);this.status=status}}
+async function requestObject(request,max=20000){let input;try{input=JSON.parse(new TextDecoder().decode(await boundedBody(request,max)))}catch(e){if(e instanceof HttpError)throw e;throw new HttpError(400,'올바른 JSON 요청이 필요합니다.')}if(!input||Array.isArray(input)||typeof input!=='object'||typeof input.action!=='string'||(input.p!==undefined&&(!input.p||Array.isArray(input.p)||typeof input.p!=='object')))throw new HttpError(400,'요청 형식이 올바르지 않습니다.');return input}
 const json=(v,status=200)=>new Response(JSON.stringify(v),{status,headers:{...HEADERS,'Content-Type':'application/json;charset=utf-8'}});
 export async function digest(buffer){return [...new Uint8Array(await crypto.subtle.digest('SHA-256',buffer))].map(x=>x.toString(16).padStart(2,'0')).join('')}
 export function pathFor(a,idx){if(!/^[0-9a-f-]{36}$/.test(a.owner_id)||!/^[0-9a-f-]{36}$/.test(a.book_id)||!/^[0-9a-f-]{36}$/.test(a.id)||!Number.isSafeInteger(idx)||idx<0)throw new HttpError(400,'잘못된 파일 경로입니다.');return `members/${a.owner_id}/${a.book_id}/${a.id}/${String(idx).padStart(5,'0')}.bin`}
 async function rpc(env,action,p,auth,internal=false){
  const key=internal?env.SUPABASE_SERVICE_ROLE_KEY:env.SUPABASE_ANON_KEY;
  const response=await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${internal?'ebook_internal':'ebook_api'}`,{method:'POST',headers:{apikey:key,...(internal?{Authorization:`Bearer ${key}`}:(auth?{Authorization:auth}:{})),'Content-Type':'application/json'},body:JSON.stringify({p_action:action,p})});
- const result=await response.json();if(!response.ok)throw new HttpError(result.code==='42501'?403:409,result.code==='42501'?'이북 이용 권한을 확인해 주세요.':result.message||'요청을 처리하지 못했습니다.');return result;
+ let result;try{result=await response.json()}catch{throw new HttpError(502,'회원 서버 응답을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.')}if(!response.ok){if(['PGRST202','PGRST205','42883'].includes(result.code))throw new HttpError(503,'이북 서비스의 서버 설정이 아직 완료되지 않았습니다.');throw new HttpError(result.code==='42501'?403:409,result.code==='42501'?'이북 이용 권한을 확인해 주세요.':result.message||'요청을 처리하지 못했습니다.')}return result;
 }
 async function github(env,path,options={}){if(path.startsWith('/contents/')&&!options.method&&env.GITHUB_DATA_BRANCH)path+='?ref='+encodeURIComponent(env.GITHUB_DATA_BRANCH);const r=await fetch(`https://api.github.com/repos/${env.GITHUB_DATA_REPO}${path}`,{...options,headers:{Authorization:`Bearer ${env.GITHUB_DATA_TOKEN}`,'User-Agent':'PMOffice-Ebooks','X-GitHub-Api-Version':'2022-11-28',Accept:'application/vnd.github+json',...options.headers}});if(r.status===429||r.status===403)throw new HttpError(503,'GitHub 사용 한도 또는 연결 권한을 확인해 주세요.');return r}
 async function requirePrivate(env){if(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(env.GITHUB_DATA_REPO||''))throw new HttpError(503,'비공개 저장소 설정이 필요합니다.');const r=await github(env,'');const d=await r.json();if(!r.ok||d.private!==true)throw new HttpError(503,'고객 파일 저장소는 비공개여야 합니다.');}
@@ -47,7 +48,7 @@ export async function handle(request,env){
   return json({private:repo.private,sizeKiB:repo.size,defaultBranch:repo.default_branch,core:rate.resources.core});
  }
  if(url.pathname==='/api/rpc'&&request.method==='POST'){
-  const raw=await request.text();if(raw.length>20000)throw new HttpError(413,'요청이 너무 큽니다.');const {action,p={}}=JSON.parse(raw);
+  const {action,p={}}=await requestObject(request);
   if(!['session','list','folder_save','create','get','update','share','archive','approve','submit','admin','settings','group_policy'].includes(action))throw new HttpError(400,'잘못된 요청입니다.');
   if(action==='share'&&p.visibility==='link'){const token=crypto.randomUUID()+crypto.randomUUID();p.share_hash=await digest(new TextEncoder().encode(token));const data=await rpc(env,action,p,auth);return json({...data,share_token:token})}
   return json(await rpc(env,action,p,auth));
@@ -70,7 +71,7 @@ export async function handle(request,env){
    const p=Object.fromEntries(url.searchParams);const a=await rpc(env,'asset_ticket',p,null,true);const bytes=await boundedBody(request,LIMITS.chunkBytes);if(bytes.byteLength!==a.expected_bytes)throw new HttpError(400,'결과 조각 크기 오류');return json(await putChunk(env,a,Number(p.idx),bytes));
   }
   if(url.pathname==='/api/worker/rpc'&&request.method==='POST'){
-   const {action,p={}}=await request.json();if(!['claim','heartbeat','asset_create','asset_complete','finish','fail'].includes(action))throw new HttpError(400,'처리 요청 오류');return json(await rpc(env,action,p,null,true));
+   const {action,p={}}=await requestObject(request,262144);if(!['claim','heartbeat','asset_create','asset_complete','finish','fail'].includes(action))throw new HttpError(400,'처리 요청 오류');return json(await rpc(env,action,p,null,true));
   }
  }
  throw new HttpError(404,'요청한 경로가 없습니다.');

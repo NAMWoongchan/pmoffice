@@ -20,12 +20,18 @@ DB 시험은 이 저장소의 기존 회원 fixture·마이그레이션을 실�
 화면만 확인하려면 빌드 후 
 
 ```powershell
-node ebook-app/scripts/preview.mjs
+node ebook-app/scripts/start-preview.mjs
 ```
+
+Windows에서는 `미리보기_시작.cmd`를 실행해도 됩니다. 독립 프로세스로 시작하고 HTTP 상태 확인 후 주소를 안내합니다. 창을 닫아도 계속 실행되지만 PC 재시작 후에는 다시 시작해야 합니다. 시작 앱·상시 서비스·방화벽 설정은 변경하지 않습니다. 작업 실행 환경에서만 열리는 서버를 고객에게 안내하지 않도록 실제 사용자 주소와 독립 실행 유지 검사를 함께 수행합니다.
 
 표시된 localhost 주소의 예시 데이터 화면을 사용합니다. 실제 회원·저장 API가 연결된 운영 서비스는 아닙니다.
 
 ## 운영 연결 순서
+
+Cloudflare 로그인은 운영자가 앱과 보호 API를 자신의 계정에 배포하도록 연결하는 절차입니다. 고객의 회원 로그인은 기존 Supabase가 담당하며 고객에게 Cloudflare 계정은 필요하지 않습니다. GitHub는 코드·비공개 파일 보관, Supabase는 회원·그룹·권한, Cloudflare Pages/Functions는 서비스 실행을 맡습니다. 로컬 미리보기는 Cloudflare 로그인 없이 동작합니다. 현재 구성에서 선택한 호스팅이 Cloudflare이며 모든 이북 서비스에 반드시 필요한 유일한 제품이라는 뜻은 아닙니다.
+
+연결 명령은 `wrangler login --scopes account:read user:read pages:write`입니다. 실제 로그인·권한 허용은 운영자가 직접 완료하고, 인증 URL·비밀번호·코드를 작업 기록에 저장하지 않습니다.
 
 1. **회원 DB**: 기존 회원·그룹 마이그레이션 적용 여부와 백업을 확인한 뒤 `supabase/migrations/202610310001_ebooks.sql`만 추가 적용합니다. 기존 마이그레이션을 다시 실행하지 않습니다. 신규 테이블은 `pmoffice_private`에 있고 직접 접근은 차단됩니다.
 2. **비공개 저장소**: `NAMWoongchan/pmoffice-ebook-data`를 Private·README 포함·기본 브랜치 main으로 준비합니다. 기존 저장소를 공개로 전환하거나 고객 파일을 홈페이지 저장소에 넣지 않습니다. `scripts/provision-data.mjs`는 안전한 환경변수로 인증을 제공했을 때 점검하며 `--apply`가 있어야 생성합니다. 토큰을 채팅·소스·로그에 붙여 넣지 않습니다.

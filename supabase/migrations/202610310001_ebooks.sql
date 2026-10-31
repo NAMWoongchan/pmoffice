@@ -156,6 +156,8 @@ begin
  elsif p_action='finish' then
   n:=(p->>'pages')::int;if n not between 1 and 200 then raise exception '200쪽 한도입니다.';end if;
   if (select count(*) from pmoffice_private.ebook_assets where book_id=b.id and kind='page' and complete and page between 1 and n)<>n then raise exception '페이지 누락';end if;
+  if (select count(*) from pmoffice_private.ebook_assets where book_id=b.id and kind='thumbnail' and complete and page between 1 and n)<>n then raise exception '썸네일 누락';end if;
+  if not exists(select 1 from pmoffice_private.ebook_assets where book_id=b.id and kind='text' and page=0 and complete) then raise exception '검색 데이터 누락';end if;
   if b.format='pptx' and (select count(*) from pmoffice_private.ebook_assets where book_id=b.id and kind='video' and complete and page between 1 and n)<>n then raise exception '슬라이드 영상 누락';end if;
   update pmoffice_private.ebook_books set state='review',pages=n,warnings=coalesce(p->'warnings','[]'),searchable=coalesce((p->>'searchable')::boolean,false),updated_at=now() where id=b.id;
   delete from pmoffice_private.ebook_jobs where book_id=b.id;
