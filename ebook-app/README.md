@@ -19,9 +19,9 @@ DB 시험은 이 저장소의 기존 회원 fixture·마이그레이션을 실�
 
 화면만 확인하려면 빌드 후 
 
-`powershell
+```powershell
 node ebook-app/scripts/preview.mjs
-` 
+```
 
 표시된 localhost 주소의 예시 데이터 화면을 사용합니다. 실제 회원·저장 API가 연결된 운영 서비스는 아닙니다.
 
