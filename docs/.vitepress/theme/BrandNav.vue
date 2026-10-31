@@ -12,7 +12,7 @@ const publicGroups=[
 {key:'ms',text:'MS Project 교육',link:'/ms-project/',items:[{text:'MS Project 소개',link:'/ms-project/introduction.html'},...education.groups.find(g=>g.key==='ms').items]},
 {key:'pm-education',text:'PM 실무 교육',link:'/pm-practice/',items:education.groups.find(g=>g.key==='pm').items},
 {key:'consulting',text:'프로젝트 관리 컨설팅',link:'/consulting/',items:[{text:'공정표 작성 대행',link:'/consulting/scheduling.html'},{text:'컨설팅 종합 안내',link:'/consulting/'},{text:'EPC·R&D·글로벌 프로젝트',link:'/consulting/pm.html'},{text:'AI 컨설팅',link:'/consulting/ai/'},{text:'ChatGPT 컨설팅',link:'/consulting/ai/chatgpt.html'},{text:'Microsoft Copilot 컨설팅',link:'/consulting/ai/copilot.html'}]}]
-const groups=computed(()=>[...publicGroups,{key:'members',text:'회원 전용',link:memberAccount.value?.member?'/knowledge/index.html':'/login.html',items:[{text:'이북 서비스',link:'/ebooks/'},...(memberAccount.value?.member?[{text:'지식 공간',link:'/knowledge/index.html'},...(memberAccount.value.admin||memberProjects.value.length?[{text:'고객 프로젝트',link:'/pms/'}]:[])]:[])]}])
+const groups=computed(()=>[...publicGroups,{key:'members',text:'회원 전용',link:memberAccount.value?.member?'/account.html':'/login.html',items:[{text:'이북 서비스',link:'/ebooks/'},...(memberAccount.value?.member&&(memberAccount.value.admin||memberProjects.value.length)?[{text:'고객 프로젝트',link:'/pms/'}]:[])]}])
 const close=()=>{open.value='';mobile.value=false}
 function outside(event){if(container.value&&!container.value.contains(event.target))close()}
 function keyboard(event){if(event.key==='Escape')close()}

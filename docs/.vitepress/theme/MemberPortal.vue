@@ -3,7 +3,7 @@ import {ref,computed,onMounted,watch} from 'vue'
 import {memberClient,memberSession,memberAccount,initializeMember,refreshMember,memberApi,memberRpc,googleMemberLogin,safeMemberReturn,memberLogout} from './member-service.js'
 const props=defineProps({mode:{default:'login'}})
 const busy=ref(false),message=ref(''),name=ref(''),company=ref(''),position=ref(''),kind=ref('business'),email=ref(''),password=ref(''),currentPassword=ref(''),accept=ref(false)
-const next=ref('/knowledge/index.html'),loaded=ref('')
+const next=ref('/account.html'),loaded=ref('')
 const completing=computed(()=>!!memberSession.value&&!memberAccount.value?.member)
 const signup=computed(()=>props.mode==='signup'||completing.value)
 watch(memberAccount,a=>{if(a?.profile&&loaded.value!==a.profile.id){loaded.value=a.profile.id;name.value=a.profile.display_name||'';company.value=a.profile.company||'';position.value=a.profile.position||'';kind.value=a.profile.member_kind||'business';email.value=a.profile.email||''}},{immediate:true})

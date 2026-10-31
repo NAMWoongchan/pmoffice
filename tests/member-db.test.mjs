@@ -147,5 +147,12 @@ test('real inherited membership policies: group migration, email accounts, withd
  await uid(3);await assert.rejects(()=>rpc('select member_admin_list()'));
  await uid(null);await db.exec('set role anon');await assert.rejects(()=>db.query('select member_admin_list()'));await db.exec('reset role');
 
+ await db.query("insert into member_document_media values('documents/admin-check/chart.png','/project-management.html',$1)",['c'.repeat(64)]);
+ await db.exec(fs.readFileSync('supabase/migrations/202610310002_knowledge_admin_only.sql','utf8'));
+ await uid(3);assert.equal((await rpc('select member_account() a')).rows[0].a.member,true);
+ for(const sql of ['select member_document_list()',"select member_document_get('/project-management.html')","select member_document_search('시험문장')","select member_post_get('00000000-0000-0000-0000-000000000000')"])await assert.rejects(()=>rpc(sql),e=>e.code==='42501');
+ await db.exec('set role authenticated');assert.equal((await db.query('select count(*)::int n from member_documents')).rows[0].n,0);assert.equal((await db.query('select count(*)::int n from member_document_media')).rows[0].n,0);await db.exec('reset role');
+ await uid(1);assert.equal((await rpc("select member_document_get('/project-management.html') a")).rows[0].a.title,'일반 지식');assert.ok((await rpc('select member_document_list() a')).rows[0].a.length>=2);assert.equal((await rpc('select count(*)::int n from member_document_media')).rows[0].n,1);
+ await uid(8);await assert.rejects(()=>rpc('select member_post_get($1)',[post]),e=>e.code==='42501');
  await db.close();
 });
