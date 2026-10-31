@@ -10,7 +10,9 @@
     "pms:build": "node scripts/build-pms.mjs",
     "pms:server": "node scripts/build-pms-server.mjs",
     "korail:test": "node --test tests/korail*.test.mjs tests/member*.test.mjs",
-    "pms:test": "node --test tests/pms*.test.mjs"
+    "pms:test": "node --test tests/pms*.test.mjs",
+    "ebook:build": "cd ebook-app && node build.mjs",
+    "ebook:test": "cd ebook-app && node --test tests/*.test.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.3.14",

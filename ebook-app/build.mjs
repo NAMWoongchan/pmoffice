@@ -1,0 +1,9 @@
+import fs from 'node:fs';import path from 'node:path';import {createRequire} from 'node:module';import {build} from 'esbuild';import {parse,compileScript,compileTemplate} from 'vue/compiler-sfc';
+const require=createRequire(import.meta.url);const out=path.resolve('dist');fs.mkdirSync(out,{recursive:true});
+const vuePlugin={name:'vue',setup(b){b.onLoad({filter:/\.vue$/},async({path:file})=>{const {descriptor}=parse(fs.readFileSync(file,'utf8'));const script=compileScript(descriptor,{id:'ebook-app',genDefaultAs:'__component'});const template=compileTemplate({source:descriptor.template.content,filename:file,id:'ebook-app',compilerOptions:{bindingMetadata:script.bindings}});if(template.errors.length)throw Error(template.errors.join('\n'));return {contents:script.content+'\n'+template.code+'\n__component.render=render;export default __component;',loader:'js',resolveDir:path.dirname(file)}})}};
+await build({entryPoints:['src/main.mjs'],bundle:true,outfile:path.join(out,'app.js'),format:'esm',minify:true,plugins:[vuePlugin],external:['/pdfjs/*'],define:{__VUE_OPTIONS_API__:'true',__VUE_PROD_DEVTOOLS__:'false',__VUE_PROD_HYDRATION_MISMATCH_DETAILS__:'false'}});
+await build({entryPoints:['server/gateway.mjs'],bundle:true,outfile:path.join(out,'_worker.js'),format:'esm',platform:'browser'});
+for(const file of ['index.html','_routes.json','_redirects','_headers'])fs.copyFileSync('public/'+file,path.join(out,file));
+fs.copyFileSync('src/style.css',path.join(out,'style.css'));
+const pdfRoot=process.env.PDFJS_ROOT||path.dirname(require.resolve('pdfjs-dist/package.json'));fs.cpSync(path.join(pdfRoot,'build'),path.join(out,'pdfjs'),{recursive:true});fs.cpSync(path.join(pdfRoot,'cmaps'),path.join(out,'cmaps'),{recursive:true});fs.cpSync(path.join(pdfRoot,'standard_fonts'),path.join(out,'standard_fonts'),{recursive:true});fs.cpSync(path.join(pdfRoot,'wasm'),path.join(out,'wasm'),{recursive:true});
+console.log('이북 앱 빌드 완료: dist (고객 데이터·비밀값 미포함)');

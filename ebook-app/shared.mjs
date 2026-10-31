@@ -1,0 +1,5 @@
+export const LIMITS = Object.freeze({maxBytes:50*1024*1024,maxPages:200,maxBooks:10,chunkBytes:1024*1024});
+export const STATES={uploading:'업로드 중',queued:'변환 대기',processing:'변환 중',review:'검토 필요',ready:'이용 가능',failed:'실패',archived:'관리자 보관'};
+export function checkUpload(name,size){if(!/\.(pdf|pptx)$/i.test(name)||size<1||size>LIMITS.maxBytes)throw Error('PDF·PPTX, 파일당 50 MiB 이하만 올릴 수 있습니다.');return /\.pdf$/i.test(name)?'pdf':'pptx'}
+export function byteRange(header,size){if(!header)return {start:0,end:size-1,status:200};const m=/^bytes=(\d*)-(\d*)$/.exec(header);if(!m||(!m[1]&&!m[2]))throw Error('range');let start=m[1]?Number(m[1]):Math.max(0,size-Number(m[2])),end=m[1]?(m[2]?Math.min(size-1,Number(m[2])):size-1):size-1;if(!Number.isSafeInteger(start)||!Number.isSafeInteger(end)||start>end||start>=size)throw Error('range');return {start,end,status:206}}
+export function chunkWindow(chunks,start,end){let offset=0;return chunks.flatMap(c=>{const begin=offset;offset+=c.bytes;return end>=begin&&start<offset?[{...c,start:Math.max(0,start-begin),end:Math.min(c.bytes-1,end-begin)}]:[]})}

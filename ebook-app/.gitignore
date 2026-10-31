@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.dev.vars
+.env*
+!.env.example
+converter/work/
+__pycache__/
+*.pyc
