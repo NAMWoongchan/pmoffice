@@ -12,10 +12,18 @@ for(const f of ['202610130001_membership.sql','202610130002_education.sql','2026
 await db.exec(`create table pmoffice_private.inquiry_settings(singleton boolean,bridge_secret text);insert into pmoffice_private.inquiry_settings values(true,'test-only');create table public.inquiry_notifications(id uuid default gen_random_uuid(),inquiry_id uuid,recipient text,state text default '대기',error text,updated_at timestamptz default now());`);
 for(let n=1;n<=4;n++){await db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[id(n),n===1?'namwoongchan@gmail.com':`user${n}@example.test`]);await db.query('update profiles set signup_accepted_at=now(),signup_version=(select signup_version from pmoffice_private.service_settings) where id=$1',[id(n)])}
 await db.query("insert into auth.identities values($1,'google','google-admin',$2)",[id(1),{email:'namwoongchan@gmail.com',email_verified:true}]);await db.query("update pmoffice_private.admin_identity_config set allowed_user_id=$1,allowed_google_provider_id='google-admin'",[id(1)]);await db.query('insert into admin_roles(user_id) values($1)',[id(1)]);
-for(const f of ['202610200001_pms.sql','202610200002_pms_groups.sql','202610290001_member_access.sql','202610310001_ebooks.sql'])await db.exec(fs.readFileSync('../supabase/migrations/'+f,'utf8'));
+for(const f of ['202610200001_pms.sql','202610200002_pms_groups.sql','202610290001_member_access.sql','202610310001_ebooks.sql','202610310003_ebook_public_url.sql'])await db.exec(fs.readFileSync('../supabase/migrations/'+f,'utf8'));
 const uid=async n=>{await db.exec('reset role');await db.query("select set_config('test.uid',$1,false)",[n?id(n):''])};
 const rpc=async(action,p={},internal=false)=>{await db.exec('set role '+(internal?'service_role':'authenticated'));try{return (await db.query(`select public.${internal?'ebook_internal':'ebook_api'}($1,$2) a`,[action,p])).rows[0].a}finally{await db.exec('reset role')}};
 return {db,uid,rpc}}
+test('server-issued book URLs use the working homepage reader',async()=>{
+const {db,uid,rpc}=await setup();try{
+await uid(1);await rpc('settings',{released:true,max_storage_bytes:1048576,max_daily_jobs:1,max_daily_delivery_bytes:1048576});
+await uid(2);const book=await rpc('create',{title:'URL verification',filename:'url.pdf',bytes:1});
+assert.equal(book.url,'https://pmoffice.co.kr/ebooks/view.html?book='+book.id);
+assert.equal('share_hash' in book,false);
+}finally{await db.close()}});
+
 test('real inherited SQL: closed launch, folder isolation, quotas, worker lease, review/share, deny precedence, archive and RLS',async t=>{
 const {db,uid,rpc}=await setup();try{
 await uid(2);assert.equal((await rpc('session')).released,false);await assert.rejects(()=>rpc('list'));
