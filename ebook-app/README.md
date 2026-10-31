@@ -9,7 +9,7 @@ Vue 회원·관리자 앱, Cloudflare Pages 보호 API, Supabase 추가 마이�
 Node.js 22 이상, pnpm 11.25.0을 사용합니다. 저장소 Root에서:
 
 ```powershell
-pnpm --dir ebook-app install --ignore-workspace --frozen-lockfile
+pnpm --dir ebook-app install --frozen-lockfile
 pnpm --dir ebook-app run build
 pnpm --dir ebook-app test
 python -m unittest discover -s ebook-app/converter -p 'test_*.py'
@@ -29,7 +29,7 @@ node ebook-app/scripts/preview.mjs
 
 1. **회원 DB**: 기존 회원·그룹 마이그레이션 적용 여부와 백업을 확인한 뒤 `supabase/migrations/202610310001_ebooks.sql`만 추가 적용합니다. 기존 마이그레이션을 다시 실행하지 않습니다. 신규 테이블은 `pmoffice_private`에 있고 직접 접근은 차단됩니다.
 2. **비공개 저장소**: `NAMWoongchan/pmoffice-ebook-data`를 Private·README 포함·기본 브랜치 main으로 준비합니다. 기존 저장소를 공개로 전환하거나 고객 파일을 홈페이지 저장소에 넣지 않습니다. `scripts/provision-data.mjs`는 안전한 환경변수로 인증을 제공했을 때 점검하며 `--apply`가 있어야 생성합니다. 토큰을 채팅·소스·로그에 붙여 넣지 않습니다.
-3. **Cloudflare Pages**: GitHub 검토 완료 코드에 연결합니다. Root directory=`ebook-app`, build command=`pnpm install --ignore-workspace --frozen-lockfile && pnpm run build`, output directory=`dist`입니다. Free 플랜을 사용하며 자동 유료 전환을 설정하지 않습니다.
+3. **Cloudflare Pages**: GitHub 검토 완료 코드에 연결합니다. Root directory=`ebook-app`, build command=`pnpm install --frozen-lockfile && pnpm run build`, output directory=`dist`입니다. Free 플랜을 사용하며 자동 유료 전환을 설정하지 않습니다.
 4. **서버 환경변수**: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GITHUB_DATA_REPO`, `GITHUB_DATA_TOKEN`, `CONVERTER_TOKEN`을 Cloudflare 서버 설정에 등록합니다. 데이터 토큰에는 해당 비공개 저장소의 Contents 읽기/쓰기만 부여합니다. 저장소 생성용 토큰을 서비스 운영 토큰으로 재사용하지 않습니다.
 5. **로그인**: 기존 Supabase Google 설정은 유지하고 `https://ebooks.pmoffice.co.kr/auth/callback`만 허용 복귀 주소로 추가합니다. 홈페이지 로그인 연결은 기존 회원 세션을 정확히 해당 이북 origin에 `postMessage`로 전달하며 토큰을 URL·로그에 넣지 않습니다. 홈페이지 변경과 실제 Google·이메일 실계정 시험이 필요합니다.
 6. **하위 도메인**: Pages에서 발급한 실제 프로젝트 주소를 확인한 뒤 `ebooks` CNAME만 추가합니다. 기존 apex·www·MX·TXT·이름 서버는 변경하지 않습니다. Cloudflare Custom domain 연결·인증서·직접 새로고침을 검사합니다. 실제 DNS 제공자가 달라 적용이 불가능하면 변경을 보류합니다.

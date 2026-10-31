@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: pnpm --dir ebook-app install --ignore-workspace --frozen-lockfile
+      - run: pnpm --dir ebook-app install --frozen-lockfile
       - run: pnpm --dir ebook-app run build
       - run: pnpm --dir ebook-app test
       - uses: actions/setup-python@v5
