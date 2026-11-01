@@ -50,9 +50,9 @@ onUnmounted(()=>{pendingView=null;window.removeEventListener('hashchange',onView
 <template>
 <main class="member-page member-admin">
  <p v-if="message" role="status" aria-live="polite">{{message}}</p>
- <MemberBulkControls v-if="checkedUsers.length" :users="checkedUsers" @updated="refreshAfterAction" />
  <section class="member-panel" :aria-label="viewLabel+' 목록'" :aria-busy="busy">
-  <div class="member-view-picker"><label><span class="sr-only">회원 목록 선택</span><select :value="view" :disabled="busy" aria-label="회원 목록 선택" @change="changeView($event.target.value)"><option value="valid">유효 회원</option><option v-for="[key,label] in MEMBER_VIEWS" :key="key" :value="key">{{label}}</option></select></label><span class="member-count">{{rows.length}}명 표시</span><button :aria-expanded="showAnswers" aria-controls="member-list-body" @click="toggleAnswers">{{showAnswers?'답변 접기':'답변 보기'}}</button></div>
+  <div class="member-view-picker"><label><span class="sr-only">회원 목록 선택</span><select :value="view" :disabled="busy" aria-label="회원 목록 선택" @change="changeView($event.target.value)"><option value="valid">유효 회원</option><option v-for="[key,label] in MEMBER_VIEWS" :key="key" :value="key">{{label}}</option></select></label><button :aria-expanded="showAnswers" aria-controls="member-list-body" @click="toggleAnswers">{{showAnswers?'답변 접기':'답변 보기'}}</button></div>
+ <MemberBulkControls v-if="checkedUsers.length" :users="checkedUsers" @updated="refreshAfterAction" />
   <p v-if="busy" role="status">회원 목록을 불러오는 중입니다.</p>
   <div class="member-table-scroll" tabindex="0" role="region" aria-label="회원 상세 정보 표, 가로 스크롤 가능">
    <table :key="view" class="member-table" data-sort-managed @table-sort="sortMembers"  :aria-label="viewLabel" aria-describedby="member-login-note">
@@ -71,7 +71,7 @@ onUnmounted(()=>{pendingView=null;window.removeEventListener('hashchange',onView
       <span v-else-if="key==='login_status'" class="member-login-state" :data-state="r.login_status||'unknown'">{{memberLoginLabel(r.login_status)}}</span>
       <template v-else>{{r[key]||'—'}}</template>
      </td><td><button class="member-row" :disabled="busy" :aria-label="(r.display_name||r.email)+' 회원정보 관리'" @click="choose(r)">관리</button></td>
-    </tr><tr v-if="showAnswers" class="member-answer-row"><td :colspan="columns.length+2"><p v-if="answersLoading" role="status">가입 답변을 불러오는 중입니다.</p><p v-else-if="answersError" role="alert">{{answersError}} <button @click="loadAnswers">다시 시도</button></p><template v-else><strong>{{answers[r.id]?.original_recorded?'가입 답변':'가입 답변 기록 없음 · 현재 회원정보'}}</strong><dl><template v-for="[key,value] in answerPairs(r)" :key="key"><dt>{{key}}</dt><dd>{{value||'미입력'}}</dd></template><dt>신청 서비스</dt><dd>{{requestedNames(r)}}</dd></dl></template></td></tr></template><tr v-if="loaded&&!rows.length"><td :colspan="columns.length+2">{{appliedSearch?'검색 결과가 없습니다.':'해당하는 회원이 없습니다.'}}</td></tr><tr v-else-if="!loaded&&!busy"><td :colspan="columns.length+2">목록을 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.</td></tr></tbody>
+    </tr><tr v-if="showAnswers" class="member-answer-row"><td :colspan="columns.length+2"><p v-if="answersLoading" role="status">가입 답변을 불러오는 중입니다.</p><p v-else-if="answersError" role="alert">{{answersError}} <button @click="loadAnswers">다시 시도</button></p><template v-else><strong>{{answers[r.id]?.original_recorded?'가입 답변':'가입 답변 기록 없음 · 현재 회원정보'}}</strong><dl><template v-for="[key,value] in answerPairs(r)" :key="key"><dt>{{key}}</dt><dd>{{value||'미입력'}}</dd></template><dt>신청 서비스</dt><dd>{{requestedNames(r)}}<small v-if="answers[r.id]?.requested_source==='admin'"> · 관리자 설정</small></dd></dl></template></td></tr></template><tr v-if="loaded&&!rows.length"><td :colspan="columns.length+2">{{appliedSearch?'검색 결과가 없습니다.':'해당하는 회원이 없습니다.'}}</td></tr><tr v-else-if="!loaded&&!busy"><td :colspan="columns.length+2">목록을 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.</td></tr></tbody>
    </table>
   </div>
   <nav class="member-actions" aria-label="회원 목록 페이지 이동"><button :disabled="busy||page===0" @click="move(-1)">이전</button><span>{{page+1}}페이지 · {{rows.length}}명 표시</span><button :disabled="busy||!hasNext" @click="move(1)">다음</button></nav>

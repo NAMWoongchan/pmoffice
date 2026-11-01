@@ -1,4 +1,5 @@
 <script setup>
+import {projectRouteName,projectPublicPath} from './project-address.js'
 import {ref,onMounted,onUnmounted} from 'vue'
 import {suggestedProjectSlug,projectStatusLabel} from './project-admin.js'
 import {watchAdminChanges} from './change-events.js'
@@ -63,20 +64,20 @@ onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();stopChanges?.();
 <MemberAdmin v-else-if="tab==='members'" /><MemberPasswordBulk v-else-if="tab==='passwords'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
 <header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
 <p role="status" aria-live="polite">{{message}}</p><p v-if="selected?.version"><a href="/admin/#pms">Project Online 사이트 현황에서 확인 →</a></p>
-<div class="pms-admin-grid"><aside><button class="pms-project-row" v-for="p in rows" :key="p.slug" @click="open(p)" :disabled="busy"><strong>{{p.title}}</strong><span>{{p.customer}} · {{labels[p.access_mode]}}</span><small>/pms/{{p.slug}}/ · {{p.status}}</small></button></aside>
+<div class="pms-admin-grid"><aside><button class="pms-project-row" v-for="p in rows" :key="p.slug" @click="open(p)" :disabled="busy"><strong>{{p.title}}</strong><span>{{p.customer}} · {{labels[p.access_mode]}}</span><small>{{projectPublicPath(p.slug)}} · {{p.status}}</small></button></aside>
 <section v-if="selected">
 <form @submit.prevent="save"><h2>프로젝트 설정</h2><div class="pms-fields">
-<label>주소 이름<input @input="slugEdited=true" v-model="selected.slug" :disabled="selected.version>0" required pattern="[a-z][a-z0-9-]{1,47}" maxlength="48" placeholder="korail"></label>
+<label>주소 이름<input :value="selected.version?projectRouteName(selected.slug):selected.slug" @input="slugEdited=true;selected.slug=$event.target.value" :disabled="selected.version>0" required pattern="[a-z][a-z0-9-]{1,47}" maxlength="48" placeholder="korail"></label>
 <p>주소 이름은 영문·숫자·하이픈 2~48자입니다. 새 프로젝트명을 입력하면 주소를 자동 제안합니다.</p><label>프로젝트명<input @input="suggestSlug" v-model="selected.title" required maxlength="160"></label>
 <label>기업·기관<input v-model="selected.customer" maxlength="120"></label>
 <p>접근 범위: 지정 그룹 회원</p>
 <label>운영 상태<select v-model="selected.status"><option value="draft">초안</option><option value="published">게시</option><option value="archived">보관</option></select></label>
 <p>프로젝트 목록과 제목·설명도 허용된 그룹 회원에게만 표시됩니다.</p>
-</div><label>소개<textarea v-model="selected.description" maxlength="1000" rows="3"></textarea></label>
+</div><label>소개 (Markdown)<textarea v-model="selected.description" maxlength="1000" rows="5" placeholder="# 제목&#10;- 항목&#10;**강조**"></textarea></label>
 <p>지정한 그룹의 유효 회원만 볼 수 있습니다. 기업별 배정 작업의 편집은 별도 기관 매핑으로 관리합니다.</p>
 <button :disabled="busy">설정 저장</button></form>
 <template v-if="selected.version">
-<section><h2>배포 주소</h2><p><a :href="'/pms/'+selected.slug+'/'" target="_blank" rel="noopener">/pms/{{selected.slug}}/ ↗</a></p><button @click="route" :disabled="busy">홈페이지 주소 생성</button><p>새 주소는 GitHub Pages 배포 후 사용할 수 있습니다. 주소 생성은 프로젝트의 공개 범위를 바꾸지 않습니다.</p></section>
+<section><h2>배포 주소</h2><p><a :href="projectPublicPath(selected.slug)" target="_blank" rel="noopener">{{projectPublicPath(selected.slug)}} ↗</a></p><button @click="route" :disabled="busy">홈페이지 주소 생성</button><p>새 주소는 GitHub Pages 배포 후 사용할 수 있습니다. 주소 생성은 프로젝트의 공개 범위를 바꾸지 않습니다.</p></section>
 <section><h2>원본과 게시 이력</h2><button @click="checkTaskServer" :disabled="busy||!meta">작업 저장 경로 점검 (원본 변경 없음)</button><p>현재 게시본: {{meta?.current?decodeURIComponent(meta.current.name):'미등록 또는 연결 확인 필요'}}</p><label>엑셀 원본 게시<input type="file" accept=".xlsx,.xlsm" :disabled="busy||!meta" @change="upload"></label><p>원본은 비공개 GitHub 저장소에 버전별로 보존합니다. 8MB 이하, 사업 일정표와 기관별 시트로 구성된 PMOffice 엑셀 구조를 지원합니다.</p><p>이전 게시본 열기·복원은 프로젝트 화면의 ‘파일 게시’에서 이용하세요.</p></section>
 <PmsGroups :project="selected.slug" :key="selected.slug" /><section><h2>변경 이력</h2><ol><li v-for="h in history" :key="h.id">{{new Date(h.created_at).toLocaleString('ko-KR')}} · {{h.action}}</li></ol></section>
 </template>

@@ -1,3 +1,4 @@
+import PmsAddressRedirect from './PmsAddressRedirect.vue'
 import {installSortableTables} from './table-sort.js'
 import ProjectOnlineLanding from './ProjectOnlineLanding.vue'
 import EbookBridge from './EbookBridge.vue'
@@ -35,7 +36,7 @@ import './education.css'
 export default {
   extends: DefaultTheme,
   Layout: () => h(DefaultTheme.Layout, null, { 'doc-before': () => h(PageStatus), 'nav-bar-content-after': () => h(BrandNav) }),
-  enhanceApp({ app }) { if(typeof document!=='undefined')installSortableTables(document); app.component('ProjectOnlineLanding',ProjectOnlineLanding); app.component('EbookBridge',EbookBridge); app.component('MemberPortal',MemberPortal); app.component('MemberKnowledge',MemberKnowledge); app.component('PmsPortal',PmsPortal); app.component('PmsAdmin',PmsAdmin); app.component('InquiryAdmin',InquiryAdmin); app.component('AiEducation',AiEducation); app.component('MainLanding',MainLanding); app.component('CoreServices',CoreServices); app.component('ExperiencePage',ExperiencePage); app.component('ExperienceProof',ExperienceProof); app.component('InquiryPanel',InquiryPanel); app.component('AiLearning',AiLearning); app.component('EducationSupport',EducationSupport); app.component('ProjectIntroduction', ProjectIntroduction); app.component('ConsultingPage', ConsultingPage); app.component('ConsultingTeaser', ConsultingTeaser); app.component('WikiHome', Home); app.component('KnowledgeHome', KnowledgeHome); app.component('MarketingPage', MarketingPage); app.component('EducationPage', EducationPage) }
+  enhanceApp({ app }) { if(typeof document!=='undefined')installSortableTables(document); app.component('PmsAddressRedirect',PmsAddressRedirect); app.component('ProjectOnlineLanding',ProjectOnlineLanding); app.component('EbookBridge',EbookBridge); app.component('MemberPortal',MemberPortal); app.component('MemberKnowledge',MemberKnowledge); app.component('PmsPortal',PmsPortal); app.component('PmsAdmin',PmsAdmin); app.component('InquiryAdmin',InquiryAdmin); app.component('AiEducation',AiEducation); app.component('MainLanding',MainLanding); app.component('CoreServices',CoreServices); app.component('ExperiencePage',ExperiencePage); app.component('ExperienceProof',ExperienceProof); app.component('InquiryPanel',InquiryPanel); app.component('AiLearning',AiLearning); app.component('EducationSupport',EducationSupport); app.component('ProjectIntroduction', ProjectIntroduction); app.component('ConsultingPage', ConsultingPage); app.component('ConsultingTeaser', ConsultingTeaser); app.component('WikiHome', Home); app.component('KnowledgeHome', KnowledgeHome); app.component('MarketingPage', MarketingPage); app.component('EducationPage', EducationPage) }
 }
 
 

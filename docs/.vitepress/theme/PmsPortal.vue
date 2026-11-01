@@ -1,4 +1,6 @@
 <script setup>
+import ProjectDescription from './ProjectDescription.vue'
+import {projectPublicPath} from './project-address.js'
 import {ref,onMounted,onUnmounted} from 'vue'
 import {client,call,labels,login,safeReturn} from './pms-client.js'
 const props=defineProps({mode:{default:'catalog'},project:{default:''}})
@@ -12,7 +14,7 @@ async function load(quiet=false){
  const s=await client().auth.getSession();if(s.error)throw s.error
  const [a,r]=await Promise.all([call('pms_account'),props.mode==='project'?call('pms_access',{p_slug:props.project}):call('pms_catalog')])
  if(id!==epoch)return
- session.value=s.data.session;account.value=a;if(props.mode==='project')access.value=r;else rows.value=r;error.value='';if(props.mode==='catalog'&&a.admin){redirect('/admin/#pms');return}if(props.mode==='catalog'&&!a.admin){if(!a.member||r.length===0){redirect('/project-online/');return}if(r.length===1){redirect('/pms/'+encodeURIComponent(r[0].slug)+'/');return}}
+ session.value=s.data.session;account.value=a;if(props.mode==='project')access.value=r;else rows.value=r;error.value='';if(props.mode==='catalog'&&a.admin){redirect('/admin/#pms');return}if(props.mode==='catalog'&&!a.admin){if(!a.member||r.length===0){redirect('/project-online/');return}if(r.length===1){redirect(projectPublicPath(r[0].slug));return}}
  }catch{if(id!==epoch)return;access.value=null;rows.value=[];error.value='프로젝트 서비스 연결을 확인하고 있습니다. 잠시 후 새로고침해 주세요.'}finally{if(id===epoch)loading.value=false}
 }
 async function signin(){busy.value=true;try{await login(location.pathname+location.hash)}catch(e){error.value=e.message;busy.value=false}}
@@ -55,7 +57,7 @@ onUnmounted(()=>{disposed=true;++epoch;subscription?.unsubscribe();clearInterval
 <section v-else class="pms-notice"><h2>프로젝트 접근 확인</h2><p>{{access?.project?labels[access.project.access_mode]+' 프로젝트입니다.':'프로젝트가 게시되지 않았거나 접근 권한이 없습니다.'}}</p><p v-if="session">지정 그룹 프로젝트는 운영자의 승인이 필요합니다.</p><button v-if="!session" :disabled="busy" @click="signin">로그인</button><button @click="load">권한 다시 확인</button></section>
 </template>
 <section v-else class="pms-cards" aria-label="프로젝트 목록">
-<a v-for="p in rows" :key="p.slug" :href="'/pms/'+p.slug+'/'" class="pms-card"><span>{{p.customer}}</span><h2>{{p.title}}</h2><p>{{p.description}}</p><strong>{{labels[p.access_mode]}}</strong><span v-if="p.status!=='published'"> · {{p.status==='draft'?'초안':'보관'}}</span><div class="pms-card-arrow">프로젝트 열기 →</div></a>
+<article v-for="p in rows" :key="p.slug" class="pms-card"><span>{{p.customer}}</span><h2><a :href="projectPublicPath(p.slug)">{{p.title}}</a></h2><ProjectDescription :text="p.description"/><strong>{{labels[p.access_mode]}}</strong><span v-if="p.status!=='published'"> · {{p.status==='draft'?'초안':'보관'}}</span><a :href="projectPublicPath(p.slug)" class="pms-card-arrow">프로젝트 열기 →</a></article>
 <p v-if="!rows.length&&!error&&!loading">현재 표시할 프로젝트가 없습니다. 지정 회원은 로그인 후 확인해 주세요.</p>
 </section>
 </template>

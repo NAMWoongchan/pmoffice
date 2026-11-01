@@ -1,3 +1,4 @@
+import {canonicalPmsPath} from './project-address.js'
 import {getInquiryClient} from './inquiry-client.js'
 import config from './inquiry-public.json'
 export const labels={assigned:'지정 그룹 회원'}
@@ -8,5 +9,5 @@ export async function api(slug,action,options={}){
  return fetch(config.url+'/functions/v1/pms?project='+encodeURIComponent(slug)+'&action='+action,{...options,cache:'no-store',headers:{apikey:config.publishableKey,...(data.session?{Authorization:'Bearer '+data.session.access_token}:{}),...options.headers}})
 }
 export async function action(slug,name,options={}){const r=await api(slug,name,options);const data=await r.json();if(!r.ok)throw Error(data.error||'요청에 실패했습니다.');return data}
-export function safeReturn(value){return /^\/pms\/(?:[a-z][a-z0-9-]{1,47}\/?)?(?:#[a-z-]+)?$/.test(value||'')?value:'/pms/'}
+export function safeReturn(value){return /^\/pms\/(?:(?:[a-z][a-z0-9-]{1,47}|AIDC_SK)\/?)?(?:#[a-z-]+)?$/.test(value||'')?canonicalPmsPath(value):'/pms/'}
 export async function login(path='/pms/'){location.assign('/login.html?returnTo='+encodeURIComponent(safeReturn(path)))}

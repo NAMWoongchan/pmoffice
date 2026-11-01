@@ -1,3 +1,4 @@
+import {projectRouteName,projectPublicPath} from './project-address.mjs';
 export const validSlug = s => typeof s==='string' && /^[a-z][a-z0-9-]{1,47}$/.test(s) && !['app','callback','project','index','admin','assets'].includes(s);
 export const MAX_BYTES=8*1024*1024;
 const fail=(status,message)=>{throw Object.assign(new Error(message),{status})};
@@ -29,14 +30,14 @@ export function createHandler({rpc,github,patchTasks,origin='https://pmoffice.co
  let response;
  if(action==='route'&&isWrite){
  if(!(await check()).canManage)fail(403,'관리 권한이 변경되었습니다.');
- const route='/repos/'+siteRepo+'/contents/docs/pms/'+slug+'/index.md';
+ const route='/repos/'+siteRepo+'/contents/docs/pms/'+projectRouteName(slug)+'/index.md';
  const exists=await github(route+'?ref='+encodeURIComponent(branch),{},true);
- if(exists)response=json({already_exists:true,url:origin+'/pms/'+slug+'/'});
+ if(exists)response=json({already_exists:true,url:origin+projectPublicPath(slug)});
  else{
  const content='---\nlayout: page\nsidebar: false\naside: false\ntitle: 고객 프로젝트\nsearch: false\nhead:\n  - - meta\n    - name: robots\n      content: noindex, nofollow\n---\n<PmsPortal mode="project" project="'+slug+'" />\n';
  const result=await github(route,{method:'PUT',body:{message:'Add PMS project route: '+slug,branch,content:base64(new TextEncoder().encode(content))}});
  await rpc(auth,'pms_log_action',{p_slug:slug,p_action:'route.publish',p_details:{commit:result.commit.sha}});
- response=json({commit:result.commit.sha,url:origin+'/pms/'+slug+'/',status:'deployment_pending'});
+ response=json({commit:result.commit.sha,url:origin+projectPublicPath(slug),status:'deployment_pending'});
  }
  }else if(['tasks','task-check'].includes(action)&&isWrite){
  if(!patchTasks)fail(503,'작업 저장 서비스를 확인해 주세요.');
