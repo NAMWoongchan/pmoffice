@@ -1,5 +1,6 @@
 <script setup>
 import {ref,onMounted,onUnmounted} from 'vue'
+import {suggestedProjectSlug,projectStatusLabel} from './project-admin.js'
 import {watchAdminChanges} from './change-events.js'
 import {adminRoute,adminSections} from './admin-navigation.js'
 import AdminHome from './AdminHome.vue'
@@ -16,14 +17,17 @@ import KnowledgeImport from './KnowledgeImport.vue'
 import {call,action,api,client,labels} from './pms-client.js'
 const allowed=ref(false),rows=ref([]),selected=ref(null),message=ref(''),busy=ref(false),members=ref([]),history=ref([]),matches=ref([]),search=ref(''),expires=ref(''),role=ref('viewer'),meta=ref(null),tab=ref(locationSafeHash())
 function locationSafeHash(){return adminRoute(typeof location==='undefined'?'':location.hash).tab}
-function syncRoute(){const r=adminRoute(location.hash);tab.value=r.tab;if(location.hash!==r.canonical)window.history.replaceState(window.history.state,'',location.pathname+location.search+r.canonical)}
-let stopChanges,sub,timer,verifyEpoch=0,disposed=false
+function syncRoute(){const r=adminRoute(location.hash);tab.value=r.tab;if(location.hash!==r.canonical)window.history.replaceState(window.history.state,'',location.pathname+location.search+r.canonical);if(allowed.value)openRouteProject()}
+function openRouteProject(){if(tab.value!=='projects')return;if(busy.value){routePending=true;return}const query=adminRoute(location.hash).query,slug=query.get('project');if(query.get('new')==='1'){if(!selected.value||selected.value.version>0)open(blank());return}if(slug){const project=rows.value.find(p=>p.slug===slug);if(!project){message.value='해당 프로젝트를 찾지 못했습니다. 사이트 현황에서 다시 선택해 주세요.';return}if(selected.value?.slug!==slug)open(project)}}
+const slugEdited=ref(false)
+let stopChanges,sub,timer,verifyEpoch=0,disposed=false,routePending=false
+function suggestSlug(){if(selected.value&&!selected.value.version&&!slugEdited.value)selected.value.slug=suggestedProjectSlug(selected.value.title,rows.value.map(p=>p.slug))}
 const blank=()=>({slug:'',title:'',customer:'',description:'',access_mode:'assigned',status:'draft',listed:false,version:0})
-async function verify(){const id=++verifyEpoch;try{const ok=await call('is_admin');if(disposed||id!==verifyEpoch)return;if(!ok){clear();return}allowed.value=true;const data=await call('pms_catalog');if(!disposed&&id===verifyEpoch)rows.value=data}catch{if(id===verifyEpoch)clear()}}
+async function verify(){const id=++verifyEpoch;try{const ok=await call('is_admin');if(disposed||id!==verifyEpoch)return;if(!ok){clear();return}allowed.value=true;const data=await call('pms_catalog');if(!disposed&&id===verifyEpoch){rows.value=data;openRouteProject()}}catch{if(id===verifyEpoch)clear()}}
 function clear(){allowed.value=false;rows.value=[];selected.value=null;members.value=[];history.value=[];matches.value=[];meta.value=null}
-async function run(fn){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false}}
-async function open(p){selected.value={...p};meta.value=null;matches.value=[];members.value=[];history.value=[];if(!p.version)return;await run(async()=>{[members.value,history.value]=await Promise.all([call('pms_admin_members',{p_slug:p.slug}),call('pms_history',{p_slug:p.slug})]);try{meta.value=await action(p.slug,'meta')}catch(e){message.value=e.message}})}
-async function save(){await run(async()=>{const p=await call('pms_save_project',{p_project:selected.value,p_version:selected.value.version});selected.value=p;rows.value=await call('pms_catalog');message.value='설정을 저장했습니다. 새 프로젝트는 주소 생성을 실행하고 홈페이지 배포 완료 후 배포해 주세요.'})}
+async function run(fn){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;if(routePending){routePending=false;openRouteProject()}}}
+async function open(p){slugEdited.value=!!p.version;selected.value={...p};if(tab.value==='projects')window.history.replaceState(window.history.state,'',p.version?'#projects?project='+encodeURIComponent(p.slug):'#projects?new=1');meta.value=null;matches.value=[];members.value=[];history.value=[];if(!p.version)return;await run(async()=>{[members.value,history.value]=await Promise.all([call('pms_admin_members',{p_slug:p.slug}),call('pms_history',{p_slug:p.slug})]);try{meta.value=await action(p.slug,'meta')}catch(e){message.value=e.message}})}
+async function save(){await run(async()=>{const created=!selected.value.version;const p=await call('pms_save_project',{p_project:selected.value,p_version:selected.value.version});selected.value=p;slugEdited.value=true;rows.value=await call('pms_catalog');window.history.replaceState(window.history.state,'','#projects?project='+encodeURIComponent(p.slug));message.value=created?'프로젝트를 등록했습니다. Project Online 사이트 현황에 '+projectStatusLabel(p.status)+' 상태로 표시됩니다.':'프로젝트 설정을 저장했습니다.'})}
 async function route(){await run(async()=>{const r=await action(selected.value.slug,'route',{method:'POST'});message.value=r.already_exists?'프로젝트 주소가 이미 등록되어 있습니다.':'주소를 등록했습니다. 홈페이지 배포 완료 후 접속해 주세요.'})}
 async function find(){await run(async()=>{matches.value=await call('pms_find_members',{p_search:search.value})})}
 async function grant(id,active,chosenRole=role.value){await run(async()=>{await call('pms_set_person',{p_role:chosenRole,p_slug:selected.value.slug,p_user:id,p_active:active,p_expires:expires.value?new Date(expires.value).toISOString():null});members.value=await call('pms_admin_members',{p_slug:selected.value.slug});message.value=active?'프로젝트 회원을 지정했습니다.':'프로젝트 접근을 회수했습니다.'})}
@@ -58,12 +62,12 @@ onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();stopChanges?.();
 <AdminSoftware v-else-if="tab==='sw'" />
 <MemberAdmin v-else-if="tab==='members'" /><MemberPasswordBulk v-else-if="tab==='passwords'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
 <header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
-<p role="status" aria-live="polite">{{message}}</p>
+<p role="status" aria-live="polite">{{message}}</p><p v-if="selected?.version"><a href="/admin/#pms">Project Online 사이트 현황에서 확인 →</a></p>
 <div class="pms-admin-grid"><aside><button class="pms-project-row" v-for="p in rows" :key="p.slug" @click="open(p)" :disabled="busy"><strong>{{p.title}}</strong><span>{{p.customer}} · {{labels[p.access_mode]}}</span><small>/pms/{{p.slug}}/ · {{p.status}}</small></button></aside>
 <section v-if="selected">
 <form @submit.prevent="save"><h2>프로젝트 설정</h2><div class="pms-fields">
-<label>주소 이름<input v-model="selected.slug" :disabled="selected.version>0" required pattern="[a-z][a-z0-9-]{1,47}" maxlength="48" placeholder="korail"></label>
-<label>프로젝트명<input v-model="selected.title" required maxlength="160"></label>
+<label>주소 이름<input @input="slugEdited=true" v-model="selected.slug" :disabled="selected.version>0" required pattern="[a-z][a-z0-9-]{1,47}" maxlength="48" placeholder="korail"></label>
+<p>주소 이름은 영문·숫자·하이픈 2~48자입니다. 새 프로젝트명을 입력하면 주소를 자동 제안합니다.</p><label>프로젝트명<input @input="suggestSlug" v-model="selected.title" required maxlength="160"></label>
 <label>기업·기관<input v-model="selected.customer" maxlength="120"></label>
 <p>접근 범위: 지정 그룹 회원</p>
 <label>운영 상태<select v-model="selected.status"><option value="draft">초안</option><option value="published">게시</option><option value="archived">보관</option></select></label>
