@@ -4,6 +4,7 @@ import {adminRoute,adminSections} from './admin-navigation.js'
 import AdminHome from './AdminHome.vue'
 import AdminEbooks from './AdminEbooks.vue'
 import AdminSites from './AdminSites.vue'
+import AdminSoftware from './AdminSoftware.vue'
 import PmsGroups from './PmsGroups.vue'
 import MemberAdmin from './MemberAdmin.vue'
 import MemberPasswordBulk from './MemberPasswordBulk.vue'
@@ -53,6 +54,7 @@ onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();clearInterval(ti
 <InquiryAdmin v-else-if="tab==='client'" />
 <AdminSites v-else-if="tab==='pms'" />
 <AdminEbooks v-else-if="tab==='ebooks'" />
+<AdminSoftware v-else-if="tab==='sw'" />
 <MemberAdmin v-else-if="tab==='members'" /><MemberPasswordBulk v-else-if="tab==='passwords'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
 <header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
 <p role="status" aria-live="polite">{{message}}</p>
