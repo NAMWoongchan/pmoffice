@@ -7,6 +7,7 @@ export const memberClient=getInquiryClient
 export async function memberRpc(name,args={}){const {data,error}=await memberClient().rpc(name,args);if(error)throw Error(error.code==='40001'?'다른 변경이 있습니다. 다시 확인해 주세요.':error.code==='23505'?'이미 등록된 항목입니다.':'요청을 완료하지 못했습니다. 입력값과 이용 권한을 확인해 주세요.');return data}
 export function safeMemberReturn(value){
  try{const url=new URL(value||'/account.html','https://pmoffice.co.kr');if(url.origin!=='https://pmoffice.co.kr'||url.username||url.password)return '/account.html';
+ if(url.pathname==='/ebooks/view.html'&&!url.hash&&[...url.searchParams.keys()].every(k=>k==='book')&&url.searchParams.getAll('book').length<=1&&(!url.searchParams.has('book')||/^[0-9a-f-]{36}$/i.test(url.searchParams.get('book')||'')))return url.pathname+url.search;
  if(url.pathname==='/auth/ebook-bridge.html'&&url.searchParams.size===1&&url.searchParams.getAll('state').length===1&&/^[0-9a-f-]{36}$/.test(url.searchParams.get('state')||''))return url.pathname+url.search;
  const valid=/^\/pms\/(?:[a-z][a-z0-9-]{1,47}\/)?$/.test(url.pathname)||['/account.html','/knowledge/index.html','/knowledge/','/project-management.html','/project-management/paradigm-shift.html','/microsoft-project.html','/generative-ai.html','/pc-management/README.html','/pc-management/high-performance-power.html'].includes(url.pathname);
  if(!valid||[...url.searchParams.keys()].some(k=>k!=='post')||url.searchParams.getAll('post').length>1||(url.searchParams.has('post')&&!/^[0-9a-f-]{36}$/i.test(url.searchParams.get('post'))))return '/account.html';

@@ -1,5 +1,6 @@
 <script setup>
 import {ref,computed,onMounted,watch} from 'vue'
+import MemberEbookWorkspace from './MemberEbookWorkspace.vue'
 import {memberClient,memberSession,memberAccount,initializeMember,refreshMember,memberApi,memberRpc,googleMemberLogin,safeMemberReturn,memberLogout} from './member-service.js'
 const props=defineProps({mode:{default:'login'}})
 const busy=ref(false),message=ref(''),name=ref(''),company=ref(''),position=ref(''),kind=ref('business'),email=ref(''),password=ref(''),currentPassword=ref(''),accept=ref(false)
@@ -42,4 +43,4 @@ onMounted(async()=>{next.value=safeMemberReturn(new URLSearchParams(location.sea
 <template v-if="mode==='account'"><button class="member-link" @click="memberLogout">로그아웃</button></template>
 <p v-else>비밀번호를 잊으셨다면 <a href="mailto:nam@pmoffice.co.kr">관리자에게 문의해 주세요.</a></p>
 <p v-if="mode!=='account'"><a :href="(signup?'/login.html':'/signup.html')+'?returnTo='+encodeURIComponent(next)">{{signup?'이미 가입하셨나요? 로그인':'처음 방문하셨나요? 가입'}}</a></p>
-</template></main></template>
+</template><MemberEbookWorkspace v-if="mode==='account'&&memberAccount?.member" /></main></template>
