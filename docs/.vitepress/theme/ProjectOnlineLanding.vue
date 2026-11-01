@@ -1,12 +1,10 @@
 <script setup>
-import {computed,onMounted} from 'vue'
-import {memberAccount,memberProjects,initializeMember} from './member-service.js'
-const connected=computed(()=>memberAccount.value?.admin||memberProjects.value.length>0)
-const contact='/contact.html?service='+encodeURIComponent('프로젝트 관리 컨설팅')+'&topic=project-online'
+import {onMounted} from 'vue'
+import {memberAccount,initializeMember} from './member-service.js'
 onMounted(initializeMember)
 </script>
 <template><main class="po-landing">
-<section class="po-hero"><div class="po-hero-copy"><p class="po-eyebrow">PMOFFICE · YOUR PROJECT CONNECTED</p><h1>우리의 프로젝트,<br><em>하나의 온라인 공간으로.</em></h1><p class="po-lead">고객의 업무에 맞춘 프로젝트 관리.<br>피엠오피스 <strong>Project Online</strong>에서 이어집니다.</p><div class="po-actions"><a class="po-primary" :href="connected?'/pms/':contact">{{connected?'내 프로젝트 열기 →':'고객 맞춤 서비스 문의 →'}}</a><a v-if="!memberAccount?.member" class="po-secondary" href="/signup.html?returnTo=%2Fpms%2F">회원 가입</a><a v-else class="po-secondary" href="/account.html#services">가입 중인 서비스</a></div><p class="po-caption">피엠오피스의 고객 지원을 받은 모든 고객을 위한 맞춤형 서비스</p></div><div class="po-brand-word" aria-hidden="true">Project<br><span>Online.</span></div></section>
+<section class="po-hero"><div class="po-hero-copy"><p class="po-eyebrow">PMOFFICE · YOUR PROJECT CONNECTED</p><h1>우리의 프로젝트,<br><em>하나의 온라인 공간으로.</em></h1><p class="po-lead">고객의 업무에 맞춘 프로젝트 관리.<br>피엠오피스 <strong>Project Online</strong>에서 이어집니다.</p><div class="po-actions"><a class="po-primary" :href="memberAccount?.member?'/pms/':'/login.html?returnTo=%2Fpms%2F'">로그인하고 내 프로젝트 확인</a></div><p class="po-caption">피엠오피스의 고객 지원을 받은 모든 고객을 위한 맞춤형 서비스</p></div><div class="po-brand-word" aria-hidden="true">Project<br><span>Online.</span></div></section>
 <figure class="po-hero-visual"><img src="/images/project-online/hero.png" width="1672" height="941" alt="프로젝트 일정과 진행률, 보고서 및 담당자가 하나로 연결된 Project Online 개념 일러스트" fetchpriority="high"></figure>
 <section class="po-value" aria-label="Project Online 주요 기능"><div class="po-feature-grid"><article><span>01 / PLAN</span><h3>일정과 마일스톤</h3><p>지금 무엇을 해야 하는지,<br>프로젝트의 흐름을 함께 확인하세요.</p><div class="po-mini-gantt" aria-hidden="true"><i></i><i></i><i></i></div></article><article><span>02 / PROGRESS</span><h3>진행 현황</h3><p>담당자와 진행 정보를 연결해<br>같은 기준으로 현황을 살펴보세요.</p><div class="po-mini-progress" aria-hidden="true"><b>Project</b><i></i><b>Milestone</b><i></i></div></article><article><span>03 / REPORT</span><h3>보고서와 자료</h3><p>프로젝트에 연결된 보고서를<br>고객 전용 사이트에서 활용하세요.</p><div class="po-mini-report" aria-hidden="true"><i></i><i></i><i></i></div></article></div></section>
 </main></template>
