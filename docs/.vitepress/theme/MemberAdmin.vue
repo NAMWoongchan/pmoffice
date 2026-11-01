@@ -26,7 +26,7 @@ onUnmounted(()=>{++epoch;clearInterval(timer);rows.value=[];selected.value=null;
 </script>
 <template>
 <main class="member-page member-admin">
- <h1>회원 관리</h1>
+ <h1>멤버십 현황</h1>
  <p>전체 회원을 한 페이지에 100명씩 표시합니다. 이용 중지·탈퇴 회원도 포함합니다.</p>
  <p role="status" aria-live="polite">{{message}}</p>
  <div class="member-actions"><button :disabled="busy" @click="choose(null)">회원 직접 등록</button><button :disabled="busy" @click="showBulk=!showBulk">기업 회원 일괄 등록</button></div>

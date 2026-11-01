@@ -1,0 +1,6 @@
+import {getInquiryClient} from './inquiry-client.js'
+import {requestJson,apiURL,viewerURL} from '../../../ebook-app/src/api.mjs'
+export {viewerURL}
+export async function adminHeaders(){const {data,error}=await getInquiryClient().auth.getSession();if(error||!data.session)throw Error('관리자 로그인이 필요합니다.');return {Authorization:'Bearer '+data.session.access_token}}
+export async function adminEbook(action,p={}){return requestJson('/api/rpc',{method:'POST',headers:{...await adminHeaders(),'Content-Type':'application/json'},body:JSON.stringify({action,p}),cache:'no-store'})}
+export async function downloadOriginal(book,asset){const parts=[];let offset=0;while(offset<asset.bytes){const end=Math.min(offset+8*1048576-1,asset.bytes-1);const r=await fetch(apiURL('/api/asset?'+new URLSearchParams({book:book.id,asset:asset.id})),{headers:{...await adminHeaders(),Range:`bytes=${offset}-${end}`},cache:'no-store'});if(!r.ok)throw Error('원본 다운로드 권한 또는 연결을 확인해 주세요.');const bytes=await r.arrayBuffer();if(bytes.byteLength!==end-offset+1)throw Error('파일 범위 응답을 확인할 수 없습니다.');parts.push(bytes);offset=end+1}const url=URL.createObjectURL(new Blob(parts,{type:asset.mime}));const a=document.createElement('a');a.href=url;a.download=book.filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}

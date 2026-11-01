@@ -12,7 +12,7 @@ async function load(quiet=false){
  const s=await client().auth.getSession();if(s.error)throw s.error
  const [a,r]=await Promise.all([call('pms_account'),props.mode==='project'?call('pms_access',{p_slug:props.project}):call('pms_catalog')])
  if(id!==epoch)return
- session.value=s.data.session;account.value=a;if(props.mode==='project')access.value=r;else rows.value=r;error.value='';if(props.mode==='catalog'&&!a.admin){if(!a.member||r.length===0){redirect('/project-online/');return}if(r.length===1){redirect('/pms/'+encodeURIComponent(r[0].slug)+'/');return}}
+ session.value=s.data.session;account.value=a;if(props.mode==='project')access.value=r;else rows.value=r;error.value='';if(props.mode==='catalog'&&a.admin){redirect('/admin/#pms');return}if(props.mode==='catalog'&&!a.admin){if(!a.member||r.length===0){redirect('/project-online/');return}if(r.length===1){redirect('/pms/'+encodeURIComponent(r[0].slug)+'/');return}}
  }catch{if(id!==epoch)return;access.value=null;rows.value=[];error.value='프로젝트 서비스 연결을 확인하고 있습니다. 잠시 후 새로고침해 주세요.'}finally{if(id===epoch)loading.value=false}
 }
 async function signin(){busy.value=true;try{await login(location.pathname+location.hash)}catch(e){error.value=e.message;busy.value=false}}

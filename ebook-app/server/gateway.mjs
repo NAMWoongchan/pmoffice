@@ -56,7 +56,7 @@ async function handleRequest(request,env){
  }
  if(url.pathname==='/api/rpc'&&request.method==='POST'){
   const {action,p={}}=await requestObject(request);
-  if(!['session','list','folder_save','create','get','update','share','archive','approve','submit','admin','settings','group_policy'].includes(action))throw new HttpError(400,'잘못된 요청입니다.');
+  if(!['session','list','folder_save','create','get','update','share','archive','approve','submit','admin','settings','group_policy','admin_summary','admin_list','admin_detail','admin_retry','admin_suspend','admin_resume','admin_delete','admin_restore','admin_history','admin_approve'].includes(action))throw new HttpError(400,'잘못된 요청입니다.');
   if(action==='share'&&p.visibility==='link'){const token=crypto.randomUUID()+crypto.randomUUID();p.share_hash=await digest(new TextEncoder().encode(token));const data=await rpc(env,action,p,auth);return json({...data,share_token:token})}
   return json(await rpc(env,action,p,auth));
  }

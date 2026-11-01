@@ -21,7 +21,7 @@ onMounted(load)
 onUnmounted(()=>{alive=false;password.value='';confirm.value='';selected.value=[];rows.value=[]})
 </script>
 <template><main class="member-page member-password-bulk">
- <h1>회원 비밀번호 일괄 변경</h1>
+ <h1>회원 정보 관리</h1>
  <p>등록된 회원을 선택하여 PMOffice 비밀번호를 한 번에 변경합니다. 남웅찬을 포함한 관리자 계정은 선택과 변경에서 제외됩니다.</p>
  <p>회원 등록·그룹·이용 상태는 변경하지 않습니다. Google 계정 비밀번호도 변경하지 않습니다.</p>
  <div class="member-actions"><a href="/admin/#members">회원 관리로 이동</a><button :disabled="busy||loading" @click="load">회원 목록 새로고침</button><button :disabled="busy||loading||!eligible.length" @click="selectAll">{{allSelected?'전체 선택 해제':'관리자 제외 전체 선택'}}</button><span>전체 {{rows.length}}명 · 변경 가능 {{eligible.length}}명 · 선택 {{selected.length}}명</span></div>

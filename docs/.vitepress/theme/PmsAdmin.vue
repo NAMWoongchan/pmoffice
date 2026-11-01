@@ -1,5 +1,9 @@
 <script setup>
 import {ref,onMounted,onUnmounted} from 'vue'
+import {adminRoute,adminSections} from './admin-navigation.js'
+import AdminHome from './AdminHome.vue'
+import AdminEbooks from './AdminEbooks.vue'
+import AdminSites from './AdminSites.vue'
 import PmsGroups from './PmsGroups.vue'
 import MemberAdmin from './MemberAdmin.vue'
 import MemberPasswordBulk from './MemberPasswordBulk.vue'
@@ -9,11 +13,11 @@ import MemberHistory from './MemberHistory.vue'
 import KnowledgeImport from './KnowledgeImport.vue'
 import {call,action,api,client,labels} from './pms-client.js'
 const allowed=ref(false),rows=ref([]),selected=ref(null),message=ref(''),busy=ref(false),members=ref([]),history=ref([]),matches=ref([]),search=ref(''),expires=ref(''),role=ref('viewer'),meta=ref(null),tab=ref(locationSafeHash())
-function locationSafeHash(){return typeof location!=='undefined'&&['projects','members','passwords','groups','mail','knowledge','history'].includes(location.hash.slice(1))?location.hash.slice(1):'inquiries'}
-function chooseTab(value){tab.value=value;if(typeof window!=='undefined')window.history.replaceState(null,'',window.location.pathname+(value==='inquiries'?'':'#'+value))}
-let sub,timer
+function locationSafeHash(){return adminRoute(typeof location==='undefined'?'':location.hash).tab}
+function syncRoute(){const r=adminRoute(location.hash);tab.value=r.tab;if(location.hash!==r.canonical)window.history.replaceState(window.history.state,'',location.pathname+location.search+r.canonical)}
+let sub,timer,verifyEpoch=0,disposed=false
 const blank=()=>({slug:'',title:'',customer:'',description:'',access_mode:'assigned',status:'draft',listed:false,version:0})
-async function verify(){try{allowed.value=await call('is_admin');if(allowed.value)rows.value=await call('pms_catalog');else clear()}catch{clear()}}
+async function verify(){const id=++verifyEpoch;try{const ok=await call('is_admin');if(disposed||id!==verifyEpoch)return;if(!ok){clear();return}allowed.value=true;const data=await call('pms_catalog');if(!disposed&&id===verifyEpoch)rows.value=data}catch{if(id===verifyEpoch)clear()}}
 function clear(){allowed.value=false;rows.value=[];selected.value=null;members.value=[];history.value=[];matches.value=[];meta.value=null}
 async function run(fn){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false}}
 async function open(p){selected.value={...p};meta.value=null;matches.value=[];members.value=[];history.value=[];if(!p.version)return;await run(async()=>{[members.value,history.value]=await Promise.all([call('pms_admin_members',{p_slug:p.slug}),call('pms_history',{p_slug:p.slug})]);try{meta.value=await action(p.slug,'meta')}catch(e){message.value=e.message}})}
@@ -37,12 +41,18 @@ async function upload(event){const file=event.target.files?.[0];event.target.val
  meta.value=await action(selected.value.slug,'meta');history.value=await call('pms_history',{p_slug:selected.value.slug})
  message.value=r.audit_recorded?'GitHub에 원본을 새 버전으로 저장했습니다.':'GitHub 저장은 완료했지만 DB 감사 기록 확인이 필요합니다.'
  })}
-onMounted(async()=>{await verify();sub=client().auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT')clear();else setTimeout(verify,0)}).data.subscription;timer=setInterval(verify,30000)})
-onUnmounted(()=>{sub?.unsubscribe();clearInterval(timer)})
+onMounted(async()=>{syncRoute();window.addEventListener('hashchange',syncRoute);window.addEventListener('popstate',syncRoute);await verify();if(disposed)return;sub=client().auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT'){++verifyEpoch;clear()}else setTimeout(verify,0)}).data.subscription;timer=setInterval(verify,30000)})
+onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();clearInterval(timer);window.removeEventListener('hashchange',syncRoute);window.removeEventListener('popstate',syncRoute)})
 </script>
 <template>
-<nav class="pms-admin-tabs" aria-label="관리 기능"><button v-if="allowed" class="pms-member-info" :aria-pressed="tab==='members'" @click="chooseTab('members')">회원정보</button><button :aria-pressed="tab==='inquiries'" @click="chooseTab('inquiries')">고객 문의</button><button v-if="allowed" :aria-pressed="tab==='projects'" @click="chooseTab('projects')">프로젝트 관리</button><button v-for="(label,key) in {passwords:'비밀번호 일괄 변경',groups:'그룹 관리',mail:'메일 발송',knowledge:'지식 관리',history:'변경 이력'}" v-if="allowed" :key="key" :aria-pressed="tab===key" @click="chooseTab(key)">{{label}}</button><a href="/pms/">Project Online 목록 ↗</a></nav>
-<InquiryAdmin v-if="tab==='inquiries'||!allowed" />
+<div class="admin-shell" :class="{'admin-shell-guest':!allowed}">
+<aside v-if="allowed" class="admin-sidebar" aria-label="시스템 관리 메뉴"><a class="admin-home-link" href="/admin/" :aria-current="tab==='home'?'page':undefined">시스템 관리 홈</a><nav><section v-for="section in adminSections" :key="section.title"><h2>{{section.title}}</h2><a v-for="[key,label] in section.items" :key="key" :href="'/admin/#'+key" :aria-current="tab===key?'page':undefined">{{label}}</a></section></nav></aside>
+<div class="admin-content">
+<InquiryAdmin v-if="!allowed" authentication-only />
+<AdminHome v-else-if="tab==='home'" />
+<InquiryAdmin v-else-if="tab==='client'" />
+<AdminSites v-else-if="tab==='pms'" />
+<AdminEbooks v-else-if="tab==='ebooks'" />
 <MemberAdmin v-else-if="tab==='members'" /><MemberPasswordBulk v-else-if="tab==='passwords'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
 <header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
 <p role="status" aria-live="polite">{{message}}</p>
@@ -66,8 +76,13 @@ onUnmounted(()=>{sub?.unsubscribe();clearInterval(timer)})
 </section><section v-else><h2>관리할 프로젝트를 선택하세요.</h2><p>새 프로젝트는 지정 그룹 전용 초안으로 시작하며 게시 전에는 관리자만 볼 수 있습니다.</p></section>
 </div>
 </main>
+</div></div>
 </template>
 <style scoped>
 .pms-admin-tabs{display:flex;gap:12px;padding:24px 32px 0;max-width:1440px;margin:auto;flex-wrap:wrap;align-items:center}.pms-admin-tabs .pms-member-info{border-color:#235fea;font-weight:750}.pms-admin-tabs button[aria-pressed=true]{background:#183a61;color:white}.pms-admin{max-width:1440px;padding:40px 32px 80px;margin:auto;color:#16334f}.pms-admin header{display:flex;justify-content:space-between;gap:20px;align-items:center}.pms-admin h1{font-size:34px;font-weight:750}.pms-admin h2{font-size:22px;font-weight:700;margin-bottom:16px}.pms-admin p{margin:12px 0;color:#596f85}.pms-admin-grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;margin-top:24px}.pms-admin-grid section section,.pms-admin-grid section>form{padding:24px;border:1px solid #d5e0eb;border-radius:10px;margin-bottom:22px;background:white}.pms-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pms-admin label{display:flex;flex-direction:column;gap:7px;margin:10px 0}.pms-admin input,.pms-admin select,.pms-admin textarea{border:1px solid #b5c5d5;border-radius:6px;padding:10px;background:white;width:100%}.pms-admin .pms-check{flex-direction:row;align-items:center}.pms-check input{width:auto}.pms-admin button,.pms-admin-tabs button{border:1px solid #b5c5d5;border-radius:6px;padding:10px 14px;background:#edf3fa;font-weight:600}.pms-admin button:disabled{opacity:.45}.pms-project-row{display:flex;flex-direction:column;width:100%;text-align:left;margin-bottom:10px;gap:8px}.pms-admin li{padding:10px 0;overflow-wrap:anywhere}.pms-admin li button{margin-left:10px}.pms-admin input[type=file]{max-width:100%}@media(max-width:780px){.pms-admin-grid{grid-template-columns:1fr}.pms-fields{grid-template-columns:1fr}.pms-admin{padding:28px 16px}.pms-admin h1{font-size:28px}.pms-admin header{display:block}}
 </style>
 
+
+<style>
+.admin-shell{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;max-width:1680px;margin:auto;padding:32px 24px 60px;color:#16334f}.admin-shell-guest{display:block}.admin-sidebar{position:sticky;top:92px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;border:1px solid #d7e1ed;border-radius:12px;background:#f5f8fc;padding:18px 12px}.admin-sidebar section+section{border-top:1px solid #d7e1ed;margin-top:18px;padding-top:16px}.admin-sidebar h2{font-size:14px;font-weight:750;line-height:1.6;margin:0 10px 8px}.admin-sidebar a{display:block;border-radius:6px;padding:10px 12px;line-height:1.5;font-size:14px}.admin-sidebar a:hover{background:#e4ecf7}.admin-sidebar a[aria-current=page]{background:#183a61;color:white;font-weight:700}.admin-home-link{font-weight:750;margin-bottom:18px}.admin-content{min-width:0}.admin-content>.member-page,.admin-content>.inquiry-admin,.admin-content>.pms-admin{padding:12px 10px 40px;max-width:none}.admin-content .pms-admin-grid{grid-template-columns:230px minmax(0,1fr)}.admin-content h1{line-height:1.4}.admin-content .member-history{overflow:auto}.admin-content a:focus-visible,.admin-sidebar a:focus-visible{outline:3px solid #2676bd;outline-offset:2px}@media(max-width:1050px){.admin-content .pms-admin-grid{grid-template-columns:1fr}}@media(max-width:780px){.admin-shell{grid-template-columns:1fr;padding:100px 14px 20px;gap:24px}.admin-sidebar{position:static;max-height:none}.admin-sidebar nav{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.admin-sidebar section+section{border:0;margin:0;padding:0}.admin-content>.member-page,.admin-content>.inquiry-admin,.admin-content>.pms-admin{padding:4px 0 30px}}
+</style>
