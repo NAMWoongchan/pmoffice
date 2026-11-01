@@ -21,30 +21,31 @@ await reader.goto(origin+'/book/'+bookId);await reader.locator('canvas').waitFor
 // Real keyboard inputs: both key pairs, first/last boundaries, and editable fields.
 await reader.evaluate(()=>{document.activeElement?.blur();window.__pageKeyDefaults=[];window.addEventListener('keydown',e=>{if(['PageUp','PageDown'].includes(e.key))window.__pageKeyDefaults.push(e.defaultPrevented)},true)});
 const pageNumber=()=>reader.locator('.page-toolbar input').inputValue();
-for(const [key,expected] of [['PageDown','3'],['PageUp','2'],['ArrowLeft','1'],['PageUp','1'],['ArrowRight','2'],['PageDown','3']]){
+for(const [key,expected] of [['PageDown','3'],['PageUp','2'],['ArrowLeft','1'],['PageUp','1'],['ArrowRight','2'],['PageDown','3'],['Home','1'],['End','3'],['Home','1'],['End','3']]){
  await reader.keyboard.press(key);await reader.waitForFunction(n=>document.querySelector('.page-toolbar input')?.value===n,expected);assert.equal(await pageNumber(),expected);
 }
 assert.ok((await reader.evaluate(()=>window.__pageKeyDefaults)).every(Boolean),'PgUp/PgDn must prevent document scrolling');
-await reader.getByRole('textbox',{name:'본문 검색'}).focus();await reader.keyboard.press('PageUp');await reader.keyboard.press('ArrowLeft');assert.equal(await pageNumber(),'3');
+await reader.getByRole('textbox',{name:'본문 검색'}).focus();await reader.keyboard.press('PageUp');await reader.keyboard.press('ArrowLeft');await reader.keyboard.press('Home');await reader.keyboard.press('End');assert.equal(await pageNumber(),'3');
 await reader.evaluate(()=>{const editable=document.createElement('div');editable.id='qa-editable';editable.contentEditable='true';editable.textContent='Edit text';document.body.append(editable);editable.focus()});
-await reader.keyboard.press('PageUp');await reader.keyboard.press('ArrowLeft');assert.equal(await pageNumber(),'3');await reader.evaluate(()=>document.getElementById('qa-editable').remove());
+await reader.keyboard.press('PageUp');await reader.keyboard.press('ArrowLeft');await reader.keyboard.press('Home');await reader.keyboard.press('End');assert.equal(await pageNumber(),'3');await reader.evaluate(()=>document.getElementById('qa-editable').remove());
 // Focused video controls must not swallow PageUp/PageDown.
 await reader.keyboard.press('PageUp');await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='2');
 await reader.waitForFunction(()=>document.querySelector('video')?.readyState>=2);
 await reader.evaluate(()=>{const v=document.querySelector('video');v.tabIndex=0;v.focus();v.addEventListener('keydown',e=>e.stopPropagation())});
 await reader.keyboard.press('PageUp');await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='1');
+await reader.waitForFunction(()=>document.querySelector('.app-shell')?.getAttribute('aria-busy')==='false');
 // Wheel input over a playing slide video also navigates and stops that video.
 await reader.waitForFunction(()=>document.querySelector('video')?.readyState>=2);
 await reader.evaluate(async()=>{window.__wheelVideo=document.querySelector('video');await window.__wheelVideo.play()});
 await reader.locator('video').hover({position:{x:25,y:25}});await reader.mouse.wheel(0,120);await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='2');assert.equal(await reader.evaluate(()=>window.__wheelVideo.paused),true);
 await reader.evaluate(()=>document.activeElement?.blur());await reader.keyboard.press('PageUp');await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='1');await reader.waitForTimeout(260);
-// One wheel gesture advances once; reversing the gesture goes back.
-await reader.evaluate(()=>document.activeElement?.blur());
-await reader.locator('.page-scroll').hover({position:{x:35,y:35}});
-await reader.mouse.wheel(0,120);await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='2');
-await reader.mouse.wheel(0,120);await reader.mouse.wheel(0,120);assert.equal(await pageNumber(),'2');
-await reader.waitForTimeout(260);await reader.mouse.wheel(0,-120);await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='1');
-await reader.waitForTimeout(260);await reader.mouse.wheel(0,-120);assert.equal(await pageNumber(),'1');
+// Real wheel directions and a synchronous burst use distinct gestures.
+const ready=()=>reader.waitForFunction(()=>document.querySelector('.app-shell')?.getAttribute('aria-busy')==='false');
+await ready();await reader.evaluate(()=>document.activeElement?.blur());await reader.locator('.page-scroll').hover({position:{x:35,y:35}});
+await reader.mouse.wheel(0,120);await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='2');await ready();await reader.waitForTimeout(260);
+await reader.mouse.wheel(0,-120);await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='1');await ready();await reader.waitForTimeout(260);
+await reader.locator('.page-scroll').evaluate(e=>{for(let i=0;i<3;i++)e.dispatchEvent(new WheelEvent('wheel',{deltaY:120,bubbles:true,cancelable:true}))});assert.equal(await pageNumber(),'2');await ready();await reader.waitForTimeout(260);
+await reader.mouse.wheel(0,-120);await reader.waitForFunction(()=>document.querySelector('.page-toolbar input')?.value==='1');await ready();await reader.waitForTimeout(260);await reader.mouse.wheel(0,-120);assert.equal(await pageNumber(),'1');
 await reader.getByRole('textbox',{name:'본문 검색'}).hover();await reader.mouse.wheel(0,120);assert.equal(await pageNumber(),'1');
-assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'ui-results.json'),JSON.stringify({passed:true,mockApi:true,desktop:[1440,1000],mobile:[390,844],pdfJsRendered:true,videoPlayed:true,previousPageVideoPaused:true,searchAndPageNavigation:true,nativeFullscreenEnteredAndExited:true,fullscreenFallbackAndEscape:true,pageUpDownAndArrowNavigation:true,keyboardPageBoundaries:true,editableFieldsDoNotNavigate:true,pageKeysPreventDocumentScroll:true,captureKeyboardOverVideo:true,wheelNavigation:true,wheelVideoStopsOnPageChange:true,wheelOnePagePerGesture:true,consoleErrors:errors},null,2));console.log('Local desktop/mobile/search/share/PDF.js/video/keyboard checks passed (API fixtures).');
+assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'ui-results.json'),JSON.stringify({passed:true,mockApi:true,desktop:[1440,1000],mobile:[390,844],pdfJsRendered:true,videoPlayed:true,previousPageVideoPaused:true,searchAndPageNavigation:true,nativeFullscreenEnteredAndExited:true,fullscreenFallbackAndEscape:true,pageUpDownAndArrowNavigation:true,homeEndFirstLast:true,keyboardPageBoundaries:true,editableFieldsDoNotNavigate:true,pageKeysPreventDocumentScroll:true,captureKeyboardOverVideo:true,wheelNavigation:true,wheelVideoStopsOnPageChange:true,wheelOnePagePerGesture:true,consoleErrors:errors},null,2));console.log('Local desktop/mobile/search/share/PDF.js/video/keyboard checks passed (API fixtures).');
 }finally{await browser.close();await new Promise(r=>server.close(r))}
