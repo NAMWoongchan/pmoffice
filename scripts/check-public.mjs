@@ -6,6 +6,7 @@ const privateMarkers = ['sources-and-writing', 'pmoffice-sources-writing', 'gith
 const allowedPages = new Set(["ebooks/index.md","auth/ebook-bridge.md","login.md","signup.md","account.md","auth/callback.md","pms/index.md","pms/callback.md","pms/terms.md","pms/korail/index.md","admin/index.md","admin/callback.md","ai-edu/ai-pm-practice.md","ai-edu/microsoft-365-copilot.md","ai-edu/ai-agent-development.md","consulting/experience.md","ms-project/introduction.md","consulting/index.md","consulting/pm.md","consulting/scheduling.md","consulting/ai/index.md","consulting/ai/chatgpt.md","consulting/ai/copilot.md","about.md", "ai-edu/ai-rd-management.md", "ai-edu/copilot-for-microsoft-project.md", "ai-edu/index.md", "contact.md", "generative-ai.md", "index.md", "knowledge/index.md", "microsoft-project.md", "ms-project/core-practice.md", "ms-project/expert.md", "ms-project/index.md", "ms-project/template-development.md", "pc-management/README.md", "pc-management/high-performance-power.md", "pm-practice/agile-project.md", "pm-practice/index.md", "pm-practice/project-management.md", "pm-practice/risk-issue-management.md", "project-management.md", "project-management/paradigm-shift.md", "services.md"])
 let files = 0
 allowedPages.add('ebooks/view.md')
+allowedPages.add('project-online/index.md')
 function scan(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const file = path.join(dir, entry.name)

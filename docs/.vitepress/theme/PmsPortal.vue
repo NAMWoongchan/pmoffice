@@ -2,16 +2,16 @@
 import {ref,onMounted,onUnmounted} from 'vue'
 import {client,call,labels,login,safeReturn} from './pms-client.js'
 const props=defineProps({mode:{default:'catalog'},project:{default:''}})
-const rows=ref([]),access=ref(null),account=ref(null),session=ref(null),error=ref(''),busy=ref(false),accept=ref(false)
+const rows=ref([]),access=ref(null),account=ref(null),session=ref(null),error=ref(''),busy=ref(false),accept=ref(false),loading=ref(true)
 let subscription,timer,epoch=0
 async function load(){
- const id=++epoch
+ const id=++epoch;loading.value=true
  try {
  const s=await client().auth.getSession();if(s.error)throw s.error
  const [a,r]=await Promise.all([call('pms_account'),props.mode==='project'?call('pms_access',{p_slug:props.project}):call('pms_catalog')])
  if(id!==epoch)return
- session.value=s.data.session;account.value=a;if(props.mode==='project')access.value=r;else rows.value=r;error.value=''
- }catch{if(id!==epoch)return;access.value=null;rows.value=[];error.value='프로젝트 서비스 연결을 확인하고 있습니다. 잠시 후 새로고침해 주세요.'}
+ session.value=s.data.session;account.value=a;if(props.mode==='project')access.value=r;else rows.value=r;error.value='';if(props.mode==='catalog'&&!a.admin){if(!a.member||r.length===0){location.replace('/project-online/');return}if(r.length===1){location.replace('/pms/'+encodeURIComponent(r[0].slug)+'/');return}}
+ }catch{if(id!==epoch)return;access.value=null;rows.value=[];error.value='프로젝트 서비스 연결을 확인하고 있습니다. 잠시 후 새로고침해 주세요.'}finally{if(id===epoch)loading.value=false}
 }
 async function signin(){busy.value=true;try{await login(location.pathname+location.hash)}catch(e){error.value=e.message;busy.value=false}}
 async function signout(){++epoch;access.value=null;rows.value=[];account.value=null;session.value=null;await client().auth.signOut();await load()}
@@ -27,7 +27,7 @@ onMounted(async()=>{
  const next=safeReturn(sessionStorage.getItem('pms-return'));sessionStorage.removeItem('pms-return');location.replace(next);return
  }
  await load()
- subscription=client().auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){++epoch;access.value=null;account.value=null;rows.value=[];session.value=null}else setTimeout(load,0)}).data.subscription
+ subscription=client().auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){++epoch;access.value=null;account.value=null;rows.value=[];session.value=null;if(props.mode==='catalog')location.replace('/project-online/')}else{++epoch;access.value=null;account.value=null;rows.value=[];session.value=null;loading.value=true;setTimeout(load,0)}}).data.subscription
  timer=setInterval(load,30000)
  }catch(e){error.value=e.message}
 })
@@ -35,8 +35,8 @@ onUnmounted(()=>{++epoch;subscription?.unsubscribe();clearInterval(timer)})
 </script>
 <template>
 <main class="pms-portal">
-<header class="pms-heading"><div><span class="pms-eyebrow">PMOFFICE · PROJECTS</span><h1>{{access?.project?.title||'고객 프로젝트'}}</h1><p>일정과 진행 현황을 확인하고 업무 보고서를 내려받으세요.</p></div><div class="pms-actions"><a v-if="mode==='project'" href="/pms/">프로젝트 목록</a><a v-if="account?.admin" href="/admin/#projects">시스템 관리</a><button v-if="session" @click="signout">로그아웃</button><button v-else :disabled="busy" @click="signin">로그인</button></div></header>
-<p v-if="error" role="alert">{{error}}</p>
+<header class="pms-heading"><div><span class="pms-eyebrow">PMOFFICE · PROJECTS</span><h1>{{access?.project?.title||'Project Online'}}</h1><p>일정과 진행 현황을 확인하고 업무 보고서를 내려받으세요.</p></div><div class="pms-actions"><a v-if="mode==='project'" href="/pms/">프로젝트 목록</a><a v-if="account?.admin" href="/admin/#projects">시스템 관리</a><button v-if="session" @click="signout">로그아웃</button><button v-else :disabled="busy" @click="signin">로그인</button></div></header>
+<p v-if="loading" role="status">Project Online 이용 권한을 확인하고 있습니다.</p><p v-if="error" role="alert">{{error}} <button @click="load">다시 확인</button></p>
 <section v-if="mode==='callback'"><h2>로그인을 확인하고 있습니다.</h2><a href="/pms/">목록으로 돌아가기</a></section>
 <template v-else>
 <section v-if="session&&!account?.member&&!account?.admin" class="pms-notice"><p>회원정보 확인이 필요합니다.</p><a href="/signup.html?returnTo=%2Fpms%2F">회원정보 확인</a></section>
@@ -46,7 +46,7 @@ onUnmounted(()=>{++epoch;subscription?.unsubscribe();clearInterval(timer)})
 </template>
 <section v-else class="pms-cards" aria-label="프로젝트 목록">
 <a v-for="p in rows" :key="p.slug" :href="'/pms/'+p.slug+'/'" class="pms-card"><span>{{p.customer}}</span><h2>{{p.title}}</h2><p>{{p.description}}</p><strong>{{labels[p.access_mode]}}</strong><span v-if="p.status!=='published'"> · {{p.status==='draft'?'초안':'보관'}}</span><div class="pms-card-arrow">프로젝트 열기 →</div></a>
-<p v-if="!rows.length&&!error">현재 표시할 프로젝트가 없습니다. 지정 회원은 로그인 후 확인해 주세요.</p>
+<p v-if="!rows.length&&!error&&!loading">현재 표시할 프로젝트가 없습니다. 지정 회원은 로그인 후 확인해 주세요.</p>
 </section>
 </template>
 </main>

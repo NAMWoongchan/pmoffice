@@ -1,10 +1,14 @@
 <script setup>
-import {ref,computed,onMounted,watch} from 'vue'
-import MemberEbookWorkspace from './MemberEbookWorkspace.vue'
+import {ref,computed,onMounted,onUnmounted,watch} from 'vue'
+import MemberServices from './MemberServices.vue'
 import {memberClient,memberSession,memberAccount,initializeMember,refreshMember,memberApi,memberRpc,googleMemberLogin,safeMemberReturn,memberLogout} from './member-service.js'
 const props=defineProps({mode:{default:'login'}})
 const busy=ref(false),message=ref(''),name=ref(''),company=ref(''),position=ref(''),kind=ref('business'),email=ref(''),password=ref(''),currentPassword=ref(''),accept=ref(false)
-const next=ref('/account.html'),loaded=ref('')
+const next=ref('/account.html'),loaded=ref(''),accountTab=ref('profile')
+function syncTab(){accountTab.value=location.hash==='#services'?'services':'profile'}
+function selectTab(value){accountTab.value=value;const hash=value==='services'?'#services':'#profile';if(location.hash!==hash)history.pushState({...history.state},'',location.pathname+location.search+hash)}
+onMounted(()=>{syncTab();window.addEventListener('hashchange',syncTab);window.addEventListener('popstate',syncTab)})
+onUnmounted(()=>{window.removeEventListener('hashchange',syncTab);window.removeEventListener('popstate',syncTab)})
 const completing=computed(()=>!!memberSession.value&&!memberAccount.value?.member)
 const signup=computed(()=>props.mode==='signup'||completing.value)
 watch(memberAccount,a=>{if(a?.profile&&loaded.value!==a.profile.id){loaded.value=a.profile.id;name.value=a.profile.display_name||'';company.value=a.profile.company||'';position.value=a.profile.position||'';kind.value=a.profile.member_kind||'business';email.value=a.profile.email||''}},{immediate:true})
@@ -23,10 +27,10 @@ onMounted(async()=>{next.value=safeMemberReturn(new URLSearchParams(location.sea
  if(props.mode==='callback'){await run(async()=>{const code=new URLSearchParams(location.search).get('code');history.replaceState(null,'',location.pathname);if(!code)throw Error('Google 로그인이 취소되었거나 만료되었습니다.');const {error}=await memberClient().auth.exchangeCodeForSession(code);if(error)throw Error('로그인을 완료하지 못했습니다. 다시 시도해 주세요.');await refreshMember();const target=safeMemberReturn(sessionStorage.getItem('member-return')||sessionStorage.getItem('pms-return'));sessionStorage.removeItem('member-return');sessionStorage.removeItem('pms-return');location.replace(memberAccount.value?.member?target:'/signup.html?returnTo='+encodeURIComponent(target))})}
 })
 </script>
-<template><main class="member-page member-narrow">
-<h1>{{mode==='callback'?'로그인 확인':mode==='account'?'내 정보':signup?'회원 가입':'로그인'}}</h1>
+<template><main class="member-page" :class="mode==='account'?'member-account-layout':'member-narrow'"><aside v-if="mode==='account'" class="account-sidebar" aria-label="내 정보 메뉴"><span>MY PMOFFICE</span><h2>내 정보</h2><a id="profile" href="#profile" :aria-current="accountTab==='profile'?'page':undefined" @click.stop.prevent="selectTab('profile')">회원 가입 정보</a><a id="services" href="#services" :aria-current="accountTab==='services'?'page':undefined" @click.stop.prevent="selectTab('services')">멤버십 서비스</a></aside><div class="account-content">
+<h1>{{mode==='callback'?'로그인 확인':mode==='account'?(accountTab==='services'?'가입 중인 서비스':'회원 가입 정보'):signup?'회원 가입':'로그인'}}</h1>
 <p role="status" aria-live="polite">{{message}}</p>
-<p v-if="mode==='callback'">로그인을 확인하고 있습니다. <a href="/login.html">다시 로그인</a></p>
+<MemberServices v-if="mode==='account'&&memberAccount?.member&&accountTab==='services'"/><template v-else><p v-if="mode==='callback'">로그인을 확인하고 있습니다. <a href="/login.html">다시 로그인</a></p>
 <template v-else-if="mode==='account'&&!memberAccount?.member"><p>로그인 후 회원정보를 수정할 수 있습니다.</p><a class="member-button" href="/login.html?returnTo=%2Faccount.html">로그인</a></template>
 <template v-else-if="mode!=='account'&&memberAccount?.member"><p>이미 로그인되어 있습니다.</p><a class="member-button" :href="next">계속 이용하기</a><a href="/account.html">내 정보</a></template>
 <template v-else>
@@ -43,4 +47,5 @@ onMounted(async()=>{next.value=safeMemberReturn(new URLSearchParams(location.sea
 <template v-if="mode==='account'"><button class="member-link" @click="memberLogout">로그아웃</button></template>
 <p v-else>비밀번호를 잊으셨다면 <a href="mailto:nam@pmoffice.co.kr">관리자에게 문의해 주세요.</a></p>
 <p v-if="mode!=='account'"><a :href="(signup?'/login.html':'/signup.html')+'?returnTo='+encodeURIComponent(next)">{{signup?'이미 가입하셨나요? 로그인':'처음 방문하셨나요? 가입'}}</a></p>
-</template><MemberEbookWorkspace v-if="mode==='account'&&memberAccount?.member" /></main></template>
+</template></template></div></main></template>
+<style scoped>.member-account-layout{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1300px;gap:48px}.account-sidebar{position:sticky;top:110px;align-self:start;padding:26px 18px;background:#f5f8fc;border:1px solid #e2eaf2;border-radius:12px}.account-sidebar>span{font-size:10px;letter-spacing:.17em;color:#66809a}.account-sidebar h2{font-size:23px;margin:14px 0 24px}.account-sidebar a{display:block;padding:13px 12px;border-radius:7px;margin:6px 0}.account-sidebar a[aria-current=page]{background:#e1edfc;color:#1e5f9f;font-weight:700}.account-content{min-width:0}.account-content>.member-form{max-width:650px}@media(max-width:760px){.member-account-layout{display:block}.account-sidebar{position:static;margin-bottom:30px}.account-sidebar a{display:inline-block;margin-right:8px}.account-sidebar h2{margin-bottom:12px}}</style>

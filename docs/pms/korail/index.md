@@ -2,7 +2,7 @@
 layout: page
 sidebar: false
 aside: false
-title: 고객 프로젝트
+title: Project Online
 search: false
 head:
   - - meta
