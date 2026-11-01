@@ -1,4 +1,5 @@
 <script setup>
+import {MEMBER_VIEWS,memberViewColumns,memberViewLabel} from './member-views.js'
 import {watchAdminChanges} from './change-events.js'
 import {memberClient} from './member-service.js'
 import {ref,computed,nextTick,onMounted,onUnmounted} from 'vue'
@@ -11,6 +12,11 @@ const education=ref([]),educationLoading=ref(false);let educationEpoch=0
 async function loadEducation(user){const id=++educationEpoch;education.value=[];if(!user)return;educationLoading.value=true;try{const result=await memberRpc('member_admin_education',{p_user_id:user});if(id===educationEpoch)education.value=result}catch(e){if(id===educationEpoch)message.value=e.message}finally{if(id===educationEpoch)educationLoading.value=false}}
 async function setEducation(kind,enabled){const user=selected.value?.id;if(!user)return;await run(async()=>{const result=await memberRpc('member_admin_set_education',{p_user_id:user,p_kind:kind,p_enabled:enabled});if(selected.value?.id===user)education.value=result;message.value='온라인 교육 권한을 저장했습니다.'});if(selected.value?.id===user)await loadEducation(user)}
 const rows=ref([]),selected=ref(null),search=ref(''),appliedSearch=ref(''),page=ref(0),hasNext=ref(false),busy=ref(false),message=ref(''),password=ref(''),confirmWithdraw=ref(false),showBulk=ref(false),requestId=ref(crypto.randomUUID()),loaded=ref(false),updatedAt=ref(null),autoRefresh=ref(true),editorPanel=ref(null)
+const view=ref('valid'),viewLabel=computed(()=>memberViewLabel(view.value)),columns=computed(()=>memberViewColumns(view.value))
+let pendingView=null
+function viewFromHash(){const value=new URLSearchParams(location.hash.split('?')[1]||'').get('view');return MEMBER_VIEWS.some(v=>v[0]===value)?value:'valid'}
+function onViewRoute(){if(location.hash.split('?')[0]!=='#members')return;const value=viewFromHash();if(value!==view.value)changeView(value,false)}
+async function changeView(value,writeHistory=true){if(busy.value){pendingView={value,writeHistory};return}view.value=value;page.value=0;checkedIds.value=[];selected.value=null;if(writeHistory)window.history.pushState(window.history.state,'','#members'+(value==='valid'?'':'?view='+value));await run(()=>load(0))}
 const checkedIds=ref([])
 const checkedUsers=computed(()=>rows.value.filter(r=>checkedIds.value.includes(r.id)&&!r.system_admin))
 const allChecked=computed(()=>rows.value.some(r=>!r.system_admin)&&rows.value.filter(r=>!r.system_admin).every(r=>checkedIds.value.includes(r.id)))
@@ -20,10 +26,10 @@ function onEscape(e){if(e.key==='Escape'&&!busy.value)selected.value=null}
 const sortKey=ref('registered_at'),sortDirection=ref('desc');let stopChanges
 async function sortMembers(e){sortKey.value=e.detail.key;sortDirection.value=e.detail.direction;checkedIds.value=[];await run(()=>load(0))}
 let epoch=0,timer
-async function run(fn,clearPassword=false){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;if(clearPassword)password.value=''}}
+async function run(fn,clearPassword=false){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;if(clearPassword)password.value='';if(pendingView){const next=pendingView;pendingView=null;changeView(next.value,next.writeHistory)}}}
 async function load(targetPage=page.value,query=appliedSearch.value){
  const id=++epoch
- try{const data=await memberRpc('member_admin_list_sorted',{p_search:query,p_offset:targetPage*MEMBER_PAGE_SIZE,p_sort:sortKey.value,p_direction:sortDirection.value});if(id!==epoch)return
+ try{const data=await memberRpc('member_admin_view_list',{p_search:query,p_offset:targetPage*MEMBER_PAGE_SIZE,p_sort:sortKey.value,p_direction:sortDirection.value,p_view:view.value});if(id!==epoch)return
  hasNext.value=data.length>MEMBER_PAGE_SIZE;rows.value=data.slice(0,MEMBER_PAGE_SIZE);page.value=targetPage;appliedSearch.value=query;loaded.value=true;updatedAt.value=new Date().toISOString()
  }catch(e){if(id===epoch){rows.value=[];hasNext.value=false;loaded.value=false;updatedAt.value=null}throw e}
 }
@@ -33,32 +39,42 @@ async function choose(row){selected.value=row?{...row}:{id:null,email:'',display
 async function save(){await run(async()=>{const s=selected.value;await memberApi({action:s.id?'update':'create',request_id:requestId.value,user_id:s.id,email:s.email,name:s.display_name,company:s.company,position:s.position||'',kind:s.member_kind,...(!s.id?{password:password.value}:{})});if(s.id)await memberRpc('member_position_save',{p_user:s.id,p_position:s.position||''});await load();message.value=s.id?'회원정보를 저장했습니다.':'회원을 등록했습니다. 회원에게 자동 메일은 발송하지 않습니다.';selected.value=null;requestId.value=crypto.randomUUID()},true)}
 async function setPassword(){await run(async()=>{await memberApi({action:'password',request_id:crypto.randomUUID(),user_id:selected.value.id,password:password.value});message.value='PMOffice 비밀번호를 변경했습니다. 회원에게 자동 메일은 발송하지 않습니다.'},true)}
 async function withdraw(){if(!confirmWithdraw.value)return;await run(async()=>{const result=await memberApi({action:'withdraw',request_id:crypto.randomUUID(),user_id:selected.value.id});await load();selected.value=null;message.value=result.warning||'탈퇴 처리했습니다. 기존 세션의 자료 접근도 차단됩니다.'},true)}
-onMounted(()=>{document.addEventListener('keydown',onEscape);run(()=>load());stopChanges=watchAdminChanges(memberClient(),['members'],()=>{if(autoRefresh.value&&!busy.value)run(()=>load())})})
-onUnmounted(()=>{document.removeEventListener('keydown',onEscape);++epoch;stopChanges?.();clearInterval(timer);rows.value=[];selected.value=null;password.value=''})
+onMounted(()=>{view.value=viewFromHash();window.addEventListener('hashchange',onViewRoute);window.addEventListener('popstate',onViewRoute);document.addEventListener('keydown',onEscape);run(()=>load());stopChanges=watchAdminChanges(memberClient(),['members'],()=>{if(autoRefresh.value&&!busy.value)run(()=>load())})})
+onUnmounted(()=>{pendingView=null;window.removeEventListener('hashchange',onViewRoute);window.removeEventListener('popstate',onViewRoute);document.removeEventListener('keydown',onEscape);++epoch;stopChanges?.();clearInterval(timer);rows.value=[];selected.value=null;password.value=''})
 </script>
 <template>
 <main class="member-page member-admin">
  <h1>멤버십 현황</h1>
- <p>전체 회원을 한 페이지에 100명씩 표시합니다. 이용 중지·탈퇴 회원도 포함합니다.</p>
+ <p>기본 화면은 신규 회원과 서비스 이용 중인 유효 회원입니다. 목록을 선택해 한 페이지에 100명씩 확인할 수 있습니다.</p>
  <p role="status" aria-live="polite">{{message}}</p>
  <MemberBulkControls :users="checkedUsers" @updated="refreshAfterAction" />
  <div class="member-actions"><button :disabled="busy" @click="choose(null)">회원 직접 등록</button><button :disabled="busy" @click="showBulk=!showBulk">기업 회원 일괄 등록</button></div>
  <MemberBulk v-if="showBulk"/>
- <section class="member-panel" aria-label="전체 회원 목록" :aria-busy="busy">
+ <section class="member-panel" :aria-label="viewLabel+' 목록'" :aria-busy="busy">
+  <div class="member-actions member-view-picker"><button :aria-pressed="view==='valid'" :disabled="busy" @click="changeView('valid')">유효 회원</button><label>회원 목록 선택<select :value="view" :disabled="busy" @change="changeView($event.target.value)"><option value="valid" hidden>유효 회원 (기본)</option><option v-for="[key,label] in MEMBER_VIEWS" :key="key" :value="key">{{label}}</option></select></label></div>
+  <h2 class="member-view-title">{{viewLabel}}</h2>
   <form @submit.prevent="find" class="member-form member-search"><label>회원 검색<input v-model="search" maxlength="200" placeholder="이메일, 이름, 회사명" :disabled="busy"></label><button :disabled="busy">검색·새로고침</button></form>
   <div class="member-actions member-refresh"><label class="member-check"><input type="checkbox" v-model="autoRefresh"><span>회원 정보 변경 시 자동 갱신</span></label><button :disabled="busy" @click="run(()=>load())">현재 목록 새로고침</button><span>최근 조회: {{formatMemberDate(updatedAt)}} (KST)</span></div>
   <p id="member-login-note" class="member-note">마지막 로그인은 인증 서버의 로그인 기록입니다. 로그인 상태는 서버에 유지된 유효한 세션 기준이며, 여러 기기 중 한 곳이라도 로그인되어 있으면 로그인 중으로 표시합니다. 브라우저를 닫아도 로그인이 유지될 수 있습니다. 날짜와 시간은 한국시간(KST)입니다.</p>
   <p v-if="busy" role="status">회원 목록을 불러오는 중입니다.</p>
   <div class="member-table-scroll" tabindex="0" role="region" aria-label="회원 상세 정보 표, 가로 스크롤 가능">
-   <table class="member-table" data-sort-managed @table-sort="sortMembers" aria-describedby="member-login-note">
-    <caption>전체 회원 목록 · 페이지당 100명</caption>
-    <thead><tr><th scope="col"><input type="checkbox" :checked="allChecked" aria-label="현재 페이지 회원 전체 선택" @change="checkAll($event.target.checked)"></th><th scope="col" data-sort-key="display_name">이름</th><th scope="col" data-sort-key="email">이메일</th><th scope="col" data-sort-key="company">회사/소속</th><th scope="col" data-sort-key="position">직함</th><th scope="col" data-sort-key="member_kind">회원 구분</th><th scope="col" data-sort-key="groups">소속 그룹</th><th scope="col" data-sort-key="status">이용 상태</th><th scope="col" data-sort-key="registered_at" :aria-sort="sortKey==='registered_at'?(sortDirection==='desc'?'descending':'ascending'):undefined">가입일 (KST)</th><th scope="col" data-sort-key="last_sign_in_at">마지막 로그인 (KST)</th><th scope="col" data-sort-key="login_status">현재 로그인 상태</th><th scope="col">관리</th></tr></thead>
+   <table :key="view" class="member-table" data-sort-managed @table-sort="sortMembers" aria-describedby="member-login-note">
+    <caption>{{viewLabel}} · 페이지당 100명</caption>
+    <thead><tr><th scope="col"><input type="checkbox" :checked="allChecked" aria-label="현재 페이지 회원 전체 선택" @change="checkAll($event.target.checked)"></th><th v-for="[key,label] in columns" :key="key" scope="col" :data-sort-key="key" :aria-sort="sortKey===key?(sortDirection==='desc'?'descending':'ascending'):undefined">{{label}}</th><th scope="col">관리</th></tr></thead>
     <tbody><tr v-for="r in rows" :key="r.id" :class="{'member-selected':selected?.id===r.id}">
-     <td><input v-model="checkedIds" type="checkbox" :value="r.id" :disabled="busy||r.system_admin" :aria-label="(r.display_name||r.email)+' 선택'"></td><td><button class="member-name" @click="choose(r)">{{r.display_name||'이름 미입력'}}</button></td><td>{{r.email||'—'}}</td><td>{{r.company||'—'}}</td><td>{{r.position||'—'}}</td><td>{{r.member_kind==='business'?'기업·기관':'개인'}}</td>
-     <td><template v-if="r.groups?.length"><div v-for="g in r.groups" :key="g.id">{{g.name}}<span v-if="!g.active"> (중지·제외)</span></div></template><template v-else>—</template></td>
-     <td>{{r.withdrawn_at?'탈퇴':r.status==='active'?'이용 중':'중지'}}</td><td class="member-date">{{formatMemberDate(r.registered_at||r.created_at)}}</td><td class="member-date">{{r.last_sign_in_at?formatMemberDate(r.last_sign_in_at):'로그인 기록 없음'}}</td>
-     <td><span class="member-login-state" :data-state="r.login_status||'unknown'">{{memberLoginLabel(r.login_status)}}</span></td><td><button class="member-row" :disabled="busy" :aria-label="(r.display_name||r.email)+' 회원정보 관리'" @click="choose(r)">관리</button></td>
-    </tr><tr v-if="loaded&&!rows.length"><td colspan="12">{{appliedSearch?'검색 결과가 없습니다.':'등록된 회원이 없습니다.'}}</td></tr><tr v-else-if="!loaded&&!busy"><td colspan="12">목록을 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.</td></tr></tbody>
+     <td><input v-model="checkedIds" type="checkbox" :value="r.id" :disabled="busy||r.system_admin" :aria-label="(r.display_name||r.email)+' 선택'"></td>
+     <td v-for="[key] in columns" :key="key" :class="{'member-date':['registered_at','last_sign_in_at'].includes(key)}">
+      <button v-if="key==='display_name'" class="member-name" @click="choose(r)">{{r.display_name||'이름 미입력'}}</button>
+      <template v-else-if="key==='member_kind'">{{r.member_kind==='business'?'기업·기관':'개인'}}</template>
+      <template v-else-if="key==='groups'"><template v-if="r.groups?.length"><div v-for="g in r.groups" :key="g.id">{{g.name}}<span v-if="!g.active"> (중지·제외)</span></div></template><template v-else>—</template></template>
+      <template v-else-if="key==='services'"><div v-for="name in r.service_names||[]" :key="name">{{name}}</div><span v-if="!r.service_names?.length">—</span></template>
+      <template v-else-if="key==='member_state'">{{r.member_state_label||'확인 필요'}}</template>
+      <template v-else-if="key==='registered_at'">{{formatMemberDate(r.registered_at||r.created_at)}}</template>
+      <template v-else-if="key==='last_sign_in_at'">{{r.last_sign_in_at?formatMemberDate(r.last_sign_in_at):'로그인 기록 없음'}}</template>
+      <span v-else-if="key==='login_status'" class="member-login-state" :data-state="r.login_status||'unknown'">{{memberLoginLabel(r.login_status)}}</span>
+      <template v-else>{{r[key]||'—'}}</template>
+     </td><td><button class="member-row" :disabled="busy" :aria-label="(r.display_name||r.email)+' 회원정보 관리'" @click="choose(r)">관리</button></td>
+    </tr><tr v-if="loaded&&!rows.length"><td :colspan="columns.length+2">{{appliedSearch?'검색 결과가 없습니다.':'해당하는 회원이 없습니다.'}}</td></tr><tr v-else-if="!loaded&&!busy"><td :colspan="columns.length+2">목록을 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.</td></tr></tbody>
    </table>
   </div>
   <nav class="member-actions" aria-label="회원 목록 페이지 이동"><button :disabled="busy||page===0" @click="move(-1)">이전</button><span>{{page+1}}페이지 · {{rows.length}}명 표시</span><button :disabled="busy||!hasNext" @click="move(1)">다음</button></nav>
@@ -69,4 +85,4 @@ onUnmounted(()=>{document.removeEventListener('keydown',onEscape);++epoch;stopCh
 </main>
 </template>
 
-<style>.member-detail-drawer{position:fixed;right:16px;top:92px;bottom:16px;z-index:100;width:min(520px,calc(100vw - 32px));overflow:auto;background:white!important;border:1px solid #d5e1ed!important;border-radius:14px;padding:24px!important;box-shadow:0 12px 50px #193b612e}.member-detail-drawer h2{font-size:24px;font-weight:750;margin:0 0 20px}.member-drawer-close{float:right;margin-left:12px}.member-admin .member-name{border:0;background:none;padding:0;color:#1d5e9f;text-decoration:underline;font-weight:650;text-align:left}.member-admin .member-table input[type=checkbox]{width:19px;height:19px}@media(max-width:780px){.member-detail-drawer{top:80px;right:8px;bottom:8px;width:calc(100vw - 16px);padding:20px!important}}</style>
+<style>.member-view-picker{margin:0 0 18px}.member-view-picker label{display:flex;align-items:center;gap:10px}.member-view-picker select{padding:9px 12px;border:1px solid #adc0d5;border-radius:6px;background:white}.member-view-picker button[aria-pressed=true]{background:#1c3e63;color:white}.member-view-title{font-size:22px;font-weight:750;margin:16px 0}.member-detail-drawer{position:fixed;right:16px;top:92px;bottom:16px;z-index:100;width:min(520px,calc(100vw - 32px));overflow:auto;background:white!important;border:1px solid #d5e1ed!important;border-radius:14px;padding:24px!important;box-shadow:0 12px 50px #193b612e}.member-detail-drawer h2{font-size:24px;font-weight:750;margin:0 0 20px}.member-drawer-close{float:right;margin-left:12px}.member-admin .member-name{border:0;background:none;padding:0;color:#1d5e9f;text-decoration:underline;font-weight:650;text-align:left}.member-admin .member-table input[type=checkbox]{width:19px;height:19px}@media(max-width:780px){.member-detail-drawer{top:80px;right:8px;bottom:8px;width:calc(100vw - 16px);padding:20px!important}}</style>

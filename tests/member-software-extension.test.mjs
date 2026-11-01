@@ -20,6 +20,7 @@ await db.exec(fs.readFileSync('supabase/migrations/202611010002_member_services.
 for(const f of ['202611020002_member_console.sql','202611020003_member_ebook_delete.sql','202611020004_software_issues.sql'])await db.exec(fs.readFileSync('supabase/migrations/'+f,'utf8'));
 await db.exec("create function extensions.hmac(bytea,bytea,text) returns bytea language sql as $$select decode('00','hex')$$");
 await db.exec(fs.readFileSync('supabase/migrations/202611020005_event_sync_sort.sql','utf8').split('-- Shared change signals')[0].replace('begin;',''));
+await db.exec(fs.readFileSync('supabase/migrations/202611020006_member_views.sql','utf8'));
 return {db,uid,rpc}}
 
 
@@ -58,5 +59,16 @@ test('software sheet bridge optimistic concurrency, replay rejection, sorting an
  await bridge({action:'sync',rows:[{...first,changed:true,work_name:'stale sheet edit'}]});list=await q('select software_list() a');assert.equal(list.conflicts.length,1);assert.equal(list.rows[0].work_name,'sheet version');await q('select software_resolve($1,$2,$3) a',[list.conflicts[0].id,'web',list.rows[0].version]);
  await q('select software_save($1) a',[[{issued_at:'2026-11-02T00:00:00+09:00',work_name:'newest',quantity:1,unit_price:1}]]);list=await q('select software_list() a');assert.equal(list.rows[0].work_name,'newest');assert.equal(list.conflicts.length,0);
  await uid(null);await assert.rejects(()=>q('select software_list() a'));assert.ok((await bridge({action:'sync',rows:[]})).rows.length===2);
+ }finally{await db.close()}
+});
+
+test('server member views separate new, service users, partner, expired, withdrawn and blocked before pagination',async()=>{
+ const {db,uid}=await setup();const q=async(view='valid',offset=0,direction='desc')=>(await db.query('select member_admin_view_list($1,$2,$3,$4,$5) a',['',offset,'registered_at',direction,view])).rows[0].a;
+ try{await uid(1);await db.exec("insert into user_memberships(user_id,membership_id,tier_id,status,starts_at,expires_at,reason) values('00000000-0000-0000-0000-000000000002','msp','premium','active',now()-interval '1 day',null,'synthetic fixture'),('00000000-0000-0000-0000-000000000003','ai','vip','active',now()-interval '2 days',now()-interval '1 day','synthetic fixture');update profiles set service_partner=true where id='00000000-0000-0000-0000-000000000004';");
+ let all=await q('all');assert.equal(all.length,4);assert.equal(all.find(x=>x.id===id(1)).member_state,'new');assert.equal(all.find(x=>x.id===id(2)).member_state,'using');assert.equal(all.find(x=>x.id===id(3)).member_state,'expired');assert.equal(all.find(x=>x.id===id(4)).member_state,'using');assert.deepEqual(all.find(x=>x.id===id(2)).service_names,['MS Project: 프리미엄']);
+ assert.equal((await q()).length,3);assert.equal((await q('using')).length,2);assert.deepEqual((await q('expired')).map(x=>x.id),[id(3)]);assert.deepEqual((await q('partner')).map(x=>x.id),[id(4)]);assert.equal((await q('using',1)).length,1);
+ await db.query('update profiles set withdrawn_at=now(),status=$1 where id=$2',['suspended',id(2)]);assert.deepEqual((await q('withdrawn')).map(x=>x.id),[id(2)]);assert.ok(!(await q()).some(x=>x.id===id(2)));
+ await db.query('update profiles set status=$1 where id=$2',['suspended',id(4)]);assert.equal((await q('partner')).length,0);assert.ok(!(await q()).some(x=>x.id===id(4)));
+ const desc=await q('all'),asc=await q('all',0,'asc');assert.equal(desc.length,asc.length);await uid(2);await assert.rejects(()=>q());await uid(null);await assert.rejects(()=>q());
  }finally{await db.close()}
 });
