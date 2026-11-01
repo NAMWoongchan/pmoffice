@@ -1,5 +1,6 @@
 <script setup>
 import {ref,onMounted,onUnmounted} from 'vue'
+import {watchAdminChanges} from './change-events.js'
 import {adminRoute,adminSections} from './admin-navigation.js'
 import AdminHome from './AdminHome.vue'
 import AdminEbooks from './AdminEbooks.vue'
@@ -16,7 +17,7 @@ import {call,action,api,client,labels} from './pms-client.js'
 const allowed=ref(false),rows=ref([]),selected=ref(null),message=ref(''),busy=ref(false),members=ref([]),history=ref([]),matches=ref([]),search=ref(''),expires=ref(''),role=ref('viewer'),meta=ref(null),tab=ref(locationSafeHash())
 function locationSafeHash(){return adminRoute(typeof location==='undefined'?'':location.hash).tab}
 function syncRoute(){const r=adminRoute(location.hash);tab.value=r.tab;if(location.hash!==r.canonical)window.history.replaceState(window.history.state,'',location.pathname+location.search+r.canonical)}
-let sub,timer,verifyEpoch=0,disposed=false
+let stopChanges,sub,timer,verifyEpoch=0,disposed=false
 const blank=()=>({slug:'',title:'',customer:'',description:'',access_mode:'assigned',status:'draft',listed:false,version:0})
 async function verify(){const id=++verifyEpoch;try{const ok=await call('is_admin');if(disposed||id!==verifyEpoch)return;if(!ok){clear();return}allowed.value=true;const data=await call('pms_catalog');if(!disposed&&id===verifyEpoch)rows.value=data}catch{if(id===verifyEpoch)clear()}}
 function clear(){allowed.value=false;rows.value=[];selected.value=null;members.value=[];history.value=[];matches.value=[];meta.value=null}
@@ -42,8 +43,8 @@ async function upload(event){const file=event.target.files?.[0];event.target.val
  meta.value=await action(selected.value.slug,'meta');history.value=await call('pms_history',{p_slug:selected.value.slug})
  message.value=r.audit_recorded?'GitHub에 원본을 새 버전으로 저장했습니다.':'GitHub 저장은 완료했지만 DB 감사 기록 확인이 필요합니다.'
  })}
-onMounted(async()=>{syncRoute();window.addEventListener('hashchange',syncRoute);window.addEventListener('popstate',syncRoute);await verify();if(disposed)return;sub=client().auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT'){++verifyEpoch;clear()}else setTimeout(verify,0)}).data.subscription;timer=setInterval(verify,30000)})
-onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();clearInterval(timer);window.removeEventListener('hashchange',syncRoute);window.removeEventListener('popstate',syncRoute)})
+onMounted(async()=>{syncRoute();window.addEventListener('hashchange',syncRoute);window.addEventListener('popstate',syncRoute);await verify();if(disposed)return;sub=client().auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT'){++verifyEpoch;clear()}else setTimeout(verify,0)}).data.subscription;stopChanges=watchAdminChanges(client(),['projects','members'],verify)})
+onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();stopChanges?.();clearInterval(timer);window.removeEventListener('hashchange',syncRoute);window.removeEventListener('popstate',syncRoute)})
 </script>
 <template>
 <div class="admin-shell" :class="{'admin-shell-guest':!allowed}">

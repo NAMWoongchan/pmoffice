@@ -50,6 +50,6 @@ function installSoftwareSync(){
  const count=Math.max(1,sheet.getMaxRows()-1);sheet.getRange(2,1,count,1).setNumberFormat('yyyy-mm-dd hh:mm');sheet.getRange(2,6,count,1).setNumberFormat('yyyy-mm-dd hh:mm');sheet.getRange(2,8,count,1).setNumberFormat('0.###');sheet.getRange(2,9,count,2).setNumberFormat('₩#,##0.##');
  const filter=sheet.getFilter();if(filter)filter.remove();sheet.getRange(1,1,sheet.getMaxRows(),15).createFilter();
  const triggers=ScriptApp.getProjectTriggers();['onSoftwareIssueEdit','syncSoftwareIssues'].forEach(name=>{triggers.filter(t=>t.getHandlerFunction()===name).forEach(t=>ScriptApp.deleteTrigger(t));});
- ScriptApp.newTrigger('onSoftwareIssueEdit').forSpreadsheet(SW_SHEET_ID).onEdit().create();ScriptApp.newTrigger('syncSoftwareIssues').timeBased().everyMinutes(1).create();syncSoftwareIssues();
- console.log('소프트웨어 시트 양방향 동기화 설치 완료. 기존 문의·메일 트리거는 변경하지 않았습니다.');
+ ScriptApp.newTrigger('onSoftwareIssueEdit').forSpreadsheet(SW_SHEET_ID).onEdit().create();syncSoftwareIssues();
+ console.log('소프트웨어 시트 양방향 동기화 설치 완료. 소프트웨어 정기 실행 없이 수정 이벤트만 사용합니다.');
 }

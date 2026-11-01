@@ -93,3 +93,6 @@
 .textbook-page pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 .textbook-page .vp-doc table { display: block; max-width: 100%; overflow-x: auto; }
 @media (max-width: 767px) { .textbook-page .textbook-figure { margin: 22px 0; } .textbook-page .vp-doc th, .textbook-page .vp-doc td { min-width: 110px; } }
+
+/* All data table headings support mouse and keyboard sorting. */
+th[data-sortable]{cursor:pointer;user-select:none}th[data-sortable]:focus-visible{outline:2px solid #2362c3;outline-offset:-3px}th[data-sortable]::after{content:" ↕";font-size:.8em;opacity:.6}th[data-sortable][aria-sort=ascending]::after{content:" ▲";opacity:1}th[data-sortable][aria-sort=descending]::after{content:" ▼";opacity:1}

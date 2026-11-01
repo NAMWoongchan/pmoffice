@@ -6,7 +6,7 @@ import {memberClient,memberSession,memberAccount,initializeMember,refreshMember,
 const props=defineProps({mode:{default:'login'}})
 const busy=ref(false),message=ref(''),name=ref(''),company=ref(''),position=ref(''),kind=ref('business'),email=ref(''),password=ref(''),currentPassword=ref(''),accept=ref(false)
 const requestedServices=ref([]),serviceCatalog=ref([])
-function toggleService(item,checked){if(checked){if(['base','ai','msp','pm'].includes(item.kind))requestedServices.value=requestedServices.value.filter(c=>!serviceCatalog.value.some(x=>x.id===c&&x.kind===item.kind));requestedServices.value=[...requestedServices.value,item.id]}else requestedServices.value=requestedServices.value.filter(c=>c!==item.id)}
+function toggleService(item,checked){if(checked){if(item.id==='seedling'){requestedServices.value=['seedling'];return}requestedServices.value=requestedServices.value.filter(c=>c!=='seedling');if(['base','ai','msp','pm'].includes(item.kind))requestedServices.value=requestedServices.value.filter(c=>!serviceCatalog.value.some(x=>x.id===c&&x.kind===item.kind));requestedServices.value=[...requestedServices.value,item.id]}else requestedServices.value=requestedServices.value.filter(c=>c!==item.id)}
 const next=ref('/account.html'),loaded=ref(''),accountTab=ref('profile')
 function syncTab(){accountTab.value=location.hash==='#services'?'services':'profile'}
 function selectTab(value){accountTab.value=value;const hash=value==='services'?'#services':'#profile';if(location.hash!==hash)history.pushState({...history.state},'',location.pathname+location.search+hash)}

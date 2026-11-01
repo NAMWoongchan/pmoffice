@@ -19,6 +19,7 @@ await db.exec("create table public.customer_inquiries(id uuid default gen_random
 await db.exec(fs.readFileSync('supabase/migrations/202611010002_member_services.sql','utf8'));
 for(const f of ['202611020002_member_console.sql','202611020003_member_ebook_delete.sql','202611020004_software_issues.sql'])await db.exec(fs.readFileSync('supabase/migrations/'+f,'utf8'));
 await db.exec("create function extensions.hmac(bytea,bytea,text) returns bytea language sql as $$select decode('00','hex')$$");
+await db.exec(fs.readFileSync('supabase/migrations/202611020005_event_sync_sort.sql','utf8').split('-- Shared change signals')[0].replace('begin;',''));
 return {db,uid,rpc}}
 
 

@@ -1,4 +1,6 @@
 <script setup>
+import {watchAdminChanges} from './change-events.js'
+import {memberClient} from './member-service.js'
 import {ref,computed,nextTick,onMounted,onUnmounted} from 'vue'
 import MemberBulk from './MemberBulk.vue'
 import MemberBulkControls from './MemberBulkControls.vue'
@@ -15,11 +17,13 @@ const allChecked=computed(()=>rows.value.some(r=>!r.system_admin)&&rows.value.fi
 function checkAll(value){checkedIds.value=value?rows.value.filter(r=>!r.system_admin).map(r=>r.id):[]}
 async function refreshAfterAction(){const id=selected.value?.id;checkedIds.value=[];await run(()=>load());if(id)selected.value=rows.value.find(r=>r.id===id)||null}
 function onEscape(e){if(e.key==='Escape'&&!busy.value)selected.value=null}
+const sortKey=ref('registered_at'),sortDirection=ref('desc');let stopChanges
+async function sortMembers(e){sortKey.value=e.detail.key;sortDirection.value=e.detail.direction;checkedIds.value=[];await run(()=>load(0))}
 let epoch=0,timer
 async function run(fn,clearPassword=false){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;if(clearPassword)password.value=''}}
 async function load(targetPage=page.value,query=appliedSearch.value){
  const id=++epoch
- try{const data=await memberRpc('member_admin_list',{p_search:query,p_offset:targetPage*MEMBER_PAGE_SIZE});if(id!==epoch)return
+ try{const data=await memberRpc('member_admin_list_sorted',{p_search:query,p_offset:targetPage*MEMBER_PAGE_SIZE,p_sort:sortKey.value,p_direction:sortDirection.value});if(id!==epoch)return
  hasNext.value=data.length>MEMBER_PAGE_SIZE;rows.value=data.slice(0,MEMBER_PAGE_SIZE);page.value=targetPage;appliedSearch.value=query;loaded.value=true;updatedAt.value=new Date().toISOString()
  }catch(e){if(id===epoch){rows.value=[];hasNext.value=false;loaded.value=false;updatedAt.value=null}throw e}
 }
@@ -29,8 +33,8 @@ async function choose(row){selected.value=row?{...row}:{id:null,email:'',display
 async function save(){await run(async()=>{const s=selected.value;await memberApi({action:s.id?'update':'create',request_id:requestId.value,user_id:s.id,email:s.email,name:s.display_name,company:s.company,position:s.position||'',kind:s.member_kind,...(!s.id?{password:password.value}:{})});if(s.id)await memberRpc('member_position_save',{p_user:s.id,p_position:s.position||''});await load();message.value=s.id?'회원정보를 저장했습니다.':'회원을 등록했습니다. 회원에게 자동 메일은 발송하지 않습니다.';selected.value=null;requestId.value=crypto.randomUUID()},true)}
 async function setPassword(){await run(async()=>{await memberApi({action:'password',request_id:crypto.randomUUID(),user_id:selected.value.id,password:password.value});message.value='PMOffice 비밀번호를 변경했습니다. 회원에게 자동 메일은 발송하지 않습니다.'},true)}
 async function withdraw(){if(!confirmWithdraw.value)return;await run(async()=>{const result=await memberApi({action:'withdraw',request_id:crypto.randomUUID(),user_id:selected.value.id});await load();selected.value=null;message.value=result.warning||'탈퇴 처리했습니다. 기존 세션의 자료 접근도 차단됩니다.'},true)}
-onMounted(()=>{document.addEventListener('keydown',onEscape);run(()=>load());timer=setInterval(()=>{if(autoRefresh.value&&!busy.value&&document.visibilityState==='visible')run(()=>load())},30000)})
-onUnmounted(()=>{document.removeEventListener('keydown',onEscape);++epoch;clearInterval(timer);rows.value=[];selected.value=null;password.value=''})
+onMounted(()=>{document.addEventListener('keydown',onEscape);run(()=>load());stopChanges=watchAdminChanges(memberClient(),['members'],()=>{if(autoRefresh.value&&!busy.value)run(()=>load())})})
+onUnmounted(()=>{document.removeEventListener('keydown',onEscape);++epoch;stopChanges?.();clearInterval(timer);rows.value=[];selected.value=null;password.value=''})
 </script>
 <template>
 <main class="member-page member-admin">
@@ -42,13 +46,13 @@ onUnmounted(()=>{document.removeEventListener('keydown',onEscape);++epoch;clearI
  <MemberBulk v-if="showBulk"/>
  <section class="member-panel" aria-label="전체 회원 목록" :aria-busy="busy">
   <form @submit.prevent="find" class="member-form member-search"><label>회원 검색<input v-model="search" maxlength="200" placeholder="이메일, 이름, 회사명" :disabled="busy"></label><button :disabled="busy">검색·새로고침</button></form>
-  <div class="member-actions member-refresh"><label class="member-check"><input type="checkbox" v-model="autoRefresh"><span>30초마다 로그인 상태 자동 갱신</span></label><button :disabled="busy" @click="run(()=>load())">현재 목록 새로고침</button><span>최근 조회: {{formatMemberDate(updatedAt)}} (KST)</span></div>
+  <div class="member-actions member-refresh"><label class="member-check"><input type="checkbox" v-model="autoRefresh"><span>회원 정보 변경 시 자동 갱신</span></label><button :disabled="busy" @click="run(()=>load())">현재 목록 새로고침</button><span>최근 조회: {{formatMemberDate(updatedAt)}} (KST)</span></div>
   <p id="member-login-note" class="member-note">마지막 로그인은 인증 서버의 로그인 기록입니다. 로그인 상태는 서버에 유지된 유효한 세션 기준이며, 여러 기기 중 한 곳이라도 로그인되어 있으면 로그인 중으로 표시합니다. 브라우저를 닫아도 로그인이 유지될 수 있습니다. 날짜와 시간은 한국시간(KST)입니다.</p>
   <p v-if="busy" role="status">회원 목록을 불러오는 중입니다.</p>
   <div class="member-table-scroll" tabindex="0" role="region" aria-label="회원 상세 정보 표, 가로 스크롤 가능">
-   <table class="member-table" aria-describedby="member-login-note">
+   <table class="member-table" data-sort-managed @table-sort="sortMembers" aria-describedby="member-login-note">
     <caption>전체 회원 목록 · 페이지당 100명</caption>
-    <thead><tr><th scope="col"><input type="checkbox" :checked="allChecked" aria-label="현재 페이지 회원 전체 선택" @change="checkAll($event.target.checked)"></th><th scope="col">이름</th><th scope="col">이메일</th><th scope="col">회사/소속</th><th scope="col">직함</th><th scope="col">회원 구분</th><th scope="col">소속 그룹</th><th scope="col">이용 상태</th><th scope="col">가입일 (KST)</th><th scope="col">마지막 로그인 (KST)</th><th scope="col">현재 로그인 상태</th><th scope="col">관리</th></tr></thead>
+    <thead><tr><th scope="col"><input type="checkbox" :checked="allChecked" aria-label="현재 페이지 회원 전체 선택" @change="checkAll($event.target.checked)"></th><th scope="col" data-sort-key="display_name">이름</th><th scope="col" data-sort-key="email">이메일</th><th scope="col" data-sort-key="company">회사/소속</th><th scope="col" data-sort-key="position">직함</th><th scope="col" data-sort-key="member_kind">회원 구분</th><th scope="col" data-sort-key="groups">소속 그룹</th><th scope="col" data-sort-key="status">이용 상태</th><th scope="col" data-sort-key="registered_at" :aria-sort="sortKey==='registered_at'?(sortDirection==='desc'?'descending':'ascending'):undefined">가입일 (KST)</th><th scope="col" data-sort-key="last_sign_in_at">마지막 로그인 (KST)</th><th scope="col" data-sort-key="login_status">현재 로그인 상태</th><th scope="col">관리</th></tr></thead>
     <tbody><tr v-for="r in rows" :key="r.id" :class="{'member-selected':selected?.id===r.id}">
      <td><input v-model="checkedIds" type="checkbox" :value="r.id" :disabled="busy||r.system_admin" :aria-label="(r.display_name||r.email)+' 선택'"></td><td><button class="member-name" @click="choose(r)">{{r.display_name||'이름 미입력'}}</button></td><td>{{r.email||'—'}}</td><td>{{r.company||'—'}}</td><td>{{r.position||'—'}}</td><td>{{r.member_kind==='business'?'기업·기관':'개인'}}</td>
      <td><template v-if="r.groups?.length"><div v-for="g in r.groups" :key="g.id">{{g.name}}<span v-if="!g.active"> (중지·제외)</span></div></template><template v-else>—</template></td>

@@ -1,0 +1,15 @@
+const collator=new Intl.Collator('ko',{numeric:true,sensitivity:'base'})
+function value(v){const s=String(v??'').trim();if(!s||['—','-','로그인 기록 없음'].includes(s))return null;const n=s.replace(/[,₩%\s]/g,'');if(/^-?\d+(\.\d+)?$/.test(n))return Number(n);if(/^\d{4}-\d\d-\d\d(?:[T ]|$)/.test(s)){const d=Date.parse(s.replace(/ \(KST\)$/,''));if(!Number.isNaN(d))return d}return s}
+export function compareValues(a,b,direction='desc'){a=value(a);b=value(b);if(a===null)return b===null?0:1;if(b===null)return -1;const c=typeof a==='number'&&typeof b==='number'?a-b:collator.compare(String(a),String(b));return direction==='asc'?c:-c}
+function cellValue(cell){const field=cell?.querySelector('input:not([type=checkbox]),select,textarea');return field?field.value:cell?.textContent||''}
+export function installSortableTables(root){
+ const states=new WeakMap();let queued=false,stopped=false
+ function decorate(table){const headers=Array.from(table.tHead?.rows[0]?.cells||table.querySelector('tr')?.querySelectorAll('th')||[]);if(headers.length<2)return
+  if(!states.has(table)){const col=headers.findIndex(h=>['ascending','descending'].includes(h.getAttribute('aria-sort')));if(col>=0)states.set(table,{col,direction:headers[col].getAttribute('aria-sort')==='ascending'?'asc':'desc'})}
+  headers.forEach((th,col)=>{if(th.tagName!=='TH'||th.querySelector('input,button,a,select')||!th.textContent.trim()||/^(관리|선택|#|동작|작업)$/.test(th.textContent.trim()))return;if(!th.dataset.sortable){th.dataset.sortable='true';th.tabIndex=0;th.title='제목을 클릭하여 내림차순·오름차순 정렬';const activate=()=>{const prev=states.get(table);const direction=prev?.col===col&&prev.direction==='desc'?'asc':'desc';states.set(table,{col,direction});headers.forEach(h=>h.removeAttribute('aria-sort'));th.setAttribute('aria-sort',direction==='desc'?'descending':'ascending');if(table.dataset.sortManaged!==undefined)table.dispatchEvent(new CustomEvent('table-sort',{detail:{column:col,key:th.dataset.sortKey,direction},bubbles:true}));else apply(table)};th.addEventListener('click',activate);th.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate()}})}})
+  if(table.dataset.sortManaged===undefined)apply(table)
+ }
+ function apply(table){const state=states.get(table);if(!state)return;for(const body of table.tBodies){const rows=Array.from(body.rows);if(rows.some(r=>r.cells.length!==table.rows[0].cells.length||Array.from(r.cells).some(c=>c.colSpan>1||c.rowSpan>1)))continue;const sorted=rows.map((r,i)=>({r,i})).sort((a,b)=>compareValues(cellValue(a.r.cells[state.col]),cellValue(b.r.cells[state.col]),state.direction)||a.i-b.i).map(x=>x.r);if(sorted.some((r,i)=>r!==rows[i]))sorted.forEach(r=>body.appendChild(r))}}
+ function scan(){queued=false;if(stopped)return;root.querySelectorAll('table').forEach(decorate)}
+ const observer=new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(scan)}});observer.observe(root,{childList:true,subtree:true,characterData:true});scan();return ()=>{stopped=true;observer.disconnect()}
+}
