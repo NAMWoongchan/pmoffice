@@ -18,7 +18,7 @@ const googleAccount=computed(()=>memberAccount.value?.google_account===true)
 const editingProfile=computed(()=>signup.value||props.mode==='account')
 watch(memberAccount,a=>{if(a?.profile&&loaded.value!==a.profile.id){loaded.value=a.profile.id;name.value=a.profile.display_name||'';company.value=a.profile.company||'';position.value=a.profile.position||'';kind.value=a.profile.member_kind||'individual';email.value=a.profile.email||''}},{immediate:true})
 async function run(fn){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;password.value='';currentPassword.value=''}}
-async function submit(){await run(async()=>{const signingUp=signup.value;
+async function submit(){await run(async()=>{
  if(props.mode==='account'&&!completing.value){
  await memberApi({action:'self-update',name:name.value,company:company.value,position:position.value,kind:kind.value,email:email.value,password:password.value||undefined,current_password:currentPassword.value||undefined});await refreshMember();message.value='회원정보를 저장했습니다.';return
  }
