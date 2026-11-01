@@ -2,8 +2,8 @@ const bulkCompanies=['한국철도공사','샬롬엔지니어링','투아이시�
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const fail=(status,message)=>{throw Object.assign(Error(message),{status})};
 export function validateProfile(b){
- if(b.position!==undefined&&(typeof b.position!=='string'||b.position.length>120))fail(400,'직함을 확인해 주세요.');
- if(!['business','individual'].includes(b.kind)||typeof b.name!=='string'||!b.name.trim()||b.name.length>120||typeof b.company!=='string'||b.company.length>200||(b.kind==='business'&&!b.company.trim()))fail(400,'이름과 회사·소속을 확인해 주세요.');
+ if((typeof b.position!=='string'||!b.position.trim()||b.position.length>120))fail(400,'직함을 확인해 주세요.');
+ if(!['business','individual'].includes(b.kind)||typeof b.name!=='string'||!b.name.trim()||b.name.length>120||typeof b.company!=='string'||b.company.length>200||!b.company.trim())fail(400,'이름과 회사·소속을 확인해 주세요.');
 }
 export function validatePassword(value){if(typeof value!=='string'||value.length<8||value.length>128)fail(400,'비밀번호는 8자 이상 128자 이하로 입력해 주세요.')}
 export function validateEmail(value){if(typeof value!=='string'||value.length>254||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))fail(400,'이메일 주소를 확인해 주세요.')}
@@ -22,7 +22,7 @@ export function createMemberHandler(deps){return async request=>{
    await deps.rateLimit(request);
    const user=await deps.createUser({email:b.email.trim().toLowerCase(),password:b.password,email_confirm:true,user_metadata:{name:b.name.trim()}});created=user.id;
    const session=await deps.signIn(b.email.trim().toLowerCase(),b.password);
-   try{await deps.rpc(session.access_token,'member_complete_registration',{p_name:b.name,p_company:b.company,p_kind:b.kind,p_accept:true})}
+   try{await deps.rpc(session.access_token,'member_complete_profile',{p_name:b.name,p_company:b.company,p_kind:b.kind,p_position:b.position,p_accept:true,p_codes:b.codes||[]})}
    catch{fail(503,'가입 정보 저장을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.')}
    created=null;return response({session});
   }
@@ -37,9 +37,8 @@ export function createMemberHandler(deps){return async request=>{
     await deps.reauthenticate(user,token,b.current_password);
     await deps.updateUser(user.id,{...(changedEmail?{email:b.email.trim().toLowerCase(),email_confirm:true}:{}),...(b.password?{password:b.password}:{})});
    }
-   try{await deps.rpc(token,'member_profile_save',{p_user:user.id,p_name:b.name,p_company:b.company,p_kind:b.kind})}
+   try{await deps.rpc(token,'member_profile_fields_save',{p_user:user.id,p_name:b.name,p_company:b.company,p_kind:b.kind,p_position:b.position})}
    catch{fail(409,'인증 정보는 저장되었을 수 있습니다. 회원정보를 새로 조회한 후 다시 저장해 주세요.')}
-   if(b.position!==undefined)await deps.rpc(token,'member_position_save',{p_user:user.id,p_position:b.position});
    return response({ok:true});
   }
   if(account.admin!==true||!await deps.isAdmin(token))fail(403,'관리자 권한이 필요합니다.');
@@ -69,7 +68,7 @@ export function createMemberHandler(deps){return async request=>{
     created=target.id;op.target=target.id;
    }
    await deps.rpc(token,'member_operation',{p_request:op.id,p_action:action,p_target:op.target});
-   await deps.rpc(token,'member_admin_register',{p_user:op.target,p_name:b.name,p_company:b.company,p_kind:b.kind});created=null;
+   await deps.rpc(token,'member_admin_profile_register',{p_user:op.target,p_name:b.name,p_company:b.company,p_kind:b.kind,p_position:b.position});created=null;
   }else if(action==='withdraw'){
    await deps.rpc(token,'member_admin_withdraw',{p_user:op.target});
    try{await deps.updateUser(op.target,{ban_duration:'876000h'})}catch{await deps.rpc(token,'member_operation',{p_request:op.id,p_action:action,p_target:op.target,p_state:'recovery_required'});op=null;return response({ok:true,warning:'사이트 접근은 차단했습니다. 인증 서비스 이용 중지 상태를 다시 확인해 주세요.'})}
@@ -81,7 +80,7 @@ export function createMemberHandler(deps){return async request=>{
      if(target.id===user.id||target.email.toLowerCase()==='namwoongchan@gmail.com')fail(400,'관리자 지정 이메일은 변경할 수 없습니다.');
      await deps.updateUser(op.target,{email:b.email.trim().toLowerCase(),email_confirm:true});
     }
-    await deps.rpc(token,'member_profile_save',{p_user:op.target,p_name:b.name,p_company:b.company,p_kind:b.kind});
+    await deps.rpc(token,'member_profile_fields_save',{p_user:op.target,p_name:b.name,p_company:b.company,p_kind:b.kind,p_position:b.position});
    }
   }
   await deps.rpc(token,'member_operation',{p_request:op.id,p_action:action,p_target:op.target,p_state:'complete'});
@@ -110,10 +109,9 @@ export async function provisionMember(deps,token,actor,b,{withoutPassword=false}
  try{
   if(!target){const u=await deps.createUser({email:b.email.trim().toLowerCase(),...(!withoutPassword?{password:b.password}:{}),email_confirm:true,app_metadata:{member_created_by:actor.id,member_request_id:b.request_id},user_metadata:{name:b.name.trim()}});target=u.id}
   await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target});
-  if(action==='create')await deps.rpc(token,'member_admin_register',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind});
+  if(action==='create')await deps.rpc(token,'member_admin_profile_register',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind,p_position:b.position});
   else if(!withoutPassword)await deps.updateUser(target,{password:b.password});
-  await deps.rpc(token,'member_profile_save',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind});
-  await deps.rpc(token,'member_position_save',{p_user:target,p_position:b.position});
+  await deps.rpc(token,'member_profile_fields_save',{p_user:target,p_name:b.name,p_company:b.company,p_kind:b.kind,p_position:b.position});
   await deps.rpc(token,'member_bulk_attach',{p_user:target,p_company:b.company});
   if(!withoutPassword&&deps.verifyPassword)await deps.verifyPassword(b.email.trim().toLowerCase(),b.password,target);
   await deps.rpc(token,'member_operation',{p_request:b.request_id,p_action:action,p_target:target,p_state:'complete'});
