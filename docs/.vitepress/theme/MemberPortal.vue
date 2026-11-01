@@ -22,7 +22,7 @@ async function submit(){await run(async()=>{
  else{const {error}=await memberClient().auth.signInWithPassword({email:email.value.trim(),password:password.value});if(error)throw Error('이메일과 비밀번호를 확인해 주세요.')}
  await refreshMember();if(memberAccount.value?.member)location.assign(next.value);else if(memberAccount.value?.profile?.status==='suspended'||memberAccount.value?.profile?.withdrawn_at){await memberClient().auth.signOut();throw Error('이용이 중지된 계정입니다. 관리자에게 문의해 주세요.')}
  })}
-async function google(){await run(()=>googleMemberLogin(props.mode==='account'?'/account.html':next.value))}
+async function google(){await run(()=>googleMemberLogin(props.mode==='account'?'/account.html#'+accountTab.value:next.value))}
 onMounted(async()=>{next.value=safeMemberReturn(new URLSearchParams(location.search).get('returnTo'));await initializeMember();
  if(props.mode==='callback'){await run(async()=>{const code=new URLSearchParams(location.search).get('code');history.replaceState(null,'',location.pathname);if(!code)throw Error('Google 로그인이 취소되었거나 만료되었습니다.');const {error}=await memberClient().auth.exchangeCodeForSession(code);if(error)throw Error('로그인을 완료하지 못했습니다. 다시 시도해 주세요.');await refreshMember();const target=safeMemberReturn(sessionStorage.getItem('member-return')||sessionStorage.getItem('pms-return'));sessionStorage.removeItem('member-return');sessionStorage.removeItem('pms-return');location.replace(memberAccount.value?.member?target:'/signup.html?returnTo='+encodeURIComponent(target))})}
 })
@@ -31,7 +31,7 @@ onMounted(async()=>{next.value=safeMemberReturn(new URLSearchParams(location.sea
 <h1>{{mode==='callback'?'로그인 확인':mode==='account'?(accountTab==='services'?'가입 중인 서비스':'회원 가입 정보'):signup?'회원 가입':'로그인'}}</h1>
 <p role="status" aria-live="polite">{{message}}</p>
 <MemberServices v-if="mode==='account'&&memberAccount?.member&&accountTab==='services'"/><template v-else><p v-if="mode==='callback'">로그인을 확인하고 있습니다. <a href="/login.html">다시 로그인</a></p>
-<template v-else-if="mode==='account'&&!memberAccount?.member"><p>로그인 후 회원정보를 수정할 수 있습니다.</p><a class="member-button" href="/login.html?returnTo=%2Faccount.html">로그인</a></template>
+<template v-else-if="mode==='account'&&!memberAccount?.member"><p>로그인 후 회원정보를 수정할 수 있습니다.</p><a class="member-button" :href="'/login.html?returnTo='+encodeURIComponent('/account.html#'+accountTab)">로그인</a></template>
 <template v-else-if="mode!=='account'&&memberAccount?.member"><p>이미 로그인되어 있습니다.</p><a class="member-button" :href="next">계속 이용하기</a><a href="/account.html">내 정보</a></template>
 <template v-else>
 <button v-if="!memberSession||mode==='account'" class="member-button member-google" :disabled="busy" @click="google">{{mode==='account'?'Google로 다시 로그인':'Google 계정으로 계속하기'}}</button>
