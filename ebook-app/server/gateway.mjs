@@ -26,7 +26,7 @@ async function putChunk(env,a,idx,bytes){
 async function streamAsset(env,a,range){
  let window;try{window=byteRange(range,a.bytes)}catch{return new Response(null,{status:416,headers:{...HEADERS,'Content-Range':`bytes */${a.bytes}`}})}
  if(window.end-window.start+1>8*1024*1024)throw new HttpError(413,'파일은 8 MiB 이하 범위로 나누어 요청해 주세요.');
- await rpc(env,'delivery',{bytes:window.end-window.start+1},null,true);
+ await rpc(env,'delivery',{bytes:window.end-window.start+1,exempt:a.delivery_exempt===true},null,true);
  await requirePrivate(env);
  const chunks=chunkWindow(a.chunks,window.start,window.end);let at=0;
  // Fetch one protected chunk at a time; no GitHub download URL is returned to the reader.

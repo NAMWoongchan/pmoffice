@@ -4,31 +4,32 @@ MAX_BYTES=50*1024*1024
 MAX_PAGES=200
 CHUNK=1024*1024
 
-def preflight(path):
+def preflight(path,unlimited=False):
     path=pathlib.Path(path)
-    if path.stat().st_size<1 or path.stat().st_size>MAX_BYTES: raise ValueError('50 MiB file limit')
+    if path.stat().st_size<1 or (not unlimited and path.stat().st_size>MAX_BYTES): raise ValueError('50 MiB file limit')
     if path.suffix.lower()=='.pdf':
-        if not path.read_bytes()[:1024].lstrip().startswith(b'%PDF-'): raise ValueError('Invalid PDF signature')
+        with path.open('rb') as source: signature=source.read(1024)
+        if not signature.lstrip().startswith(b'%PDF-'): raise ValueError('Invalid PDF signature')
         return
     if path.suffix.lower()!='.pptx': raise ValueError('Only PDF and PPTX are supported')
     with zipfile.ZipFile(path) as z:
         items=z.infolist(); names=[i.filename for i in items]
-        if len(items)>20000 or sum(i.file_size for i in items)>512*1024*1024: raise ValueError('Expanded archive limit')
+        if not unlimited and (len(items)>20000 or sum(i.file_size for i in items)>512*1024*1024): raise ValueError('Expanded archive limit')
         if '[Content_Types].xml' not in names or 'ppt/presentation.xml' not in names: raise ValueError('Invalid PPTX package')
         if any('..' in pathlib.PurePosixPath(n).parts or n.startswith(('/','\\')) for n in names): raise ValueError('Unsafe archive path')
         if any(any(s in n.lower() for s in ('vbaproject','activex/','embeddings/')) for n in names): raise ValueError('Macros, ActiveX and OLE are not supported')
         slides=[n for n in names if __import__('re').fullmatch(r'ppt/slides/slide\d+\.xml',n)]
-        if not 1<=len(slides)<=MAX_PAGES: raise ValueError('200 slide limit')
+        if len(slides)<1 or (not unlimited and len(slides)>MAX_PAGES): raise ValueError('200 slide limit')
         for item in items:
-            if item.file_size>MAX_BYTES*2: raise ValueError('Oversized archive member')
+            if not unlimited and item.file_size>MAX_BYTES*2: raise ValueError('Oversized archive member')
             if item.filename.endswith('.rels'):
                 root=ET.fromstring(z.read(item))
                 if any(r.attrib.get('TargetMode')=='External' for r in root): raise ValueError('External linked resources must be embedded or removed before conversion')
 
-def pdf_pages(pdf_path,out):
+def pdf_pages(pdf_path,out,unlimited=False):
     import pymupdf as fitz
     doc=fitz.open(pdf_path)
-    if doc.is_encrypted or not 1<=len(doc)<=MAX_PAGES: raise ValueError('Encrypted PDF or 200 page limit')
+    if doc.is_encrypted or len(doc)<1 or (not unlimited and len(doc)>MAX_PAGES): raise ValueError('Encrypted PDF or 200 page limit')
     assets=[];texts=[]
     for idx,page in enumerate(doc,1):
         one=fitz.open();one.insert_pdf(doc,from_page=idx-1,to_page=idx-1)
@@ -40,14 +41,14 @@ def pdf_pages(pdf_path,out):
     assets.append(dict(kind='text',page=0,mime='application/json',file='text.json'))
     return assets,texts
 
-def pptx_video(path,out):
+def pptx_video(path,out,unlimited=False):
     import pythoncom,win32com.client
     pythoncom.CoInitialize();app=win32com.client.DispatchEx('PowerPoint.Application')
     prior_presentations=app.Presentations.Count;prior_security=app.AutomationSecurity;app.AutomationSecurity=3
     pres=None;warnings=['PowerPoint 변환 결과의 애니메이션·내장 영상·음성·글꼴을 확인한 뒤 검토 완료를 선택하세요.']
     try:
         pres=app.Presentations.Open(str(path.resolve()),ReadOnly=True,Untitled=False,WithWindow=False)
-        if not 1<=pres.Slides.Count<=MAX_PAGES: raise ValueError('200 slide limit')
+        if pres.Slides.Count<1 or (not unlimited and pres.Slides.Count>MAX_PAGES): raise ValueError('200 slide limit')
         pres.SaveCopyAs(str((out/'rendered.pdf').resolve()),32)
         videos=[]
         for idx in range(1,pres.Slides.Count+1):
@@ -86,11 +87,11 @@ def pptx_video(path,out):
         if prior_presentations==0 and app.Presentations.Count==0: app.Quit()
         pythoncom.CoUninitialize()
 
-def convert(path,out):
-    path=pathlib.Path(path);out=pathlib.Path(out);out.mkdir(parents=True,exist_ok=True);preflight(path)
+def convert(path,out,unlimited=False):
+    path=pathlib.Path(path);out=pathlib.Path(out);out.mkdir(parents=True,exist_ok=True);preflight(path,unlimited=unlimited)
     videos=[];warnings=[];pdf=path
-    if path.suffix.lower()=='.pptx': pdf,videos,warnings=pptx_video(path,out)
-    assets,texts=pdf_pages(pdf,out)
+    if path.suffix.lower()=='.pptx': pdf,videos,warnings=pptx_video(path,out,unlimited=unlimited)
+    assets,texts=pdf_pages(pdf,out,unlimited=unlimited)
     result=dict(pages=len(texts),searchable=any(t['text'].strip() for t in texts),warnings=warnings,assets=assets+videos)
     for a in result['assets']:
         f=out/a['file'];a.update(bytes=f.stat().st_size,sha256=hashlib.sha256(f.read_bytes()).hexdigest())
@@ -105,7 +106,7 @@ class Remote:
     def rpc(self,action,p=None):
         r=self.http.post(self.url+'/api/worker/rpc',json=dict(action=action,p=p or {}),timeout=60);r.raise_for_status();return r.json()
     def process(self,task,work):
-        book=task['book'];lease=dict(book_id=book['id'],lease_id=task['job']['lease_id']);stop=threading.Event()
+        book=task['book'];unlimited=book.get('quota_exempt') is True;lease=dict(book_id=book['id'],lease_id=task['job']['lease_id']);stop=threading.Event()
         def heartbeat():
             while not stop.wait(45):
                 try:self.rpc('heartbeat',lease)
@@ -122,12 +123,12 @@ class Remote:
                         if r.status_code!=206 or r.headers.get('Content-Range')!=f'bytes {offset}-{end}/{book["source_bytes"]}':raise ValueError('Invalid source range response')
                         for part in r.iter_content(CHUNK):
                             size+=len(part)
-                            if size>MAX_BYTES:raise ValueError('Downloaded source exceeds limit')
+                            if size>book['source_bytes'] or (not unlimited and size>MAX_BYTES):raise ValueError('Downloaded source exceeds limit')
                             dest.write(part)
             if source.stat().st_size!=book['source_bytes']: raise ValueError('Source size mismatch')
             out=work/'result'
             # A separate process makes the overall conversion deadline enforceable.
-            subprocess.run([sys.executable,__file__,'convert',str(source),'--out',str(out)],check=True,timeout=7200)
+            subprocess.run([sys.executable,__file__,'convert',str(source),'--out',str(out)]+(['--unlimited'] if unlimited else []),check=True,timeout=None if unlimited else 7200)
             result=json.loads((out/'manifest.json').read_text(encoding='utf-8'))
             for asset in result['assets']:
                 if stop.is_set(): raise RuntimeError('Worker lease heartbeat failed')
@@ -150,10 +151,11 @@ class Remote:
 
 def main():
     p=argparse.ArgumentParser(description='PMOffice ebook converter: runs only while explicitly started')
-    p.add_argument('mode',choices=['convert','run']);p.add_argument('source',nargs='?');p.add_argument('--out');p.add_argument('--work',default=str(pathlib.Path(__file__).parent/'work'));p.add_argument('--once',action='store_true');args=p.parse_args()
+    p.add_argument('--unlimited',action='store_true',help='Local conversion only; remote jobs use server-issued entitlement');p.add_argument('mode',choices=['convert','run']);p.add_argument('source',nargs='?');p.add_argument('--out');p.add_argument('--work',default=str(pathlib.Path(__file__).parent/'work'));p.add_argument('--once',action='store_true');args=p.parse_args()
     if args.mode=='convert':
         if not args.source or not args.out:p.error('convert requires source and --out')
-        result=convert(args.source,args.out);print(json.dumps(dict(pages=result['pages'],assets=len(result['assets'])),ensure_ascii=False));return
+        result=convert(args.source,args.out,unlimited=args.unlimited);print(json.dumps(dict(pages=result['pages'],assets=len(result['assets'])),ensure_ascii=False));return
+    if args.unlimited:p.error('--unlimited cannot override remote job permissions')
     url=os.environ.get('EBOOK_API_URL','');token=os.environ.get('EBOOK_CONVERTER_TOKEN','')
     if not url or not token:p.error('Set EBOOK_API_URL and EBOOK_CONVERTER_TOKEN in this process environment')
     remote=Remote(url,token);work=pathlib.Path(args.work).resolve();work.mkdir(parents=True,exist_ok=True)

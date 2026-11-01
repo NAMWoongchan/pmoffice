@@ -1,6 +1,17 @@
 import pathlib,tempfile,unittest,zipfile
 from converter import preflight,convert,MAX_BYTES
 class ConverterChecks(unittest.TestCase):
+ def test_administrator_large_source_and_201_pages(self):
+  import fitz
+  with tempfile.TemporaryDirectory() as d:
+   root=pathlib.Path(d);large=root/'large.pdf'
+   with large.open('wb') as f:f.write(b'%PDF-');f.truncate(MAX_BYTES+1)
+   with self.assertRaises(ValueError):preflight(large)
+   preflight(large,unlimited=True)
+   doc=fitz.open()
+   for _ in range(201):doc.new_page()
+   doc.save(root/'admin.pdf');doc.close()
+   result=convert(root/'admin.pdf',root/'admin-result',unlimited=True);self.assertEqual(result['pages'],201)
  @classmethod
  def setUpClass(cls):
   tempfile.tempdir=str(pathlib.Path(__file__).parent/'work');pathlib.Path(tempfile.tempdir).mkdir(exist_ok=True)

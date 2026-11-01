@@ -12,10 +12,38 @@ for(const f of ['202610130001_membership.sql','202610130002_education.sql','2026
 await db.exec(`create table pmoffice_private.inquiry_settings(singleton boolean,bridge_secret text);insert into pmoffice_private.inquiry_settings values(true,'test-only');create table public.inquiry_notifications(id uuid default gen_random_uuid(),inquiry_id uuid,recipient text,state text default '대기',error text,updated_at timestamptz default now());`);
 for(let n=1;n<=4;n++){await db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[id(n),n===1?'namwoongchan@gmail.com':`user${n}@example.test`]);await db.query('update profiles set signup_accepted_at=now(),signup_version=(select signup_version from pmoffice_private.service_settings) where id=$1',[id(n)])}
 await db.query("insert into auth.identities values($1,'google','google-admin',$2)",[id(1),{email:'namwoongchan@gmail.com',email_verified:true}]);await db.query("update pmoffice_private.admin_identity_config set allowed_user_id=$1,allowed_google_provider_id='google-admin'",[id(1)]);await db.query('insert into admin_roles(user_id) values($1)',[id(1)]);
-for(const f of ['202610200001_pms.sql','202610200002_pms_groups.sql','202610290001_member_access.sql','202610310001_ebooks.sql','202610310003_ebook_public_url.sql'])await db.exec(fs.readFileSync('../supabase/migrations/'+f,'utf8'));
+for(const f of ['202610200001_pms.sql','202610200002_pms_groups.sql','202610290001_member_access.sql','202610310001_ebooks.sql','202610310003_ebook_public_url.sql','202611010001_ebook_admin_unlimited.sql'])await db.exec(fs.readFileSync('../supabase/migrations/'+f,'utf8'));
 const uid=async n=>{await db.exec('reset role');await db.query("select set_config('test.uid',$1,false)",[n?id(n):''])};
 const rpc=async(action,p={},internal=false)=>{await db.exec('set role '+(internal?'service_role':'authenticated'));try{return (await db.query(`select public.${internal?'ebook_internal':'ebook_api'}($1,$2) a`,[action,p])).rows[0].a}finally{await db.exec('reset role')}};
 return {db,uid,rpc}}
+test('administrator quotas are unlimited and cannot be forged by a member',async()=>{
+const {db,uid,rpc}=await setup();try{
+await uid(1);await rpc('settings',{released:true,max_storage_bytes:20,max_daily_jobs:1,max_daily_delivery_bytes:10});
+const adminSession=await rpc('session');assert.equal(adminSession.unlimited,true);assert.equal(adminSession.max_books,null);assert.equal(adminSession.max_bytes,null);assert.equal(adminSession.max_pages,null);
+for(let i=0;i<11;i++)assert.equal((await rpc('create',{title:'Admin '+i,filename:'admin.pdf',bytes:52428801})).quota_exempt,true);
+assert.equal((await rpc('admin')).settings.member_storage_reserved,0,'admin storage must not consume member allowance');
+const book=await rpc('create',{title:'201 page admin',filename:'admin.pdf',bytes:1});
+await rpc('chunk',{asset_id:book.source_asset,idx:0,bytes:1,sha256:'a'.repeat(64),object_path:'test/admin.bin',git_sha:'b'.repeat(40)},true);
+await db.query('insert into pmoffice_private.ebook_usage(day,jobs,limited_jobs,delivery_bytes,limited_delivery_bytes) values(current_date,1,1,10,10) on conflict(day) do update set jobs=1,limited_jobs=1,delivery_bytes=10,limited_delivery_bytes=10');
+await rpc('submit',{book_id:book.id});const claim=await rpc('claim',{},true);assert.equal(claim.book.quota_exempt,true);const lease={book_id:book.id,lease_id:claim.job.lease_id};
+assert.equal((await rpc('source',lease,true)).delivery_exempt,true);
+await rpc('asset_create',{...lease,kind:'page',page:201,mime:'application/pdf',bytes:1},true);
+await db.query("insert into pmoffice_private.ebook_assets(book_id,kind,page,mime,bytes,complete) select $1,k,n,'application/pdf',1,true from unnest(array['page','thumbnail']) k cross join generate_series(1,201) n on conflict(book_id,kind,page) do update set complete=true",[book.id]);
+await db.query("insert into pmoffice_private.ebook_assets(book_id,kind,page,mime,bytes,complete) values($1,'text',0,'application/json',1,true)",[book.id]);
+await rpc('finish',{...lease,pages:201,searchable:true},true);await rpc('approve',{book_id:book.id});assert.equal((await rpc('get',{book_id:book.id})).pages,201);
+await rpc('delivery',{bytes:1000,exempt:true},true);await assert.rejects(()=>rpc('delivery',{bytes:1},true));
+await uid(2);const memberSession=await rpc('session');assert.equal(memberSession.unlimited,false);assert.equal(memberSession.max_bytes,52428800);assert.equal(memberSession.max_books,10);
+await assert.rejects(()=>rpc('create',{title:'Fake admin',filename:'fake.pdf',bytes:52428801,admin:true,unlimited:true,quota_exempt:true}));
+const memberBook=await rpc('create',{title:'Member',filename:'member.pdf',bytes:1,quota_exempt:true});assert.equal(memberBook.quota_exempt,false);
+await rpc('chunk',{asset_id:memberBook.source_asset,idx:0,bytes:1,sha256:'c'.repeat(64),object_path:'test/member.bin',git_sha:'d'.repeat(40)},true);await assert.rejects(()=>rpc('submit',{book_id:memberBook.id}),/변환 한도/);
+await uid(1);await db.query('update pmoffice_private.ebook_usage set limited_jobs=0 where day=current_date');
+await uid(2);await rpc('submit',{book_id:memberBook.id});const memberClaim=await rpc('claim',{},true);const memberLease={book_id:memberBook.id,lease_id:memberClaim.job.lease_id};
+await assert.rejects(()=>rpc('asset_create',{...memberLease,kind:'page',page:201,mime:'application/pdf',bytes:1},true));
+await assert.rejects(()=>rpc('finish',{...memberLease,pages:201},true));
+await assert.rejects(()=>rpc('create',{title:'Over storage',filename:'m.pdf',bytes:20}));
+assert.equal((await db.query('select limited_jobs from pmoffice_private.ebook_usage where day=current_date')).rows[0].limited_jobs,1);
+}finally{await db.close()}});
+
 test('server-issued book URLs use the working homepage reader',async()=>{
 const {db,uid,rpc}=await setup();try{
 await uid(1);await rpc('settings',{released:true,max_storage_bytes:1048576,max_daily_jobs:1,max_daily_delivery_bytes:1048576});
