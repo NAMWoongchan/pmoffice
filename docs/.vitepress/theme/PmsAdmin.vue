@@ -1,6 +1,6 @@
 <script setup>
 import {projectRouteName,projectPublicPath} from './project-address.js'
-import {ref,onMounted,onUnmounted} from 'vue'
+import {computed,ref,onMounted,onUnmounted} from 'vue'
 import {suggestedProjectSlug,projectStatusLabel} from './project-admin.js'
 import {watchAdminChanges} from './change-events.js'
 import {adminRoute,adminSections} from './admin-navigation.js'
@@ -9,6 +9,7 @@ import AdminEbooks from './AdminEbooks.vue'
 import AdminSites from './AdminSites.vue'
 import AdminSoftware from './AdminSoftware.vue'
 import PmsGroups from './PmsGroups.vue'
+import NexpharmAdmin from './NexpharmAdmin.vue'
 import MemberAdmin from './MemberAdmin.vue'
 import MemberPasswordBulk from './MemberPasswordBulk.vue'
 import MemberGroups from './MemberGroups.vue'
@@ -17,9 +18,12 @@ import MemberHistory from './MemberHistory.vue'
 import KnowledgeImport from './KnowledgeImport.vue'
 import {call,action,api,client,labels} from './pms-client.js'
 const allowed=ref(false),rows=ref([]),selected=ref(null),message=ref(''),busy=ref(false),members=ref([]),history=ref([]),matches=ref([]),search=ref(''),expires=ref(''),role=ref('viewer'),meta=ref(null),tab=ref(locationSafeHash())
+const workspace=ref(''), workspaceProject=ref('')
+const isNexpharm=slug=>/^nexpharm-[0-9a-f]{12}$/.test(slug||'')
+const generalProjects=computed(()=>rows.value.filter(project=>!isNexpharm(project.slug)))
 function locationSafeHash(){return adminRoute(typeof location==='undefined'?'':location.hash).tab}
-function syncRoute(){const r=adminRoute(location.hash);tab.value=r.tab;if(location.hash!==r.canonical)window.history.replaceState(window.history.state,'',location.pathname+location.search+r.canonical);if(allowed.value)openRouteProject()}
-function openRouteProject(){if(tab.value!=='projects')return;if(busy.value){routePending=true;return}const query=adminRoute(location.hash).query,slug=query.get('project');if(query.get('new')==='1'){if(!selected.value||selected.value.version>0)open(blank());return}if(slug){const project=rows.value.find(p=>p.slug===slug);if(!project){message.value='해당 프로젝트를 찾지 못했습니다. 사이트 현황에서 다시 선택해 주세요.';return}if(selected.value?.slug!==slug)open(project)}}
+function syncRoute(){const r=adminRoute(location.hash);tab.value=r.tab;const slug=r.query.get('project');workspace.value=r.query.get('workspace')==='nexpharm'||isNexpharm(slug)?'nexpharm':'';workspaceProject.value=isNexpharm(slug)?slug:'';if(location.hash!==r.canonical)window.history.replaceState(window.history.state,'',location.pathname+location.search+r.canonical);if(allowed.value)openRouteProject()}
+function openRouteProject(){if(tab.value!=='projects'||workspace.value==='nexpharm')return;if(busy.value){routePending=true;return}const query=adminRoute(location.hash).query,slug=query.get('project');if(query.get('new')==='1'){if(!selected.value||selected.value.version>0)open(blank());return}if(slug){const project=rows.value.find(p=>p.slug===slug);if(!project){message.value='해당 프로젝트를 찾지 못했습니다. 사이트 현황에서 다시 선택해 주세요.';return}if(selected.value?.slug!==slug)open(project)}}
 const slugEdited=ref(false)
 let stopChanges,sub,timer,verifyEpoch=0,disposed=false,routePending=false
 function suggestSlug(){if(selected.value&&!selected.value.version&&!slugEdited.value)selected.value.slug=suggestedProjectSlug(selected.value.title,rows.value.map(p=>p.slug))}
@@ -62,9 +66,15 @@ onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();stopChanges?.();
 <AdminEbooks v-else-if="tab==='ebooks'" />
 <AdminSoftware v-else-if="tab==='sw'" />
 <MemberAdmin v-else-if="tab==='members'" /><MemberPasswordBulk v-else-if="tab==='passwords'" /><MemberGroups v-else-if="tab==='groups'" /><MemberMail v-else-if="tab==='mail'" /><KnowledgeImport v-else-if="tab==='knowledge'" /><MemberHistory v-else-if="tab==='history'" /><main v-else class="pms-admin">
-<header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
+<header><div><span>PMOFFICE ADMIN</span><h1>프로젝트 관리</h1><p>기업별 프로젝트의 공개 범위, 회원 접근과 원본 게시를 관리합니다.</p></div><button v-if="workspace!=='nexpharm'" @click="open(blank())" :disabled="busy">새 프로젝트</button></header>
+<nav class="pms-workspaces" aria-label="관리할 프로젝트 센터">
+<a href="/admin/#projects" :aria-current="workspace!=='nexpharm'?'page':undefined">일반 프로젝트</a>
+<a href="/admin/#projects?workspace=nexpharm" :aria-current="workspace==='nexpharm'?'page':undefined">넥스팜 프로젝트 센터</a>
+</nav>
+<NexpharmAdmin v-if="workspace==='nexpharm'" :initial-project="workspaceProject" />
+<template v-else>
 <p role="status" aria-live="polite">{{message}}</p><p v-if="selected?.version"><a href="/admin/#pms">Project Online 사이트 현황에서 확인 →</a></p>
-<div class="pms-admin-grid"><aside><button class="pms-project-row" v-for="p in rows" :key="p.slug" @click="open(p)" :disabled="busy"><strong>{{p.title}}</strong><span>{{p.customer}} · {{labels[p.access_mode]}}</span><small>{{projectPublicPath(p.slug)}} · {{p.status}}</small></button></aside>
+<div class="pms-admin-grid"><aside><button class="pms-project-row" v-for="p in generalProjects" :key="p.slug" @click="open(p)" :disabled="busy"><strong>{{p.title}}</strong><span>{{p.customer}} · {{labels[p.access_mode]}}</span><small>{{projectPublicPath(p.slug)}} · {{p.status}}</small></button></aside>
 <section v-if="selected">
 <form @submit.prevent="save"><h2>프로젝트 설정</h2><div class="pms-fields">
 <label>주소 이름<input :value="selected.version?projectRouteName(selected.slug):selected.slug" @input="slugEdited=true;selected.slug=$event.target.value" :disabled="selected.version>0" required pattern="[a-z][a-z0-9-]{1,47}" maxlength="48" placeholder="korail"></label>
@@ -83,10 +93,12 @@ onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();stopChanges?.();
 </template>
 </section><section v-else><h2>관리할 프로젝트를 선택하세요.</h2><p>새 프로젝트는 지정 그룹 전용 초안으로 시작하며 게시 전에는 관리자만 볼 수 있습니다.</p></section>
 </div>
+</template>
 </main>
 </div></div>
 </template>
 <style scoped>
+.pms-workspaces{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}.pms-workspaces a{padding:9px 14px;border:1px solid #b9cbdc;border-radius:7px;font-weight:650}.pms-workspaces a[aria-current=page]{background:#1d52a3;color:white;border-color:#1d52a3}
 .pms-admin-tabs{display:flex;gap:12px;padding:24px 32px 0;max-width:1440px;margin:auto;flex-wrap:wrap;align-items:center}.pms-admin-tabs .pms-member-info{border-color:#235fea;font-weight:750}.pms-admin-tabs button[aria-pressed=true]{background:#183a61;color:white}.pms-admin{max-width:1440px;padding:40px 32px 80px;margin:auto;color:#16334f}.pms-admin header{display:flex;justify-content:space-between;gap:20px;align-items:center}.pms-admin h1{font-size:34px;font-weight:750}.pms-admin h2{font-size:22px;font-weight:700;margin-bottom:16px}.pms-admin p{margin:12px 0;color:#596f85}.pms-admin-grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;margin-top:24px}.pms-admin-grid section section,.pms-admin-grid section>form{padding:24px;border:1px solid #d5e0eb;border-radius:10px;margin-bottom:22px;background:white}.pms-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pms-admin label{display:flex;flex-direction:column;gap:7px;margin:10px 0}.pms-admin input,.pms-admin select,.pms-admin textarea{border:1px solid #b5c5d5;border-radius:6px;padding:10px;background:white;width:100%}.pms-admin .pms-check{flex-direction:row;align-items:center}.pms-check input{width:auto}.pms-admin button,.pms-admin-tabs button{border:1px solid #b5c5d5;border-radius:6px;padding:10px 14px;background:#edf3fa;font-weight:600}.pms-admin button:disabled{opacity:.45}.pms-project-row{display:flex;flex-direction:column;width:100%;text-align:left;margin-bottom:10px;gap:8px}.pms-admin li{padding:10px 0;overflow-wrap:anywhere}.pms-admin li button{margin-left:10px}.pms-admin input[type=file]{max-width:100%}@media(max-width:780px){.pms-admin-grid{grid-template-columns:1fr}.pms-fields{grid-template-columns:1fr}.pms-admin{padding:28px 16px}.pms-admin h1{font-size:28px}.pms-admin header{display:block}}
 </style>
 

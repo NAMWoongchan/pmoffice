@@ -1,10 +1,14 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
 import { call, client } from './pms-client.js'
+import NexpharmProjectEditor from './NexpharmProjectEditor.vue'
 
 const center = '/pms/nexpharm/'
 const selected = ref('')
 const detail = ref(null)
+const canEdit = ref(false)
+const editing = ref(false)
+const savedNotice = ref('')
 const catalog = ref(null)
 const session = ref(null)
 const loading = ref(true)
@@ -27,6 +31,9 @@ function onNavigate(event, slug) {
 }
 function addressChanged() {
   readAddress()
+  canEdit.value = false
+  editing.value = false
+  savedNotice.value = ''
   detail.value = null
   catalog.value = null
   load()
@@ -44,7 +51,11 @@ async function load(quiet = false) {
       ? call('nexpharm_access', { p_slug: slug })
       : call('nexpharm_catalog')) : null
     if (id !== epoch) return
-    if (slug) detail.value = result?.canRead ? result.project : null
+    if (slug) {
+      detail.value = result?.canRead ? result.project : null
+      canEdit.value = result?.canManage === true
+      if (!canEdit.value) editing.value = false
+    }
     else catalog.value = result
     error.value = ''
   } catch (reason) {
@@ -66,6 +77,11 @@ async function register() {
     addressChanged()
   } catch (reason) { error.value = reason.message }
   finally { busy.value = false }
+}
+function projectSaved(project) {
+  detail.value = project
+  editing.value = false
+  savedNotice.value = '프로젝트 정보를 저장했습니다.'
 }
 async function logout() {
   const id = ++epoch
@@ -118,10 +134,16 @@ onUnmounted(() => {
         <a v-else class="nex-button nex-primary" :href="'/login.html?returnTo=' + encodeURIComponent(selected ? urlFor(selected) : center)">로그인</a>
       </div>
     </header>
+    <p v-if="savedNotice" role="status">{{ savedNotice }}</p>
     <p v-if="loading" class="nex-notice" role="status">프로젝트 이용 권한을 확인하고 있습니다.</p>
     <p v-if="error" class="nex-notice" role="alert">{{ error }} <button class="nex-button" type="button" @click="load()">다시 확인</button></p>
     <template v-if="selected">
-      <iframe v-if="detail" :key="detail.slug" class="nex-frame"
+      <p v-if="detail?.description" class="nex-description">{{ detail.description }}</p>
+      <button v-if="detail && canEdit && !editing" class="nex-button nex-edit" type="button"
+        @click="editing=true;savedNotice=''">프로젝트 정보 수정</button>
+      <NexpharmProjectEditor v-if="detail && canEdit && editing" :key="detail.slug" :project="detail"
+        @saved="projectSaved" @cancel="editing=false" />
+      <iframe v-if="detail" :key="detail.slug + '-' + (detail.version || 0)" class="nex-frame"
         :src="'/pms/app/index.html?project=' + encodeURIComponent(detail.slug)" title="넥스팜 프로젝트 일정과 자료"></iframe>
       <p v-else-if="!loading && !error" class="nex-notice">프로젝트를 열려면 지정 그룹 권한이 필요합니다.</p>
     </template>
@@ -170,6 +192,6 @@ onUnmounted(() => {
 .nex-catalog li+li{margin-top:9px}.nex-catalog li a{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:14px;background:#fff;border:1px solid #d6e1ef;border-radius:8px;color:#17314e}
 .nex-catalog li a:hover{border-color:#266bc5}.nex-catalog strong{overflow-wrap:anywhere}
 .nex-project-icon{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:#e5efff;color:#1d52a3;font-weight:800}
-.nex-empty{padding-top:12px}.nex-frame{width:100%;height:max(720px,calc(100vh - 160px));border:1px solid #d6e1ef;border-radius:10px}
+.nex-edit{margin:0 0 14px}.nex-description{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}.nex-empty{padding-top:12px}.nex-frame{width:100%;height:max(720px,calc(100vh - 160px));border:1px solid #d6e1ef;border-radius:10px}
 @media(max-width:700px){.nex-portal{padding:30px 14px}.nex-heading{display:block}.nex-actions{margin-top:15px}.nex-register,.nex-catalog,.nex-notice{padding:15px}}
 </style>
