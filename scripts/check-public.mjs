@@ -8,6 +8,7 @@ let files = 0
 allowedPages.add('ebooks/view.md')
 allowedPages.add('project-online/index.md')
 // Approved address alias and old-address redirect; project data still requires server authorization.
+allowedPages.add('pms/nexpharm/index.md')
 allowedPages.add('pms/AIDC_SK/index.md')
 allowedPages.add('pms/sk-ulsan-ai-datacenter-epc/index.md')
 function scan(dir) {
