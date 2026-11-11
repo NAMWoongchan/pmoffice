@@ -6,6 +6,7 @@ import AdminAiWorkPrompts from './AdminAiWorkPrompts.vue'
 import { client } from './pms-client.js'
 
 const emit = defineEmits(['access-revoked'])
+const promptPanel = ref(null)
 const items = ref([]), selected = ref(null), draft = ref(null), promptDirty = ref(false)
 const query = ref(''), status = ref(''), priority = ref(''), archived = ref(false)
 const busy = ref(false), error = ref(''), notice = ref(''), conflict = ref(false)
@@ -88,14 +89,16 @@ async function getItem(id) {
   return item
 }
 
-function navigate(hash) {
+async function navigate(hash) {
   if (busy.value || hash === route.value) return
+  if (promptDirty.value && !await promptPanel.value?.flush()) return
   window.history.pushState({ ...window.history.state, aiWorkFromList: route.value === listRoute }, '', hash)
   syncWorkRoute()
 }
 
-function returnToList() {
+async function returnToList() {
   if (busy.value) return
+  if (promptDirty.value && !await promptPanel.value?.flush()) return
   if (window.history.state?.aiWorkFromList) window.history.back()
   else {
     window.history.replaceState(window.history.state, '', listRoute)
@@ -170,6 +173,7 @@ function save() {
     return
   }
   run(async () => {
+    if (promptDirty.value && !await promptPanel.value?.flush()) return
     const item = await rpc('save', {
       p_id: selected.value?.id ?? null, p_version: selected.value?.version ?? null,
       p_values: { ...draft.value },
@@ -325,7 +329,7 @@ onUnmounted(() => {
           </div>
         </form>
 
-        <AdminAiWorkPrompts
+        <AdminAiWorkPrompts ref="promptPanel"
           v-if="selected" :key="selected.id" :item-id="selected.id" :draft="draft"
           :archived="selected.archived" :disabled="busy"
           @dirty="promptDirty = $event" @access-revoked="emit('access-revoked')"
