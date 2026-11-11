@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import {JSDOM} from 'jsdom';import {build} from 'esbuild';import {parse,compileScript} from 'vue/compiler-sfc';
 const stub=`
-const workId='00000000-0000-0000-0000-000000000099', createdAt='2026-11-11T00:00:00Z';let item=null, admin=true;export function revokeWorkAccess(){admin=false}
-async function workRpc(name,args){if(name==='is_admin')return {data:admin};if(!admin)return {error:{code:'42501'}};const {p_action:action,p_values:values,p_version:version}=args;if(action==='list')return {data:item&&item.archived===values.archived?[item]:[]};if(action==='get')return {data:item};if(item&&version!==item.version)return {error:{code:'40001'}};const previous=item?.status;const event=action==='archive'?'archived':action==='restore'?'restored':!item?'created':previous!==values.status?'status':null;const nextVersion=(item?.version??0)+1;const when=nextVersion===1?createdAt:'2026-11-11T01:00:00Z';item={...item,...values,id:workId,version:nextVersion,created_at:createdAt,updated_at:when,updated_by_name:'합성 관리자',archived:action==='archive',events:[...(event?[{version:nextVersion,event_type:event,previous_status:previous,status:values?.status??previous,occurred_at:when,actor_name:'합성 관리자'}]:[]),...(item?.events??[])]};return {data:item}};
+const workId='00000000-0000-0000-0000-000000000099', createdAt='2026-11-11T00:00:00Z';let item=null, admin=true, catalog=[];export function revokeWorkAccess(){admin=false}
+async function workRpc(name,args){if(name==='is_admin')return {data:admin};if(!admin)return {error:{code:'42501'}};const {p_action:action,p_values:values,p_version:version}=args;if(action==='list')return {data:item&&item.archived===values.archived?[item]:[]};if(action==='get')return {data:item};if(action==='fields')return {data:catalog};if(item&&version!==item.version)return {error:{code:'40001'}};const previous=item?.status;const event=action==='archive'?'archived':action==='restore'?'restored':!item?'created':previous!==values.status?'status':null;const nextVersion=(item?.version??0)+1;const when=nextVersion===1?createdAt:'2026-11-11T01:00:00Z';item={...item,...values,id:workId,version:nextVersion,created_at:createdAt,updated_at:when,updated_by_name:'합성 관리자',archived:action==='archive',events:[...(event?[{version:nextVersion,event_type:event,previous_status:previous,status:values?.status??previous,occurred_at:when,actor_name:'합성 관리자'}]:[]),...(item?.events??[])]};if(values?.fields)catalog=[...new Set([...catalog,...values.fields])];return {data:item}};
 export const calls=[],callbacks=[];let projects=[{slug:'existing-demo',title:'기존 합성 프로젝트',customer:'합성 기관',description:'',status:'published',access_mode:'assigned',version:1},{slug:'synthetic-epc',title:'합성 EPC 프로젝트',customer:'',description:'',status:'draft',access_mode:'assigned',version:1}];export const labels={assigned:'지정 그룹 회원'};export function notify(){callbacks.forEach(cb=>cb({new:{scope:'projects'}}))}export function addProject(){projects.push({slug:'added-demo',title:'추가 합성 프로젝트',status:'draft',access_mode:'assigned',version:1});notify()}export const client=()=>({rpc:workRpc,auth:{onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},channel(){return {on(event,config,cb){callbacks.push(cb);return this},subscribe(){return this}}},removeChannel(){}});export async function call(name,args={}){calls.push({name,args:JSON.parse(JSON.stringify(args))});if(name==='is_admin')return admin;if(name==='pms_catalog')return projects.map(p=>({...p}));if(name==='pms_save_project'){const saved={...args.p_project,version:args.p_version+1};projects=projects.filter(p=>p.slug!==saved.slug).concat(saved);notify();await new Promise(r=>setTimeout(r,5));return saved}return []}export async function action(slug,name){calls.push({name:'action:'+name,args:{slug}});return {current:null}}export async function api(){throw Error('Not called')}`;
 async function mount(component,hash){const dom=new JSDOM('<!doctype html><div id="app"></div>',{url:'https://pmoffice.co.kr/admin/'+hash});for(const k of ['window','document','navigator','Document','Element','SVGElement','HTMLElement','Node','Event','CustomEvent','location','history','sessionStorage','MutationObserver'])Object.defineProperty(globalThis,k,{value:dom.window[k],writable:true,configurable:true});const target=path.resolve('docs/.vitepress/theme/'+component+'.vue');const output=await build({stdin:{contents:`import {createApp,nextTick} from 'vue';import Component from './docs/.vitepress/theme/${component}.vue';export {calls,notify,addProject,revokeWorkAccess} from 'fixture';export {nextTick};const app=createApp(Component);app.component('InquiryAdmin',{render(){return null}});app.mount('#app');export const close=()=>app.unmount()`,resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'browser',define:{__VUE_OPTIONS_API__:'true',__VUE_PROD_DEVTOOLS__:'false',__VUE_PROD_HYDRATION_MISMATCH_DETAILS__:'false'},plugins:[{name:'test-fixtures',setup(b){b.onResolve({filter:/pms-client\.js$|^fixture$/},()=>({path:'fixture',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:stub,loader:'js'}));b.onLoad({filter:/\.vue$/},a=>{if(a.path!==target&&!a.path.endsWith('AdminAiWork.vue'))return {contents:'export default {render(){return null}}',loader:'js'};const {descriptor}=parse(fs.readFileSync(a.path,'utf8'));return {contents:compileScript(descriptor,{id:'project-test',inlineTemplate:true}).content,loader:'js',resolveDir:path.dirname(a.path)}})}}]});const m=await import('data:text/javascript;base64,'+Buffer.from(output.outputFiles[0].text).toString('base64')+'#'+crypto.randomUUID());const settle=async()=>{await new Promise(r=>setTimeout(r,40));await m.nextTick()};await settle();return {m,dom,settle,close(){m.close();dom.window.close()}}}
 const field=text=>Array.from(document.querySelectorAll('label')).find(l=>l.textContent.startsWith(text)).querySelector('input');
@@ -26,10 +26,26 @@ test('AI work form copies a reviewed prompt, saves a plan, displays KST history,
   dom.window.confirm = () => true
   try {
     assert.ok(document.querySelector('.admin-sidebar a[href="/admin/#ai-work"]'))
+
+    assert.deepEqual([...document.querySelectorAll('.work-table th')].map(el => el.textContent.trim()), ['제목', '분야', '상태', '우선순위', '생성일시'])
+    assert.equal(document.querySelector('.work-detail'), null)
     button('새 아이디어').click()
     await settle()
     set(document.querySelector('.ai-work input[required]'), '합성 작업')
     set(document.querySelector('.ai-work textarea[required]'), '진행 현황을 기록한다')
+
+    assert.equal(document.querySelector('.work-list'), null)
+    const fieldInput = document.querySelector('.field-add input')
+    set(fieldInput, 'AI')
+    await settle()
+    button('추가').click()
+    set(fieldInput, '기획')
+    await settle()
+    button('추가').click()
+    await settle()
+    const rating = [...document.querySelectorAll('.work-panel form select')].at(-1)
+    assert.deepEqual([...rating.options].map(option => option.textContent), ['★★★★★', '★★★★', '★★★', '★★', '★', 'X'])
+    set(rating, '4', 'change')
     await submit()
     const sidebar = () => document.querySelector('.work-summary')
     const created = () => sidebar().querySelector('time').dateTime
@@ -53,10 +69,35 @@ test('AI work form copies a reviewed prompt, saves a plan, displays KST history,
     assert.match(location.hash, /^#ai-work\?item=/)
     button('보관').click()
     await settle()
+    button('보관 확인').click()
+    await settle()
     assert.match(sidebar().textContent, /보관/)
     button('복원').click()
     await settle()
     assert.match(sidebar().textContent, /복원/)
+
+    button('목록으로').click()
+    await settle()
+    assert.equal(document.querySelector('.work-detail'), null)
+    const cells = [...document.querySelectorAll('.work-table tbody td')]
+    assert.deepEqual(cells.slice(0, 4).map(el => el.textContent.trim()), ['합성 작업', 'AI, 기획', '계획 수립', '★★★★'])
+    assert.equal(cells[4].querySelector('time').dateTime, '2026-11-11T00:00:00Z')
+    set(document.querySelector('.work-list input'), '합성')
+    document.querySelector('.work-table tbody a').click()
+    await settle()
+    assert.equal(document.querySelector('.work-list'), null)
+    assert.match(sidebar().textContent, /AI, 기획/)
+    history.back()
+    await settle()
+    assert.equal(document.querySelector('.work-list input').value, '합성')
+    assert.equal(document.querySelector('.work-detail'), null)
+    button('새 아이디어').click()
+    await settle()
+    const checkboxes = [...document.querySelectorAll('.field-choices input')]
+    assert.deepEqual(checkboxes.map(el => el.value), ['AI', '기획'])
+    assert.equal(checkboxes.some(el => el.checked), false)
+    button('목록으로').click()
+    await settle()
     m.revokeWorkAccess()
     button('목록 새로고침').click()
     await settle()

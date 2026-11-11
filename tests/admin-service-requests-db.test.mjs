@@ -69,9 +69,40 @@ test('AI work is private and persists versioned planning and status history', as
     assert.equal((await rpc('list'))[0].development_plan, '검증 계획')
     assert.deepEqual(restored.events.map(event => event.event_type), ['restored', 'archived', 'status', 'created'])
 
+
+    const oldHigh = await rpc('save', {}, { ...idea, priority: 'high' })
+    const oldLow = await rpc('save', {}, { ...idea, priority: 'low' })
+    await db.exec(fs.readFileSync('supabase/migrations/202611110002_admin_ai_work_fields.sql', 'utf8'))
+    assert.deepEqual(await rpc('fields'), [])
+    assert.equal((await rpc('get', restored)).priority_rating, 5)
+    assert.equal((await rpc('get', oldHigh)).priority_rating, 5)
+    assert.equal((await rpc('get', oldLow)).priority_rating, 1)
+    const oldDefault = await rpc('save', {}, idea)
+    assert.equal(oldDefault.priority_rating, 3)
+    assert.deepEqual(oldDefault.fields, [])
+    const categorized = await rpc('save', restored, { ...plan, fields: [' AI ', '기획', 'ai'], priority_rating: 4 })
+    assert.deepEqual(categorized.fields, ['AI', '기획'])
+    assert.equal(categorized.priority_rating, 4)
+    const legacy = await rpc('save', categorized, plan)
+    assert.equal(legacy.priority_rating, 4)
+    assert.deepEqual(legacy.fields, ['AI', '기획'])
+    assert.deepEqual((await rpc('get', legacy)).fields, ['AI', '기획'])
+    assert.deepEqual(new Set(await rpc('fields')), new Set(['AI', '기획']))
+    await assert.rejects(() => rpc('save', {}, { ...idea, title: '', fields: ['실패 시 미등록'] }), { code: '23514' })
+    assert.equal((await rpc('fields')).includes('실패 시 미등록'), false)
+    for (const rating of [0, 1, 2, 3, 4, 5]) {
+      const saved = await rpc('save', {}, { ...idea, fields: ['ai'], priority_rating: rating })
+      assert.equal(saved.priority_rating, rating)
+      assert.deepEqual(saved.fields, ['AI'])
+    }
+    const cleared = await rpc('save', legacy, { ...plan, fields: [], priority_rating: 0 })
+    assert.deepEqual(cleared.fields, [])
+    await rpc('archive', cleared)
+    assert.deepEqual(new Set(await rpc('fields')), new Set(['AI', '기획']))
+    await assert.rejects(() => rpc('fields', {}, {}, 'anon'), denied)
     await assert.rejects(() => rpc('get', created, {}, 'anon'), denied)
     await uid(2)
-    for (const action of ['list', 'get', 'save', 'archive', 'restore']) {
+    for (const action of ['list', 'get', 'save', 'archive', 'restore', 'fields']) {
       await assert.rejects(() => rpc(action, restored, plan), denied)
     }
     await db.exec('set role authenticated')

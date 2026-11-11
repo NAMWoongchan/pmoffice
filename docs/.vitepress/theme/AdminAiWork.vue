@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { adminDate } from './admin-navigation.js'
-import { matchesWork, workDraft, workPriorities, workPrompt, workStatuses } from './admin-ai-work.js'
+import { fieldKey, matchesWork, ratingLabel, workDraft, workPrompt, workRating, workRatings, workStatuses } from './admin-ai-work.js'
 import { client } from './pms-client.js'
 
 const emit = defineEmits(['access-revoked'])
@@ -44,6 +44,10 @@ async function run(task) {
     }
   } finally {
     busy.value = false
+    if (routePending) {
+      routePending = false
+      syncWorkRoute()
+    }
   }
 }
 
@@ -54,14 +58,24 @@ async function loadList(view = archived.value) {
   items.value = result
 }
 
-function showItem(item, editing = true, keepPrompt = false) {
+const listRoute = '#ai-work'
+const newRoute = '#ai-work?new=1'
+const itemRoute = id => listRoute + '?item=' + encodeURIComponent(id)
+const route = ref(listRoute)
+const fieldCatalog = ref([]), fieldInput = ref(''), archiveConfirmation = ref(false)
+const fieldChoices = computed(() => [...new Map(
+  [...fieldCatalog.value, ...(draft.value?.fields ?? [])].map(label => [fieldKey(label), label])
+).values()])
+let routePending = false
+
+function showItem(item, keepPrompt = false) {
   if (disposed) return
   selected.value = item
-  draft.value = editing ? workDraft(item ?? {}) : null
+  draft.value = workDraft(item ?? {})
   if (!keepPrompt) prompt.value = ''
+  fieldInput.value = ''
+  archiveConfirmation.value = false
   conflict.value = false
-  const hash = item ? '#ai-work?item=' + item.id : '#ai-work'
-  window.history.replaceState(window.history.state, '', hash)
 }
 
 function canLeave() {
@@ -74,23 +88,76 @@ async function getItem(id) {
   return item
 }
 
-function openItem(id) {
-  if (canLeave()) run(async () => showItem(await getItem(id)))
+function navigate(hash) {
+  if (busy.value || hash === route.value) return
+  window.history.pushState({ ...window.history.state, aiWorkFromList: route.value === listRoute }, '', hash)
+  syncWorkRoute()
 }
 
-function newItem() {
-  if (canLeave()) {
-    error.value = ''
-    notice.value = ''
-    showItem(null)
+function returnToList() {
+  if (busy.value) return
+  if (window.history.state?.aiWorkFromList) window.history.back()
+  else {
+    window.history.replaceState(window.history.state, '', listRoute)
+    syncWorkRoute()
   }
 }
 
-function switchList(view) {
-  if (canLeave()) run(async () => {
-    await loadList(view)
-    showItem(null, false)
+function syncWorkRoute() {
+  if (disposed || !location.hash.startsWith(listRoute)) return
+  if (busy.value) {
+    routePending = true
+    return
+  }
+
+  const params = new URLSearchParams(location.hash.split('?')[1])
+  const id = params.get('item')
+  const next = id ? itemRoute(id) : params.get('new') === '1' ? newRoute : listRoute
+  if (next !== route.value && !canLeave()) {
+    window.history.pushState(window.history.state, '', route.value)
+    return
+  }
+
+  if (next === route.value && (draft.value || listLoaded)) return
+  route.value = next
+  selected.value = null
+  draft.value = null
+  prompt.value = ''
+  archiveConfirmation.value = false
+  run(async () => {
+    if (next === listRoute) {
+      await loadList()
+      listLoaded = true
+      return
+    }
+
+    listLoaded = false
+    if (id && !/^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id)) throw Error('missing-item')
+    const [item, labels] = await Promise.all([id ? getItem(id) : null, rpc('fields')])
+    if (disposed || location.hash !== next) return
+    fieldCatalog.value = labels
+    showItem(item)
   })
+}
+let listLoaded = false
+
+function reloadItem() {
+  if (canLeave()) run(async () => showItem(await getItem(selected.value.id)))
+}
+
+function addField() {
+  const label = fieldInput.value.trim()
+  if (!label) return
+  const known = fieldChoices.value.find(field => fieldKey(field) === fieldKey(label)) ?? label
+  if (!draft.value.fields.includes(known)) {
+    if (draft.value.fields.length >= 50) {
+      error.value = '분야는 최대 50개까지 선택할 수 있습니다.'
+      return
+    }
+    draft.value.fields.push(known)
+  }
+  fieldInput.value = ''
+  error.value = ''
 }
 
 function save() {
@@ -98,27 +165,38 @@ function save() {
     error.value = '제목과 해결하려는 문제를 입력해 주세요.'
     return
   }
+  if (draft.value.fields.length > 50) {
+    error.value = '분야는 최대 50개까지 선택할 수 있습니다.'
+    return
+  }
   run(async () => {
     const item = await rpc('save', {
       p_id: selected.value?.id ?? null, p_version: selected.value?.version ?? null,
       p_values: { ...draft.value },
     })
-    showItem(item, true, true)
+    if (disposed || location.hash !== route.value) return
+    const hash = itemRoute(item.id)
+    if (hash !== route.value) window.history.replaceState(window.history.state, '', hash)
+    route.value = hash
+    showItem(item, true)
+    fieldCatalog.value = [...new Map([...fieldCatalog.value, ...item.fields].map(label => [fieldKey(label), label])).values()]
     notice.value = '게시글을 저장했습니다.'
-    await loadList(item.archived)
   })
 }
 
 function toggleArchive() {
   const item = selected.value
-  if (!canLeave() || (!item.archived && !window.confirm('게시글을 보관하시겠습니까?'))) return
+  if (!item.archived && !archiveConfirmation.value) {
+    if (canLeave()) archiveConfirmation.value = true
+    return
+  }
   run(async () => {
     const updated = await rpc(item.archived ? 'restore' : 'archive', {
       p_id: item.id, p_version: item.version,
     })
+    if (disposed || location.hash !== route.value) return
     showItem(updated)
     notice.value = updated.archived ? '게시글을 보관했습니다.' : '게시글을 복원했습니다.'
-    await loadList(updated.archived)
   })
 }
 
@@ -155,12 +233,9 @@ async function checkAccess() {
 }
 
 onMounted(() => {
-  run(async () => {
-    const id = new URLSearchParams(location.hash.split('?')[1]).get('item')
-    const item = id && /^[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/i.test(id) ? await getItem(id) : null
-    await loadList(item?.archived)
-    if (item) showItem(item)
-  })
+  syncWorkRoute()
+  window.addEventListener('hashchange', syncWorkRoute)
+  window.addEventListener('popstate', syncWorkRoute)
   accessTimer = window.setInterval(checkAccess, 30000)
   window.addEventListener('focus', checkAccess)
 })
@@ -169,6 +244,8 @@ onUnmounted(() => {
   disposed = true
   window.clearInterval(accessTimer)
   window.removeEventListener('focus', checkAccess)
+  window.removeEventListener('hashchange', syncWorkRoute)
+  window.removeEventListener('popstate', syncWorkRoute)
 })
 </script>
 
@@ -176,16 +253,17 @@ onUnmounted(() => {
   <main class="ai-work" :aria-busy="busy">
     <header class="work-header">
       <h1>AI 작업 관리</h1>
-      <button type="button" class="primary" :disabled="busy" @click="newItem">새 아이디어</button>
+      <button v-if="route === listRoute" type="button" class="primary" :disabled="busy" @click="navigate(newRoute)">새 아이디어</button>
+      <button v-else type="button" :disabled="busy" @click="returnToList">목록으로</button>
     </header>
     <p v-if="error" role="alert" class="work-error">{{ error }}</p>
     <p v-if="notice" role="status">{{ notice }}</p>
     <p v-if="busy" role="status">처리 중…</p>
 
-    <section class="work-list" aria-label="게시글 목록">
+    <section v-if="route === listRoute" class="work-list" aria-label="게시글 목록">
       <div class="work-actions">
-        <button type="button" :aria-pressed="!archived" :disabled="busy" @click="switchList(false)">진행 목록</button>
-        <button type="button" :aria-pressed="archived" :disabled="busy" @click="switchList(true)">보관 목록</button>
+        <button type="button" :aria-pressed="!archived" :disabled="busy" @click="run(() => loadList(false))">진행 목록</button>
+        <button type="button" :aria-pressed="archived" :disabled="busy" @click="run(() => loadList(true))">보관 목록</button>
         <button type="button" :disabled="busy" @click="run(() => loadList())">목록 새로고침</button>
       </div>
       <div class="work-filters">
@@ -194,18 +272,27 @@ onUnmounted(() => {
           <option v-for="(label, key) in workStatuses" :key="key" :value="key">{{ label }}</option>
         </select></label>
         <label>우선순위<select v-model="priority"><option value="">전체</option>
-          <option v-for="(label, key) in workPriorities" :key="key" :value="key">{{ label }}</option>
+          <option v-for="rating in workRatings" :key="rating" :value="rating">{{ ratingLabel(rating) }}</option>
         </select></label>
       </div>
       <p v-if="!busy && !visibleItems.length">표시할 게시글이 없습니다.</p>
-      <ul v-if="visibleItems.length" class="work-items">
-        <li v-for="item in visibleItems" :key="item.id">
-          <button type="button" :aria-pressed="selected?.id === item.id" :disabled="busy" @click="openItem(item.id)">
-            <strong>{{ item.title }}</strong>
-            <span>{{ workStatuses[item.status] }} · 우선순위 {{ workPriorities[item.priority] }} · {{ adminDate(item.updated_at) }}</span>
-          </button>
-        </li>
-      </ul>
+      <div class="work-table" role="region" aria-label="게시글 표" tabindex="0">
+        <table>
+          <thead><tr>
+            <th scope="col">제목</th><th scope="col">분야</th><th scope="col">상태</th>
+            <th scope="col">우선순위</th><th scope="col">생성일시</th>
+          </tr></thead>
+          <tbody>
+            <tr v-for="item in visibleItems" :key="item.id">
+              <td><a :href="itemRoute(item.id)" @click.exact.prevent="navigate(itemRoute(item.id))">{{ item.title }}</a></td>
+              <td>{{ item.fields?.join(', ') || '—' }}</td>
+              <td>{{ workStatuses[item.status] }}</td>
+              <td>{{ ratingLabel(workRating(item)) }}</td>
+              <td><time :datetime="item.created_at">{{ adminDate(item.created_at) }} (KST)</time></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <div v-if="draft" class="work-detail" :class="{ 'has-summary': selected }">
@@ -219,20 +306,38 @@ onUnmounted(() => {
               <label>상태<select v-model="draft.status">
                 <option v-for="(label, key) in workStatuses" :key="key" :value="key">{{ label }}</option>
               </select></label>
-              <label>우선순위<select v-model="draft.priority">
-                <option v-for="(label, key) in workPriorities" :key="key" :value="key">{{ label }}</option>
+              <label>우선순위<select v-model="draft.priority_rating">
+                <option v-for="rating in workRatings" :key="rating" :value="rating">{{ ratingLabel(rating) }}</option>
               </select></label>
             </div>
+            <fieldset class="work-fields">
+              <legend>분야</legend>
+              <div v-if="fieldChoices.length" class="field-choices">
+                <label v-for="field in fieldChoices" :key="fieldKey(field)">
+                  <input v-model="draft.fields" type="checkbox" :value="field">
+                  {{ field }}
+                </label>
+              </div>
+              <div class="field-add">
+                <label>새 분야<input v-model="fieldInput" maxlength="80" @keydown.enter.prevent="addField"></label>
+                <button type="button" :disabled="!fieldInput.trim()" @click="addField">추가</button>
+              </div>
+            </fieldset>
             <label v-for="(label, key) in optionalFields" :key="key">
               {{ label }}<textarea v-model="draft[key]" maxlength="20000" rows="3"></textarea>
             </label>
           </fieldset>
           <div class="work-actions">
             <button v-if="!selected?.archived" type="submit" class="primary" :disabled="busy || conflict">저장</button>
-            <button v-if="conflict && selected" type="button" :disabled="busy" @click="openItem(selected.id)">최신 게시글 열기</button>
-            <button v-if="selected" type="button" :disabled="busy || conflict" @click="toggleArchive">
+            <button v-if="conflict && selected" type="button" :disabled="busy" @click="reloadItem">최신 게시글 열기</button>
+            <button v-if="selected && !archiveConfirmation" type="button" :disabled="busy || conflict" @click="toggleArchive">
               {{ selected.archived ? '복원' : '보관' }}
             </button>
+            <div v-if="archiveConfirmation" class="work-actions" role="group" aria-label="보관 확인">
+              <span>게시글을 보관하시겠습니까?</span>
+              <button type="button" :disabled="busy || conflict" @click="toggleArchive">보관 확인</button>
+              <button type="button" :disabled="busy" @click="archiveConfirmation = false">취소</button>
+            </div>
           </div>
         </form>
 
@@ -255,7 +360,8 @@ onUnmounted(() => {
           <dl>
             <dt>제목</dt><dd>{{ selected.title }}</dd>
             <dt>현재 상태</dt><dd>{{ workStatuses[selected.status] }}{{ selected.archived ? ' · 보관' : '' }}</dd>
-            <dt>우선순위</dt><dd>{{ workPriorities[selected.priority] }}</dd>
+            <dt>분야</dt><dd>{{ selected.fields?.join(', ') || '—' }}</dd>
+            <dt>우선순위</dt><dd>{{ ratingLabel(workRating(selected)) }}</dd>
             <dt>다음 조치</dt><dd>{{ selected.next_step || '미등록' }}</dd>
           </dl>
         </section>
@@ -298,9 +404,23 @@ button[aria-pressed="true"] { border-color: var(--vp-c-brand-1); color: var(--vp
 button.primary { background: var(--vp-c-brand-3); border-color: var(--vp-c-brand-3); color: white; }
 button:disabled { opacity: .55; cursor: default; }
 :where(button, input, select, textarea):focus-visible { outline: 2px solid var(--vp-c-brand-1); outline-offset: 2px; }
-.work-items { display: grid; gap: .35rem; max-height: 22rem; overflow-y: auto; padding: .2rem; }
-.work-items button { text-align: left; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .25rem .8rem; width: 100%; overflow-wrap: anywhere; }
-.work-items span, small { color: var(--vp-c-text-2); font-size: .8rem; }
+.work-table { overflow-x: auto; max-width: 100%; }
+.work-table table { border-collapse: collapse; width: 100%; min-width: 36rem; text-align: left; }
+.work-table th, .work-table td { padding: .65rem .55rem; border-bottom: 1px solid var(--vp-c-divider); }
+.work-table th { white-space: nowrap; background: var(--vp-c-bg-soft); }
+.work-table td:nth-child(n+3) { white-space: nowrap; }
+.work-table td:first-child { width: 34%; }
+.work-table td:nth-child(-n+2) { overflow-wrap: anywhere; }
+.work-table a { color: var(--vp-c-brand-1); font-weight: 650; text-decoration: underline; text-underline-offset: .15em; }
+.work-table a:focus-visible { outline: 2px solid var(--vp-c-brand-1); outline-offset: 2px; }
+.work-fields { margin: .4rem 0 .75rem; border: 1px solid var(--vp-c-divider); border-radius: .4rem; padding: .5rem .7rem; }
+.work-fields legend { padding: 0 .3rem; font-size: .9rem; font-weight: 650; }
+.field-choices, .field-add { display: flex; flex-wrap: wrap; gap: .4rem .8rem; }
+.field-choices label { display: flex; align-items: baseline; gap: .4rem; overflow-wrap: anywhere; }
+.field-choices input { width: auto; }
+.field-add { align-items: end; }
+.field-add label { flex: 1 1 12rem; margin: 0; }
+small { color: var(--vp-c-text-2); font-size: .8rem; }
 .work-detail { display: grid; gap: .85rem; align-items: start; min-width: 0; }
 @media (min-width: 1000px) { .work-detail.has-summary { grid-template-columns: minmax(0, 1fr) minmax(14rem, 30%); } }
 .work-summary { overflow-wrap: anywhere; }
