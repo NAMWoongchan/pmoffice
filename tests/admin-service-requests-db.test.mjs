@@ -27,3 +27,71 @@ await db.exec(`create function public.member_position_save(p_user uuid,p_positio
 
 
 test('admin requested services preserve original answers and actual grants, reject other users and stale updates, emit change signal',async()=>{const {db,uid}=await setup();const q=async(sql,args=[])=>{await db.exec('set role authenticated');try{return (await db.query(sql,args)).rows[0]?.a}finally{await db.exec('reset role')}};try{await uid(2);await q('select member_signup_service_request($1,$2) a',[['ai:vip'],'직함']);let d=await q('select member_detail() a');const original=d.original_answers;await assert.rejects(()=>q('select member_admin_requested_services_save($1,$2) a',[id(2),['msp:premium']]));await uid(1);await assert.rejects(()=>q('select member_admin_requested_services_save($1,$2) a',[id(1),['msp:premium']]));await q('select member_admin_requested_services_save($1,$2,$3,$4) a',[id(2),['msp:premium'],'관리자 검증',d.details_updated_at]);await assert.rejects(()=>q('select member_admin_requested_services_save($1,$2,$3,$4) a',[id(2),['ai:premium'],'오래된 화면',d.details_updated_at]));await uid(2);d=await q('select member_detail() a');assert.deepEqual(d.requested_services,['msp:premium']);assert.equal(d.requested_source,'admin');assert.deepEqual(d.original_answers,original);assert.deepEqual(d.services,['seedling']);await assert.rejects(()=>q('select member_signup_service_request($1,$2) a',[['ai:premium'],'직함']));await uid(1);const a=await q('select member_admin_signup_answers($1) a',[[id(2)]]);assert.deepEqual(a[0].requested_names,['MS Project: 프리미엄']);assert.equal(a[0].requested_source,'admin');assert.ok((await db.query('select count(*)::int n from test_change_signals')).rows[0].n>0);await db.exec('set role anon');await assert.rejects(()=>db.query('select member_admin_requested_services_save($1,$2)',[id(2),['ai:vip']]));}finally{await db.close()}});
+
+test('AI work is private and persists versioned planning and status history', async () => {
+  const { db, uid } = await setup()
+  const rpc = async (action, item = {}, values = {}, role = 'authenticated') => {
+    await db.exec('set role ' + role)
+    try {
+      const { rows } = await db.query('select public.admin_ai_work($1,$2,$3,$4) a', [
+        action, item.id ?? null, item.version ?? null, values,
+      ])
+      return rows[0].a
+    } finally {
+      await db.exec('reset role')
+    }
+  }
+  const denied = { code: '42501' }
+  try {
+    await db.exec(fs.readFileSync('supabase/migrations/202611110001_admin_ai_work.sql', 'utf8'))
+    await uid(1)
+    await db.query("update public.profiles set display_name='시험 관리자' where id=$1", [id(1)])
+    const idea = { title: '합성 아이디어', problem: '작업 기록을 추적한다' }
+    await assert.rejects(() => rpc('save', {}, { title: ' ', problem: idea.problem }), { code: '23514' })
+    const created = await rpc('save', {}, idea)
+    assert.equal(created.status, 'idea')
+    assert.equal(created.created_at, created.updated_at)
+    assert.equal(created.updated_by_name, '시험 관리자')
+    assert.equal(created.events[0].event_type, 'created')
+
+    const plan = { ...idea, status: 'planning', priority: 'high', development_plan: '검증 계획', next_step: '검토' }
+    const updated = await rpc('save', created, plan)
+    assert.equal(updated.created_at, created.created_at)
+    assert.equal(updated.events[0].previous_status, 'idea')
+    assert.equal(updated.events[0].status, 'planning')
+    await assert.rejects(() => rpc('save', created, plan), { code: '40001' })
+    assert.deepEqual(await rpc('get', created), updated)
+
+    const archived = await rpc('archive', updated)
+    assert.deepEqual(await rpc('list'), [])
+    assert.equal((await rpc('list', {}, { archived: true }))[0].id, created.id)
+    const restored = await rpc('restore', archived)
+    assert.equal((await rpc('list'))[0].development_plan, '검증 계획')
+    assert.deepEqual(restored.events.map(event => event.event_type), ['restored', 'archived', 'status', 'created'])
+
+    await assert.rejects(() => rpc('get', created, {}, 'anon'), denied)
+    await uid(2)
+    for (const action of ['list', 'get', 'save', 'archive', 'restore']) {
+      await assert.rejects(() => rpc(action, restored, plan), denied)
+    }
+    await db.exec('set role authenticated')
+    try {
+      await assert.rejects(() => db.query('select * from pmoffice_private.ai_work_items'), denied)
+      await assert.rejects(() => db.query('select * from pmoffice_private.ai_work_events'), denied)
+    } finally {
+      await db.exec('reset role')
+    }
+    await db.exec(fs.readFileSync('supabase/migrations/202611080001_nexpharm_pms.sql', 'utf8'))
+    await db.query("insert into public.pms_group_members(group_id, user_id) values('e99358b1-8880-4e2e-894f-d42c9d0efdd0',$1)", [id(2)])
+    assert.equal((await db.query('select public.nexpharm_catalog() a')).rows[0].a.canManage, true)
+    await assert.rejects(() => rpc('get', restored), denied)
+    await uid(1)
+    await db.query("update public.profiles set status='suspended' where id=$1", [id(1)])
+    await assert.rejects(() => rpc('get', restored), denied)
+    await db.query("update public.profiles set status='active' where id=$1", [id(1)])
+    await db.query('delete from public.admin_roles where user_id=$1', [id(1)])
+    await assert.rejects(() => rpc('get', restored), denied)
+  } finally {
+    await db.close()
+  }
+})

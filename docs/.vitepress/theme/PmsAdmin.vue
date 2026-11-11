@@ -5,6 +5,7 @@ import {suggestedProjectSlug,projectStatusLabel} from './project-admin.js'
 import {watchAdminChanges} from './change-events.js'
 import {adminRoute,adminSections} from './admin-navigation.js'
 import AdminHome from './AdminHome.vue'
+import AdminAiWork from './AdminAiWork.vue'
 import AdminEbooks from './AdminEbooks.vue'
 import AdminSites from './AdminSites.vue'
 import AdminSoftware from './AdminSoftware.vue'
@@ -29,6 +30,7 @@ let stopChanges,sub,timer,verifyEpoch=0,disposed=false,routePending=false
 function suggestSlug(){if(selected.value&&!selected.value.version&&!slugEdited.value)selected.value.slug=suggestedProjectSlug(selected.value.title,rows.value.map(p=>p.slug))}
 const blank=()=>({slug:'',title:'',customer:'',description:'',access_mode:'assigned',status:'draft',listed:false,version:0})
 async function verify(){const id=++verifyEpoch;try{const ok=await call('is_admin');if(disposed||id!==verifyEpoch)return;if(!ok){clear();return}allowed.value=true;const data=await call('pms_catalog');if(!disposed&&id===verifyEpoch){rows.value=data;openRouteProject()}}catch{if(id===verifyEpoch)clear()}}
+function revokeBoardAccess(){++verifyEpoch;clear()}
 function clear(){allowed.value=false;rows.value=[];selected.value=null;members.value=[];history.value=[];matches.value=[];meta.value=null}
 async function run(fn){if(busy.value)return;busy.value=true;message.value='';try{await fn()}catch(e){message.value=e.message}finally{busy.value=false;if(routePending){routePending=false;openRouteProject()}}}
 async function open(p){slugEdited.value=!!p.version;selected.value={...p};if(tab.value==='projects')window.history.replaceState(window.history.state,'',p.version?'#projects?project='+encodeURIComponent(p.slug):'#projects?new=1');meta.value=null;matches.value=[];members.value=[];history.value=[];if(!p.version)return;await run(async()=>{[members.value,history.value]=await Promise.all([call('pms_admin_members',{p_slug:p.slug}),call('pms_history',{p_slug:p.slug})]);try{meta.value=await action(p.slug,'meta')}catch(e){message.value=e.message}})}
@@ -61,6 +63,7 @@ onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();stopChanges?.();
 <div class="admin-content">
 <InquiryAdmin v-if="!allowed" authentication-only />
 <AdminHome v-else-if="tab==='home'" />
+<AdminAiWork v-else-if="tab==='ai-work'" @access-revoked="revokeBoardAccess" />
 <InquiryAdmin v-else-if="tab==='client'" />
 <AdminSites v-else-if="tab==='pms'" />
 <AdminEbooks v-else-if="tab==='ebooks'" />
