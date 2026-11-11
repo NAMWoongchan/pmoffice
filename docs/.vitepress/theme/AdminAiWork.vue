@@ -1,11 +1,12 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { adminDate } from './admin-navigation.js'
-import { fieldKey, matchesWork, ratingLabel, workDraft, workPrompt, workRating, workRatings, workStatuses } from './admin-ai-work.js'
+import { fieldKey, matchesWork, ratingLabel, workDraft, workRating, workRatings, workStatuses } from './admin-ai-work.js'
+import AdminAiWorkPrompts from './AdminAiWorkPrompts.vue'
 import { client } from './pms-client.js'
 
 const emit = defineEmits(['access-revoked'])
-const items = ref([]), selected = ref(null), draft = ref(null), prompt = ref('')
+const items = ref([]), selected = ref(null), draft = ref(null), promptDirty = ref(false)
 const query = ref(''), status = ref(''), priority = ref(''), archived = ref(false)
 const busy = ref(false), error = ref(''), notice = ref(''), conflict = ref(false)
 const visibleItems = computed(() => items.value.filter(item => matchesWork(item, query.value, status.value, priority.value)))
@@ -68,18 +69,17 @@ const fieldChoices = computed(() => [...new Map(
 ).values()])
 let routePending = false
 
-function showItem(item, keepPrompt = false) {
+function showItem(item) {
   if (disposed) return
   selected.value = item
   draft.value = workDraft(item ?? {})
-  if (!keepPrompt) prompt.value = ''
   fieldInput.value = ''
   archiveConfirmation.value = false
   conflict.value = false
 }
 
 function canLeave() {
-  return !dirty.value || window.confirm('저장하지 않은 수정 내용을 버리시겠습니까?')
+  return (!dirty.value && !promptDirty.value) || window.confirm('저장하지 않은 수정 내용을 버리시겠습니까?')
 }
 
 async function getItem(id) {
@@ -122,7 +122,7 @@ function syncWorkRoute() {
   route.value = next
   selected.value = null
   draft.value = null
-  prompt.value = ''
+  promptDirty.value = false
   archiveConfirmation.value = false
   run(async () => {
     if (next === listRoute) {
@@ -178,7 +178,7 @@ function save() {
     const hash = itemRoute(item.id)
     if (hash !== route.value) window.history.replaceState(window.history.state, '', hash)
     route.value = hash
-    showItem(item, true)
+    showItem(item)
     fieldCatalog.value = [...new Map([...fieldCatalog.value, ...item.fields].map(label => [fieldKey(label), label])).values()]
     notice.value = '게시글을 저장했습니다.'
   })
@@ -198,22 +198,6 @@ function toggleArchive() {
     showItem(updated)
     notice.value = updated.archived ? '게시글을 보관했습니다.' : '게시글을 복원했습니다.'
   })
-}
-
-function generatePrompt() {
-  if (prompt.value && !window.confirm('작성 중인 요청문을 새로 만들겠습니까?')) return
-  prompt.value = workPrompt(draft.value)
-}
-
-async function copyPrompt() {
-  error.value = ''
-  notice.value = ''
-  try {
-    await navigator.clipboard.writeText(prompt.value)
-    notice.value = '개발 계획 요청문을 복사했습니다.'
-  } catch {
-    error.value = '자동 복사가 되지 않았습니다. 요청문을 선택해 직접 복사해 주세요.'
-  }
 }
 
 function eventLabel(event) {
@@ -341,17 +325,12 @@ onUnmounted(() => {
           </div>
         </form>
 
-        <section class="work-prompt" aria-label="개발 계획 요청문">
-          <h2>개발 계획 요청문</h2>
-          <div class="work-actions">
-            <button type="button" :disabled="busy || !draft.title.trim() || !draft.problem.trim()" @click="generatePrompt">요청문 만들기</button>
-            <button v-if="prompt" type="button" :disabled="busy || !prompt.trim()" @click="copyPrompt">요청문 복사</button>
-          </div>
-          <label v-if="prompt" class="prompt-editor">
-            ChatGPT·Copilot에 붙여넣을 요청문
-            <textarea v-model="prompt" rows="10"></textarea>
-          </label>
-        </section>
+        <AdminAiWorkPrompts
+          v-if="selected" :key="selected.id" :item-id="selected.id" :draft="draft"
+          :archived="selected.archived" :disabled="busy"
+          @dirty="promptDirty = $event" @access-revoked="emit('access-revoked')"
+        />
+        <p v-else>게시글을 저장하면 개발 계획 요청문을 만들고 저장할 수 있습니다.</p>
       </section>
 
       <aside v-if="selected" class="work-panel work-summary" aria-label="게시글 요약 및 이력">
@@ -424,11 +403,10 @@ small { color: var(--vp-c-text-2); font-size: .8rem; }
 .work-detail { display: grid; gap: .85rem; align-items: start; min-width: 0; }
 @media (min-width: 1000px) { .work-detail.has-summary { grid-template-columns: minmax(0, 1fr) minmax(14rem, 30%); } }
 .work-summary { overflow-wrap: anywhere; }
-.work-summary section + section, .work-prompt { border-top: 1px solid var(--vp-c-divider); margin-top: 1rem; padding-top: 1rem; }
+.work-summary section + section { border-top: 1px solid var(--vp-c-divider); margin-top: 1rem; padding-top: 1rem; }
 dt { color: var(--vp-c-text-2); font-size: .8rem; }
 dd { margin: 0 0 .5rem; white-space: pre-wrap; }
 small { display: block; }
 .work-summary li { margin-bottom: .5rem; }
-.prompt-editor { margin-top: .75rem; }
 .work-error { color: var(--vp-c-danger-1); }
 </style>

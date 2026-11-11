@@ -99,9 +99,30 @@ test('AI work is private and persists versioned planning and status history', as
     assert.deepEqual(cleared.fields, [])
     await rpc('archive', cleared)
     assert.deepEqual(new Set(await rpc('fields')), new Set(['AI', '기획']))
+    await db.exec(fs.readFileSync('supabase/migrations/202611110003_admin_ai_work_prompts.sql', 'utf8'))
+    const promptRpc = async (action, itemId, promptId, version, body, memo, role = 'authenticated') => {
+      await db.exec('set role ' + role)
+      try {
+        return (await db.query('select public.admin_ai_work_prompts($1,$2,$3,$4,$5,$6,$7) a',
+          [action, itemId, promptId ?? null, version ?? null, body ?? null, memo ?? '', '2026-11-11T00:00:00Z'])).rows[0].a
+      } finally { await db.exec('reset role') }
+    }
+    const firstPrompt = await promptRpc('save', oldHigh.id, id(51), null, '첫 요청문', '첫 메모')
+    assert.equal(firstPrompt.created_at, '2026-11-11T00:00:00+00:00')
+    assert.deepEqual(await promptRpc('save', oldHigh.id, id(51), null, '첫 요청문', '첫 메모'), firstPrompt)
+    const secondPrompt = await promptRpc('save', oldHigh.id, id(52), null, '둘째 요청문', '둘째 메모')
+    const revised = await promptRpc('save', oldHigh.id, id(51), firstPrompt.version, '첫 요청문 수정', '추가 메모')
+    assert.equal(revised.created_at, firstPrompt.created_at)
+    await assert.rejects(() => promptRpc('save', oldHigh.id, id(51), firstPrompt.version, '충돌', ''), { code: '40001' })
+    assert.deepEqual(await promptRpc('list', oldHigh.id), [revised, secondPrompt])
+    assert.deepEqual(await promptRpc('list', oldLow.id), [])
+    await assert.rejects(() => promptRpc('save', oldLow.id, id(51), revised.version, '다른 게시글', ''), { code: '40001' })
+    await assert.rejects(() => promptRpc('save', cleared.id, id(53), null, '보관 중', ''), { code: '22023' })
+    await assert.rejects(() => promptRpc('list', oldHigh.id, null, null, null, null, 'anon'), denied)
     await assert.rejects(() => rpc('fields', {}, {}, 'anon'), denied)
     await assert.rejects(() => rpc('get', created, {}, 'anon'), denied)
     await uid(2)
+    await assert.rejects(() => promptRpc('list', oldHigh.id), denied)
     for (const action of ['list', 'get', 'save', 'archive', 'restore', 'fields']) {
       await assert.rejects(() => rpc(action, restored, plan), denied)
     }
