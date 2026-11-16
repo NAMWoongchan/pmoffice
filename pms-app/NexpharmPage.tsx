@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarRange, ChevronRight, Download, FileText, Flag, FolderUp, Menu, X } from 'lucide-react';
+import { CalendarDays, CalendarRange, ChevronRight, Download, FileText, Flag, FolderUp, Menu, X } from 'lucide-react';
 import { NexpharmReference } from './components/NexpharmReference';
 import { NexpharmSchedule } from './components/NexpharmSchedule';
 import { NexpharmProductionSchedule } from './components/NexpharmProductionSchedule';
+import { NexpharmProductionCalendar } from './components/NexpharmProductionCalendar';
 import { nexpharmFile, type FileMeta } from './lib/nexpharm-api';
 import { parseNexpharmFile, scheduleSnapshot, type NexpharmFile } from './lib/nexpharm-book';
 import type { Book } from './lib/workbook';
@@ -15,7 +16,9 @@ const menu = [
   { key: 'reference', label: '세부 정보', icon: FileText },
   { key: 'files', label: '파일 관리', icon: FolderUp },
 ] as const;
-type View = typeof menu[number]['key'];
+const calendarMenu = { key: 'calendar', label: '달력 설정', icon: CalendarDays } as const;
+const productionMenu = [menu[0], calendarMenu] as const;
+type View = typeof menu[number]['key'] | typeof calendarMenu.key;
 type Entry = { meta?: FileMeta | null; book?: Book; production?: ProductionSchedule; error?: string };
 const kinds = ['workbook', 'reference'] as const;
 const labels = { workbook: '공정표', reference: '참고 정보' };
@@ -24,12 +27,12 @@ const embedded = new URLSearchParams(location.search).get('embed') === '1';
 
 function readView(): View {
   const key = location.hash.slice(1);
-  return menu.find(item => item.key === key)?.key ?? 'schedule';
+  return [...menu, calendarMenu].find(item => item.key === key)?.key ?? 'schedule';
 }
 
 export default function NexpharmPage({ title, canManage, template }: { title: string; canManage: boolean; template?: NexpharmTemplate }) {
   const isProduction = template === PRODUCTION;
-  const visibleMenu = isProduction ? [menu[0], ...(canManage ? [menu[3]] : [])] : menu;
+  const visibleMenu = isProduction ? [...productionMenu, ...(canManage ? [menu[3]] : [])] : menu;
   const availableKinds = isProduction ? kinds.slice(0, 1) : kinds;
   const [view, setView] = useState<View>(readView);
   const activeView = visibleMenu.some(item => item.key === view) ? view : 'schedule';
@@ -187,6 +190,9 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
           ? <NexpharmProductionSchedule key={schedule.meta?.etag} schedule={schedule.production}/>
           : schedule.book && snapshot
           ? <NexpharmSchedule key={schedule.meta?.etag} tasks={schedule.book.tasks} {...snapshot}/>
+          : unavailable('workbook'))}
+        {activeView === 'calendar' && (schedule.production
+          ? <NexpharmProductionCalendar days={schedule.production.days}/>
           : unavailable('workbook'))}
         {activeView === 'milestones' && (snapshot ? <>
           <div className="nex-kpis">

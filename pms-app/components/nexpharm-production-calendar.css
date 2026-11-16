@@ -1,0 +1,73 @@
+.nex-production-calendar {
+  width: min(100%, 920px);
+  padding: clamp(10px, 2vw, 22px);
+}
+
+.nex-production-calendar table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+.nex-production-calendar caption {
+  text-align: start;
+  padding: 0 4px 14px;
+}
+
+.nex-production-calendar caption strong,
+.nex-production-calendar caption > span,
+.nex-production-calendar time,
+.nex-production-calendar td > span {
+  display: block;
+}
+
+.nex-production-calendar caption strong {
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
+}
+
+.nex-production-calendar caption > span {
+  color: #475569;
+  font-size: .875rem;
+  margin-top: 4px;
+}
+
+.nex-production-calendar th,
+.nex-production-calendar td {
+  text-align: center;
+  padding: 6px 1px;
+  border: 1px solid #dbe4ee;
+  border-radius: 5px;
+}
+
+.nex-production-calendar th {
+  color: #183655;
+  background: #eef4fa;
+  font-size: .875rem;
+}
+
+.nex-production-calendar td {
+  background: #fff;
+  color: #213245;
+  height: clamp(42px, 7vw, 68px);
+}
+
+.nex-production-calendar td.nex-calendar-off {
+  background: #e7e9ed;
+  color: #263241;
+}
+
+.nex-production-calendar td.nex-calendar-empty {
+  background: transparent;
+  border-color: transparent;
+}
+
+.nex-production-calendar time {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.nex-production-calendar td > span {
+  font-size: clamp(.625rem, 2.4vw, .8125rem);
+  white-space: nowrap;
+}
