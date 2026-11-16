@@ -26,7 +26,8 @@ Deno.serve(createNexpharmFilesHandler({
       body: JSON.stringify(args),
     });
     if (!response.ok) throw Object.assign(Error('프로젝트 이용 권한을 확인해 주세요.'), { status: 403 });
-    return response.json();
+    // PostgREST returns no content for successful void routines such as the audit insert.
+    return response.status === 204 ? null : response.json();
   },
   async github(path: string, options: { method?: string; raw?: boolean; body?: object } = {}, missing = false) {
     if (!token) throw Object.assign(Error('PMS 원본 저장소 연결을 확인해 주세요.'), { status: 503 });
