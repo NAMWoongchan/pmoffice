@@ -25,6 +25,10 @@ const session = ref(null)
 const loading = ref(true)
 const busy = ref(false)
 const title = ref('')
+const template = ref('rd')
+const titleLoading = ref(false)
+let titleEdited = false
+let fileRevision = 0
 const error = ref('')
 let epoch = 0
 let timer, subscription, refreshTimer
@@ -65,19 +69,20 @@ async function load(quiet = false) {
     if (id !== epoch) return
     session.value = data.session
     const slug = selected.value
-    const result = session.value ? await (slug
-      ? call('nexpharm_access', { p_slug: slug })
-      : call('nexpharm_catalog')) : null
+    const [projects, result] = session.value ? await Promise.all([
+      call('nexpharm_catalog'),
+      slug ? call('nexpharm_access', { p_slug: slug }) : null,
+    ]) : [null, null]
     if (id !== epoch) return
+    catalog.value = projects
     if (slug) {
       detail.value = result?.canRead && result.project?.status !== 'draft' ? result.project : null
       canEdit.value = detail.value && result?.canManage === true
       if (!canEdit.value) editing.value = false
     }
     else {
-      catalog.value = result
-      if (!result?.canRead) drawer.value = null
-      if (result?.canRead && !board.value) void loadRanges(result.projects, session.value)
+      if (!projects?.canRead) drawer.value = null
+      if (projects?.canRead && !board.value) void loadRanges(projects.projects, session.value)
     }
     error.value = ''
   } catch (reason) {
@@ -98,12 +103,13 @@ async function loadRanges(projects, currentSession) {
   let index = 0
   async function readNext() {
     while (index < projects.length && !signal.aborted) {
-      const { slug } = projects[index++]
+      const { slug, template } = projects[index++]
       let range
       try {
         const { current } = await (await workbookRequest(currentSession, slug, 'meta', { signal })).json()
         if (!current) range = {}
         else if (previous[slug]?.etag === current.etag) range = previous[slug]
+        else if (template === 'production_outsourcing') range = { start: current.start, finish: current.finish, etag: current.etag }
         else {
           const response = await workbookRequest(currentSession, slug, 'file', { signal })
           if (response.headers.get('ETag') !== current.etag) throw Error('공정표가 변경되었습니다.')
@@ -115,39 +121,98 @@ async function loadRanges(projects, currentSession) {
   }
   await Promise.all(Array.from({ length: Math.min(4, projects.length) }, readNext))
 }
-function chooseFile(event) {
+async function chooseFile(event) {
   file.value = event.target.files[0] ?? null
-  if (file.value && !title.value.trim()) title.value = file.value.name.replace(/\.xlsx$/i, '').slice(0, 160)
+  titleEdited = false
+  const source = file.value
+  const revision = ++fileRevision
+  titleLoading.value = !!source
+  if (!source) { title.value = ''; return }
+  title.value = filenameTitle(source)
+  if (/\.xlsm$/i.test(source.name)) template.value = 'production_outsourcing'
+  try {
+    const schedule = await productionSchedule(source)
+    if (revision !== fileRevision) return
+    template.value = 'production_outsourcing'
+    if (!titleEdited) title.value = schedule.title || filenameTitle(source)
+  } catch {
+    // The selected template is validated when the user registers the file.
+  } finally {
+    if (revision === fileRevision) titleLoading.value = false
+  }
+}
+const filenameTitle = source => source.name.replace(/\.(xlsx|xlsm)$/i, '').slice(0, 160)
+async function productionSchedule(source, body) {
+  if (source.size > 8 * 1024 * 1024) throw Error('Excel 파일을 최대 8MiB까지 등록할 수 있습니다.')
+  const { parseProductionWorkbook } = await import('../../../pms-app/lib/nexpharm-production.ts')
+  return parseProductionWorkbook(new Uint8Array(body ?? await source.arrayBuffer()), source.name)
+}
+async function chooseTemplate() {
+  const source = file.value
+  const revision = ++fileRevision
+  titleLoading.value = false
+  if (!source || titleEdited) return
+  title.value = filenameTitle(source)
+  if (template.value !== 'production_outsourcing') return
+  titleLoading.value = true
+  try {
+    const schedule = await productionSchedule(source)
+    if (revision === fileRevision && !titleEdited && schedule.title) title.value = schedule.title
+  } catch {
+    // Filename fallback stays visible until format validation on submission.
+  } finally {
+    if (revision === fileRevision) titleLoading.value = false
+  }
 }
 async function register() {
-  if (busy.value || !file.value || !title.value.trim() || !catalog.value?.canManage) return
+  if (busy.value || titleLoading.value || !file.value || !title.value.trim() || !catalog.value?.canManage) return
   busy.value = true
   error.value = ''
   savedNotice.value = ''
   const currentSession = session.value
   try {
     const source = file.value
-    if (source.size > 8 * 1024 * 1024) throw Error('xlsx 파일을 최대 8MiB까지 등록할 수 있습니다.')
+    if (source.size > 8 * 1024 * 1024) throw Error('Excel 파일을 최대 8MiB까지 등록할 수 있습니다.')
     const body = await source.arrayBuffer()
-    const range = await workbookRange(body, source.name)
-    const { slug } = await call('nexpharm_prepare_project', { p_title: title.value.trim() })
+    const chosen = template.value
+    if (chosen === 'production_outsourcing') await productionSchedule(source, body)
+    else await workbookRange(body, source.name)
+    const digest = await crypto.subtle.digest('SHA-256', body)
+    const sha = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+    const { slug, published } = await call('nexpharm_prepare_typed_project', {
+      p_title: title.value.trim(), p_template: chosen, p_sha256: sha,
+    })
     const { current } = await (await workbookRequest(currentSession, slug, 'meta')).json()
-    const saved = await (await workbookRequest(currentSession, slug, 'publish', {
-      method: 'POST', body, headers: {
-        'If-Match': current?.etag ?? 'seed',
-        'Content-Type': 'application/octet-stream',
-        'X-Filename': encodeURIComponent(source.name),
-      },
-    })).json()
-    if (!saved.etag || saved.audit_recorded !== true) throw Error('공정표 등록 기록을 확인하지 못했습니다. 같은 프로젝트 이름으로 다시 시도해 주세요.')
-    await call('nexpharm_publish_project', { p_slug: slug, p_etag: saved.etag })
+    if (published && current?.sha256 !== sha) throw Error('현재 게시된 공정표가 다릅니다. 프로젝트의 파일 관리에서 교체하거나 다른 이름으로 등록해 주세요.')
+    let etag = current?.etag
+    if (!published) {
+      const saved = await (await workbookRequest(currentSession, slug, 'publish', {
+        method: 'POST', body, headers: {
+          'If-Match': etag ?? 'seed',
+          'Content-Type': 'application/octet-stream',
+          'X-Filename': encodeURIComponent(source.name),
+        },
+      })).json()
+      if (!saved.etag || saved.audit_recorded !== true) throw Error('공정표 등록 기록을 확인하지 못했습니다. 같은 파일로 다시 시도해 주세요.')
+      etag = saved.etag
+      await call('nexpharm_publish_project', { p_slug: slug, p_etag: etag })
+    }
+    const [access, stored] = await Promise.all([
+      call('nexpharm_access', { p_slug: slug }),
+      workbookRequest(currentSession, slug, 'meta').then(response => response.json()),
+    ])
+    if (!etag || stored.current?.etag !== etag || !access.canRead || access.project?.status !== 'published' || access.project?.template !== chosen) {
+      throw Error('등록한 프로젝트를 다시 읽지 못했습니다. 같은 파일로 다시 시도해 주세요.')
+    }
     if (session.value?.user.id !== currentSession.user.id) return
-    rangeBySlug.value = { ...rangeBySlug.value, [slug]: { ...range, etag: saved.etag } }
     title.value = ''
+    titleEdited = false
+    template.value = 'rd'
     file.value = null
     if (fileInput.value) fileInput.value.value = ''
     registering.value = false
-    await load(true)
+    history.pushState(history.state, '', urlFor(slug))
+    addressChanged()
     savedNotice.value = '프로젝트와 공정표를 등록했습니다.'
   } catch (reason) { error.value = reason.message }
   finally { busy.value = false }
@@ -227,12 +292,19 @@ onUnmounted(() => {
       <strong>넥스팜 PMS</strong>
       <nav aria-label="넥스팜 PMS 메뉴">
         <a :href="center" :aria-current="!board && !selected ? 'page' : undefined" @click="onNavigate($event, center)">프로젝트 센터</a>
+        <details v-if="catalog?.canRead" class="nex-schedule-menu" :open="!!selected">
+          <summary>프로젝트 일정</summary>
+          <a v-for="project in catalog.projects" :key="project.slug" :href="urlFor(project.slug)"
+            :aria-current="selected === project.slug ? 'page' : undefined" @click="onNavigate($event, urlFor(project.slug))">{{ project.title }}</a>
+          <span v-if="!catalog.projects.length">등록된 프로젝트 없음</span>
+        </details>
         <a :href="boardUrl" :aria-current="board ? 'page' : undefined" @click="onNavigate($event, boardUrl)">자유 게시판</a>
       </nav>
     </aside>
     <div class="nex-main">
       <header class="nex-heading">
         <div>
+          <img v-if="!selected && !board" class="nex-company-logo" src="/images/nexpharm-korea.jpg" alt="넥스팜코리아" width="150" height="69">
           <h1>{{ selected ? '프로젝트 일정' : board ? '자유 게시판' : '프로젝트 센터' }}</h1>
           <p v-if="selected && detail">{{ detail.title }}</p>
         </div>
@@ -262,9 +334,15 @@ onUnmounted(() => {
           <form v-if="catalog.canManage && registering" class="nex-register" @submit.prevent="register">
             <h2>새 프로젝트 등록</h2>
             <div class="nex-register-controls">
-              <label>공정표 (.xlsx)<input ref="fileInput" type="file" accept=".xlsx" required :disabled="busy" @change="chooseFile"></label>
-              <label>프로젝트 이름<input v-model="title" maxlength="160" required :disabled="busy"></label>
-              <button class="nex-button nex-primary" type="submit" :disabled="busy || !file || !title.trim()">{{ busy ? '등록 중…' : '프로젝트 등록' }}</button>
+              <label>공정표<input ref="fileInput" type="file" accept=".xlsx,.xlsm" required :disabled="busy" @change="chooseFile"></label>
+              <label>프로젝트 이름<input v-model="title" maxlength="160" required :disabled="busy" @input="titleEdited = true"></label>
+              <label>프로젝트 템플릿 (Project Template)
+                <select v-model="template" :disabled="busy" @change="chooseTemplate">
+                  <option value="rd">R&D</option>
+                  <option value="production_outsourcing">생산위수탁관리</option>
+                </select>
+              </label>
+              <button class="nex-button nex-primary" type="submit" :disabled="busy || titleLoading || !file || !title.trim()">{{ busy ? '등록 중…' : '프로젝트 등록' }}</button>
             </div>
           </form>
           <div v-if="catalog.projects.length" class="nex-catalog" role="region" aria-label="등록 프로젝트 월별 일정" tabindex="0">

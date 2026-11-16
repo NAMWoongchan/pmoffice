@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { createNexpharmFilesHandler } from '../supabase/functions/nexpharm-pms/files.mjs';
 
@@ -80,4 +81,62 @@ test('Nexpharm workbook lifecycle, separate reference, original bytes and author
   revokeOnValidation = false; allowOperator = true; privateRepo = false;
   assert.equal((await request('file', { kind: 'reference' })).status, 503);
   assert.deepEqual(audit, ['workbook.publish', 'reference.publish', 'workbook.publish', 'workbook.remove']);
+});
+
+test('Production keeps the original behind manager access and requires a trusted receipt', async () => {
+  const origin = 'https://pmoffice.co.kr';
+  const project = 'nexpharm-001122334455';
+  const bytes = Uint8Array.from([80, 75, 3, 4, 5]);
+  const digest = createHash('sha256').update(bytes).digest('hex');
+  const etag = 'a'.repeat(40);
+  const schedule = {start:'2026-11-01', finish:'2026-11-04', days:[], tasks:[{name:'생산 작업'}]};
+  let payload, writes = 0, receipts = 0, published = false;
+  const handler = createNexpharmFilesHandler({
+    origin, dataRepo:'test/private-data',
+    async rpc(auth, name) {
+      if (name === 'nexpharm_file_audit') return null;
+      return {
+        canRead: auth === 'manager' || (auth === 'staff' && published), canManage: auth === 'manager',
+        project: {template:'production_outsourcing', status:published ? 'published' : 'draft', sourceSha256:digest},
+      };
+    },
+    async validate(data, name, kind, template) {
+      assert.equal(name, '검증.xlsm');
+      assert.equal(kind, 'workbook');
+      assert.equal(template, 'production_outsourcing');
+      return schedule;
+    },
+    async recordUpload(slug, sha, version) {
+      assert.deepEqual([slug, sha, version], [project, digest, etag]);
+      receipts++;
+    },
+    async github(url, options) {
+      if (url === '/repos/test/private-data') return {private:true};
+      assert.match(url, /\/production-schedule\.json(\?|$)/);
+      if (options.method === 'PUT') {
+        writes++;
+        payload = JSON.parse(Buffer.from(options.body.content, 'base64'));
+        return {content:{sha:etag}};
+      }
+      if (options.raw) return payload;
+      return payload ? {sha:etag} : null;
+    },
+  });
+  const request = (action, {auth = 'manager', match = 'seed', body} = {}) => handler(new Request(origin + '/?' + new URLSearchParams({project, action}), {
+    method:body ? 'POST' : 'GET', body,
+    headers:{origin, authorization:auth, 'If-Match':match, 'X-Filename':encodeURIComponent('검증.xlsm')},
+  }));
+  assert.equal((await request('schedule', {auth:'staff'})).status, 403);
+  assert.equal((await request('publish', {body:Uint8Array.from([80,75,3,4,8])})).status, 409);
+  assert.equal(writes, 0);
+  assert.deepEqual(await (await request('publish', {body:bytes})).json(), {etag, audit_recorded:true});
+  assert.deepEqual(await (await request('publish', {body:bytes, match:etag})).json(), {etag, audit_recorded:true});
+  assert.deepEqual([writes, receipts], [1, 2]);
+  published = true;
+  assert.equal((await request('schedule', {auth:'expired'})).status, 403);
+  assert.equal((await request('file', {auth:'staff'})).status, 403);
+  assert.deepEqual(await (await request('schedule', {auth:'staff'})).json(), {etag, schedule});
+  const original = await request('file');
+  assert.equal(original.headers.get('Content-Type'), 'application/vnd.ms-excel.sheet.macroEnabled.12');
+  assert.deepEqual(new Uint8Array(await original.arrayBuffer()), bytes);
 });

@@ -41,3 +41,22 @@
 .nex-view-nav nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
 .nex-view-nav button{display:inline-flex;align-items:center;gap:6px;border:1px solid #d9e4f1;border-radius:6px;background:white;color:#17314e;padding:6px 10px}
 .nex-view-nav button.selected{background:#e2edff;color:#164882;border-color:#a9c3e6}
+.nex-production{overflow:hidden}
+.nex-production-toolbar{display:flex;align-items:end;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:12px}
+.nex-production-toolbar label{display:grid;gap:4px;font-size:13px;font-weight:650}
+.nex-production-toolbar input{min-width:220px;padding:6px 9px;border:1px solid #b7c9db;border-radius:6px}
+.nex-production-toolbar nav{display:flex;align-items:center;gap:10px}
+.nex-production-scroll{max-height:69vh;overflow:auto;isolation:isolate}
+.nex-production-scroll table{border-collapse:separate;border-spacing:0;min-width:max-content;font-size:13px}
+.nex-production-scroll :is(th,td){padding:5px 9px;background:#fff;border-bottom:1px solid #e1e7ef;border-right:1px solid #e1e7ef;text-align:left;white-space:nowrap}
+.nex-production-scroll thead th{position:sticky;top:0;z-index:5;background:#1f4e78;color:#fff}
+.nex-production-scroll .prod-id{position:sticky;left:0;z-index:2;width:52px;min-width:52px;box-sizing:border-box;text-align:right}
+.nex-production-scroll .prod-name{position:sticky;left:52px;z-index:2;width:260px;min-width:260px;max-width:260px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis}
+.nex-production-scroll thead :is(.prod-id,.prod-name){z-index:6}
+.nex-production-scroll .prod-summary :is(th,td){font-weight:700;background:#eef4fb}
+.nex-production-scroll td.prod-day{padding:0;position:relative;height:29px;min-width:60px}
+.nex-production-scroll th.prod-day{text-align:center}
+.nex-production-scroll td.prod-off{background:#edf1f6}
+.nex-production-scroll th.prod-off{background:#354f66}
+.prod-bar{width:100%;height:20px}
+.prod-label{position:absolute;z-index:1;left:5px;line-height:20px;text-align:left;font-size:10pt;font-weight:700;pointer-events:none}

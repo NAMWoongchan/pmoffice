@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CalendarRange, ChevronRight, Download, FileText, Flag, FolderUp, Menu, X } from 'lucide-react';
 import { NexpharmReference } from './components/NexpharmReference';
 import { NexpharmSchedule } from './components/NexpharmSchedule';
+import { NexpharmProductionSchedule } from './components/NexpharmProductionSchedule';
 import { nexpharmFile, type FileMeta } from './lib/nexpharm-api';
 import { parseNexpharmFile, scheduleSnapshot, type NexpharmFile } from './lib/nexpharm-book';
 import type { Book } from './lib/workbook';
+import { parseProductionWorkbook, PRODUCTION, type NexpharmTemplate, type ProductionSchedule } from './lib/nexpharm-production';
 import './nexpharm.css';
 
 const menu = [
@@ -14,7 +16,7 @@ const menu = [
   { key: 'files', label: '파일 관리', icon: FolderUp },
 ] as const;
 type View = typeof menu[number]['key'];
-type Entry = { meta?: FileMeta | null; book?: Book; error?: string };
+type Entry = { meta?: FileMeta | null; book?: Book; production?: ProductionSchedule; error?: string };
 const kinds = ['workbook', 'reference'] as const;
 const labels = { workbook: '공정표', reference: '참고 정보' };
 const center = '/pms/nexpharm/';
@@ -25,8 +27,12 @@ function readView(): View {
   return menu.find(item => item.key === key)?.key ?? 'schedule';
 }
 
-export default function NexpharmPage({ title, canManage }: { title: string; canManage: boolean }) {
+export default function NexpharmPage({ title, canManage, template }: { title: string; canManage: boolean; template?: NexpharmTemplate }) {
+  const isProduction = template === PRODUCTION;
+  const visibleMenu = isProduction ? [menu[0], ...(canManage ? [menu[3]] : [])] : menu;
+  const availableKinds = isProduction ? kinds.slice(0, 1) : kinds;
   const [view, setView] = useState<View>(readView);
+  const activeView = visibleMenu.some(item => item.key === view) ? view : 'schedule';
   const [entries, setEntries] = useState<Record<NexpharmFile, Entry>>({ workbook: {}, reference: {} });
   const [busy, setBusy] = useState<NexpharmFile | null>(null);
   const [error, setError] = useState('');
@@ -51,6 +57,12 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
       const { current } = await (await nexpharmFile(kind, 'meta')).json() as { current: FileMeta | null };
       meta = current;
       if (!current) { save({ meta: null }); return; }
+      if (isProduction) {
+        const { etag, schedule } = await (await nexpharmFile(kind, 'schedule')).json();
+        if (etag !== current.etag) throw Error('파일이 변경되었습니다. 다시 확인해 주세요.');
+        save({ meta: current, production: schedule });
+        return;
+      }
       const response = await nexpharmFile(kind, 'file');
       if (response.headers.get('ETag') !== current.etag) throw Error('파일이 변경되었습니다. 다시 확인해 주세요.');
       const book = parseNexpharmFile(new Uint8Array(await response.arrayBuffer()), current.name, kind);
@@ -58,18 +70,19 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
     } catch (reason) {
       save({ meta, error: reason instanceof Error ? reason.message : '파일을 읽지 못했습니다.' });
     }
-  }, []);
+  }, [isProduction]);
 
   useEffect(() => {
     mounts.current = true;
-    kinds.forEach(refresh);
+    if (isProduction) refresh('workbook');
+    else kinds.forEach(refresh);
     const sync = () => setView(readView());
     window.addEventListener('hashchange', sync);
     return () => {
       mounts.current = false;
       window.removeEventListener('hashchange', sync);
     };
-  }, [refresh]);
+  }, [isProduction, refresh]);
 
   async function change(kind: NexpharmFile, action: 'publish' | 'remove', file?: File) {
     const entry = entries[kind];
@@ -84,9 +97,10 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
       let body: ArrayBuffer | undefined;
       const headers = new Headers({ 'If-Match': entry.meta?.etag ?? 'seed' });
       if (file) {
-        if (!/\.xlsx$/i.test(file.name) || file.size > 8 * 1024 * 1024) throw Error('xlsx 파일을 최대 8MiB까지 등록할 수 있습니다.');
+        if (file.size > 8 * 1024 * 1024) throw Error('Excel 파일을 최대 8MiB까지 등록할 수 있습니다.');
         body = await file.arrayBuffer();
-        parseNexpharmFile(new Uint8Array(body), file.name, kind);
+        if (isProduction) parseProductionWorkbook(new Uint8Array(body), file.name);
+        else parseNexpharmFile(new Uint8Array(body), file.name, kind);
         headers.set('Content-Type', 'application/octet-stream');
         headers.set('X-Filename', encodeURIComponent(file.name));
       }
@@ -123,7 +137,8 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
   const schedule = entries.workbook;
   const reference = entries.reference;
   const snapshot = useMemo(() => schedule.book ? scheduleSnapshot(schedule.book) : null, [schedule.book]);
-  const selectedMenu = menu.find(item => item.key === view)!;
+  const selectedMenu = visibleMenu.find(item => item.key === activeView)!;
+  const viewLabel = isProduction && activeView === 'schedule' ? '생산위수탁관리 일정표' : selectedMenu.label;
 
   function unavailable(kind: NexpharmFile) {
     const entry = entries[kind];
@@ -134,9 +149,9 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
     </section>;
   }
 
-  const navigation = <nav aria-label="프로젝트 일정 보기">{menu.map(({ key, label, icon: Icon }) =>
-    <button key={key} className={key === view ? 'selected' : ''} aria-current={key === view ? 'page' : undefined}
-      onClick={() => navigate(key)}><Icon size={19}/><span>{label}</span></button>)}</nav>;
+  const navigation = <nav aria-label="프로젝트 일정 보기">{visibleMenu.map(({ key, label, icon: Icon }) =>
+    <button key={key} className={key === activeView ? 'selected' : ''} aria-current={key === activeView ? 'page' : undefined}
+      onClick={() => navigate(key)}><Icon size={19}/><span>{isProduction && key === 'schedule' ? '일정표' : label}</span></button>)}</nav>;
 
   return <div className={'app-shell nex-detail' + (embedded ? ' nex-embedded' : '')}>
     {!embedded && mobile && <button className="sidebar-overlay" aria-label="메뉴 닫기" onClick={() => setMobile(false)}/>}
@@ -153,25 +168,27 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
     <div className="main-area">
       {!embedded && <div className="topbar">
         <button className="hamburger" onClick={() => setMobile(true)} aria-label="메뉴 열기" aria-expanded={mobile}><Menu size={22}/></button>
-        <span className="breadcrumb">넥스팜 PMS <ChevronRight size={14}/> <strong>{selectedMenu.label}</strong></span>
+        <span className="breadcrumb">넥스팜 PMS <ChevronRight size={14}/> <strong>{viewLabel}</strong></span>
         <span className="source-indicator">{canManage ? '파일 관리 가능' : '열람 회원'}</span>
       </div>}
       <main>
         {embedded && <div className="nex-view-nav">{navigation}</div>}
-        <header className="page-header"><div><h1>{selectedMenu.label}</h1><p>{title}</p></div>
+        <header className="page-header"><div><h1>{viewLabel}</h1><p>{title}</p></div>
           <div className="header-actions">
-            {(view === 'schedule' || view === 'milestones') && schedule.meta && <button className="primary" disabled={!!busy}
+            {(activeView === 'schedule' || activeView === 'milestones') && (!isProduction || canManage) && schedule.meta && <button className="primary" disabled={!!busy}
               onClick={() => download('workbook')}><Download size={16}/> 공정표 원본</button>}
-            {view === 'reference' && reference.meta && <button className="primary" disabled={!!busy}
+            {activeView === 'reference' && reference.meta && <button className="primary" disabled={!!busy}
               onClick={() => download('reference')}><Download size={16}/> 참고 엑셀 원본</button>}
           </div>
         </header>
         {error && <p className="error" role="alert">{error}</p>}
         {notice && <p className="nex-message" role="status">{notice}</p>}
-        {view === 'schedule' && (schedule.book && snapshot
+        {activeView === 'schedule' && (schedule.production
+          ? <NexpharmProductionSchedule key={schedule.meta?.etag} schedule={schedule.production}/>
+          : schedule.book && snapshot
           ? <NexpharmSchedule key={schedule.meta?.etag} tasks={schedule.book.tasks} {...snapshot}/>
           : unavailable('workbook'))}
-        {view === 'milestones' && (snapshot ? <>
+        {activeView === 'milestones' && (snapshot ? <>
           <div className="nex-kpis">
             {[['전체 작업', snapshot.total], ['완료', snapshot.completed], ['잔여', snapshot.remaining], ['마일스톤', snapshot.milestones.length]].map(([label, value]) =>
               <div className="panel" key={label}><span>{label}</span><strong>{value}건</strong></div>)}
@@ -189,14 +206,14 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
             </div> : <p>표시할 마일스톤이 없습니다.</p>}
           </section>
         </> : unavailable('workbook'))}
-        {view === 'reference' && (reference.book ? <NexpharmReference key={reference.meta?.etag} book={reference.book}/> : unavailable('reference'))}
-        {view === 'files' && <div className="nex-file-list">{kinds.map(kind => {
+        {activeView === 'reference' && (reference.book ? <NexpharmReference key={reference.meta?.etag} book={reference.book}/> : unavailable('reference'))}
+        {activeView === 'files' && <div className="nex-file-list">{availableKinds.map(kind => {
           const entry = entries[kind];
           return <section className="panel nex-file" key={kind}><h2>{labels[kind]}</h2>
             <p>{entry.meta?.name || entry.error || (entry.meta === null ? '등록된 파일 없음' : '파일 확인 중…')}</p>
             <div>
               {canManage && entry.meta !== undefined && <label className={'nex-upload ' + (busy ? 'disabled' : '')}>
-                {entry.meta ? '엑셀 교체' : '엑셀 업로드'}<input type="file" accept=".xlsx" aria-label={labels[kind] + ' 엑셀 업로드'}
+                {entry.meta ? '엑셀 교체' : '엑셀 업로드'}<input type="file" accept={isProduction ? '.xlsx,.xlsm' : '.xlsx'} aria-label={labels[kind] + ' 엑셀 업로드'}
                   disabled={!!busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) change(kind, 'publish', file); }}/>
               </label>}
               {entry.meta && <button disabled={!!busy} onClick={() => download(kind)}>원본 다운로드</button>}

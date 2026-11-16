@@ -9,6 +9,7 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     await db.exec(`
       create role anon;
       create role authenticated;
+      create role service_role;
       create schema auth;
       create schema pmoffice_private;
       create table pmoffice_private.service_settings(singleton boolean, signup_version text);
@@ -28,6 +29,7 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     await db.exec(readFileSync('supabase/migrations/202611080001_nexpharm_pms.sql', 'utf8'));
     await db.exec(readFileSync('supabase/migrations/202611080002_nexpharm_admin.sql', 'utf8'));
     await db.exec(readFileSync('supabase/migrations/202611160001_nexpharm_center.sql', 'utf8'));
+    await db.exec(readFileSync('supabase/migrations/202611160002_nexpharm_templates.sql', 'utf8'));
     const id = n => '00000000-0000-0000-0000-' + String(n).padStart(12, '0');
     for (let n = 1; n <= 5; n++) {
       await db.query('insert into auth.users(id,email) values ($1,$2)', [id(n), 'user'+n+'@example.test']);
@@ -85,6 +87,27 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     await publish(staged.slug, 'saved-workbook');
     assert.equal((await access(staged.slug)).project.status, 'published');
     await assert.rejects(() => prepare('엑셀 프로젝트'));
+    const memberEntry = () => query('select public.nexpharm_member_entry() as result');
+    const digest = 'd'.repeat(64);
+    const etag = 'e'.repeat(40);
+    const typed = (sha = digest) => query('select public.nexpharm_prepare_typed_project($1,$2,$3) as result',
+      ['생산 일정', 'production_outsourcing', sha]);
+    assert.equal(await memberEntry(), true);
+    assert.equal((await access(staged.slug)).project.template, 'rd');
+    const production = await typed();
+    assert.deepEqual(await typed(), production);
+    assert.equal((await catalog()).projects.some(project => project.slug === production.slug), false);
+    const receipt = () => query('select public.nexpharm_record_typed_upload($1,$2,$3)', [production.slug, digest, etag]);
+    await assert.rejects(receipt);
+    await query('select public.nexpharm_file_audit($1,$2,$3)', [production.slug, 'workbook.publish', JSON.stringify({blob: etag})]);
+    await assert.rejects(() => publish(production.slug, etag));
+    await db.exec('reset role; set role service_role');
+    await receipt();
+    await db.exec('reset role; set role authenticated');
+    await publish(production.slug, etag);
+    assert.deepEqual(await typed(), {slug:production.slug,published:true});
+    await assert.rejects(() => typed('1'.repeat(64)));
+    assert.equal((await catalog()).projects.find(project => project.slug === production.slug).template, 'production_outsourcing');
 
     const saved = await update(one.slug,1,'수정한 프로젝트');
     assert.equal(saved.version,2);
@@ -94,6 +117,9 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     await assert.rejects(() => update(one.slug,2,'두 번째 프로젝트'));
     await assert.rejects(() => query('select * from public.pms_projects'));
     await uid(3);
+    assert.equal(await memberEntry(), true);
+    await assert.rejects(typed);
+    assert.equal((await access(production.slug)).canRead, true);
     assert.equal((await access(one.slug)).canRead, true);
     assert.equal((await access(one.slug)).canManage, false);
     await assert.rejects(() => create('차단된 등록'));
@@ -105,6 +131,8 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     assert.equal((await posts())[0].body, '첫 줄\n둘째 줄');
     await assert.rejects(() => query('select * from pmoffice_private.nexpharm_post'));
     await uid(4);
+    assert.equal(await memberEntry(), false);
+    assert.equal((await access(production.slug)).canRead, false);
     await assert.rejects(posts);
     await assert.rejects(() => comments(staged.slug));
     await assert.rejects(() => query('select public.nexpharm_add_post($1,$2)', ['외부인', '차단']));

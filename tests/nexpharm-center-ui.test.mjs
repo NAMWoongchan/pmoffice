@@ -13,7 +13,8 @@ const { parse, compileScript } = require(require.resolve('@vue/compiler-sfc', {
 const stub = `
 const session = { user: { id: 'manager' }, access_token: 'fixture' };
 const slug = 'nexpharm-583d09bdd195';
-const projects = [{slug, title: '테스트 프로젝트'}];
+const projects = [{slug, title: '테스트 프로젝트', template:'rd'}];
+let draft;
 const comments = [{ id: 1, author: '작성자', body: '<strong>기존 코멘트</strong><img src=x onerror=bad()>', created_at: '2026-11-16T01:00:00Z' }];
 const posts = [];
 export const client = () => ({ auth: {
@@ -27,8 +28,11 @@ export async function call(name, args) {
   if (name === 'nexpharm_posts') return posts.slice();
   if (name === 'nexpharm_add_comment') comments.unshift({ id: 2, author: '작성자', body: args.p_body, created_at: '2026-11-16T02:00:00Z' });
   if (name === 'nexpharm_add_post') posts.unshift({ id: 1, author: '작성자', title: args.p_title, body: args.p_body, created_at: '2026-11-16T02:00:00Z' });
-  if (name === 'nexpharm_prepare_project') return {slug: 'nexpharm-abcdabcdabcd'};
-  if (name === 'nexpharm_publish_project') projects.push({slug: args.p_slug, title: '새 프로젝트'});
+  if (name === 'nexpharm_prepare_typed_project') {
+    draft = {slug:'nexpharm-abcdabcdabcd', title:args.p_title, template:args.p_template};
+    return {slug:draft.slug, published:false};
+  }
+  if (name === 'nexpharm_publish_project') projects.push({...draft, status:'published'});
 }
 export function parseNexpharmFile() { return {tasks: [{ start: '2026-11-01', finish: '2026-11-30' }]}; }
 `;
@@ -41,7 +45,7 @@ test('Nexpharm center renders a full month and connects registration, comments, 
   globalThis.fetch = async (url, options) => {
     const { searchParams } = new URL(url);
     if (searchParams.get('action') === 'meta') {
-      return Response.json({current: options.signal ? {etag: 'test', name: '공정표.xlsx'} : null});
+      return Response.json({current: {etag: 'test', name: '공정표.xlsx'}});
     }
     if (searchParams.get('action') === 'publish') return Response.json({etag: 'test', audit_recorded: true});
     return new Response('xlsx bytes', {headers: {ETag: 'test'}});
@@ -86,7 +90,9 @@ test('Nexpharm center renders a full month and connects registration, comments, 
 
   try {
     await wait(() => document.querySelector('.nex-bar'));
-    assert.deepEqual([...document.querySelectorAll('.nex-sidebar nav a')].map(el => el.textContent), ['프로젝트 센터', '자유 게시판']);
+    assert.deepEqual([...document.querySelectorAll('.nex-sidebar nav a')].map(el => el.textContent), ['프로젝트 센터', '테스트 프로젝트', '자유 게시판']);
+    assert.equal(document.querySelector('.nex-schedule-menu summary').textContent, '프로젝트 일정');
+    assert.equal(document.querySelector('.nex-schedule-menu a').href, document.querySelector('.nex-table a').href);
     assert.ok(find('.nex-month-grid span', '26-11'));
     assert.equal(document.querySelector('.nex-bar').style.gridColumn, '1 / span 1');
     assert.equal(document.querySelector('.nex-bar').getAttribute('aria-label'), '일정 1개월');
@@ -122,10 +128,15 @@ test('Nexpharm center renders a full month and connects registration, comments, 
     fileInput.dispatchEvent(new window.Event('change', {bubbles: true}));
     await app.nextTick();
     assert.equal(document.querySelector('.nex-register input:not([type=file])').value, '새 프로젝트');
+    assert.deepEqual([...document.querySelectorAll('.nex-register option')].map(option => option.label), ['R&D', '생산위수탁관리']);
+    fill(document.querySelector('.nex-register input:not([type=file])'), '사용자가 수정한 이름');
+    await wait(() => !find('button', '프로젝트 등록').disabled);
     submit('.nex-register');
-    await wait(() => find('.nex-table a', '새 프로젝트'));
-    click('a', '테스트 프로젝트');
     await wait(() => document.querySelector('iframe'));
+    assert.equal(location.search, '?project=nexpharm-abcdabcdabcd');
+    assert.ok(find('.nex-schedule-menu a', '사용자가 수정한 이름'));
+    click('a', '테스트 프로젝트');
+    await wait(() => document.querySelector('iframe[src*="nexpharm-583d09bdd195"]'));
     assert.equal(location.search, '?project=nexpharm-583d09bdd195');
     assert.equal(document.querySelector('h1').textContent, '프로젝트 일정');
     assert.match(document.querySelector('iframe').getAttribute('src'), /project=nexpharm-583d09bdd195/);

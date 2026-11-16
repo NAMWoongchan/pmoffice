@@ -5,6 +5,10 @@
 .nex-sidebar nav{display:grid;gap:6px}
 .nex-sidebar a{display:block;padding:10px 12px;border-radius:7px;font-size:14px;font-weight:650;color:var(--nex-ink)}
 .nex-sidebar a:hover,.nex-sidebar a[aria-current=page]{background:#e2edff;color:#164882}
+.nex-schedule-menu summary{cursor:pointer;padding:10px 12px;border-radius:7px;font-weight:650;font-size:14px}
+.nex-schedule-menu a,.nex-schedule-menu span{padding-left:24px;overflow-wrap:anywhere}
+.nex-schedule-menu span{display:block;font-size:13px;color:var(--nex-muted)}
+.nex-company-logo{display:block;width:150px;height:auto;margin:0 0 12px}
 .nex-main{min-width:0;padding:30px clamp(14px,3vw,36px)}
 .nex-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:22px}
 .nex-heading h1{margin:0;font-size:clamp(25px,3vw,34px);line-height:1.23;font-weight:760}
@@ -19,8 +23,9 @@
 .nex-portal h2{font-size:19px;font-weight:730}
 .nex-portal h3{font-size:16px;font-weight:720}
 .nex-register label,.nex-compose label{display:grid;gap:4px;font-weight:650;font-size:14px}
-.nex-register-controls{margin-top:10px}
-.nex-register input,.nex-compose :is(input,textarea){min-width:0;max-width:100%;min-height:37px;background:white;color:var(--nex-ink);border:1px solid #b7c9db;border-radius:7px;padding:6px 9px;font-weight:400}
+.nex-register-controls{display:grid;justify-items:start;margin-top:10px}
+.nex-register-controls label{width:min(100%,360px)}
+.nex-register :is(input,select),.nex-compose :is(input,textarea){min-width:0;max-width:100%;min-height:37px;background:white;color:var(--nex-ink);border:1px solid #b7c9db;border-radius:7px;padding:6px 9px;font-weight:400}
 .nex-register input[type=file]::file-selector-button{margin-right:8px}
 .nex-catalog{overflow:auto;max-height:70vh;border:1px solid var(--nex-line);border-radius:9px}
 .nex-table{width:100%;border-collapse:separate;border-spacing:0;text-align:left;font-size:14px;--month-width:64px}

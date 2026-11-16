@@ -4,11 +4,21 @@ import { validateNexpharmFile } from './workbook.mjs';
 const supabase = Deno.env.get('SUPABASE_URL')!;
 const key = Deno.env.get('SUPABASE_ANON_KEY')!;
 const token = Deno.env.get('PMS_GITHUB_TOKEN')?.trim();
+const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 Deno.serve(createNexpharmFilesHandler({
   origin: Deno.env.get('PMS_ALLOWED_ORIGIN') || 'https://pmoffice.co.kr',
   dataRepo: Deno.env.get('PMS_DATA_REPO'),
   validate: validateNexpharmFile,
+  async recordUpload(slug: string, sha256: string, etag: string) {
+    if (!serviceKey) throw Error('프로젝트 게시 확인 연결이 필요합니다.');
+    const response = await fetch(supabase + '/rest/v1/rpc/nexpharm_record_typed_upload', {
+      method: 'POST',
+      headers: { apikey: serviceKey, Authorization: 'Bearer ' + serviceKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_slug: slug, p_sha256: sha256, p_etag: etag }),
+    });
+    if (!response.ok) throw Error('프로젝트 파일 검증 기록을 저장하지 못했습니다.');
+  },
   async rpc(auth: string, name: string, args: object) {
     const response = await fetch(supabase + '/rest/v1/rpc/' + name, {
       method: 'POST',
