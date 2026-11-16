@@ -49,7 +49,7 @@ async function sha256(bytes) {
     byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload, origin, dataRepo, branch = 'main' }) {
+export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload, productionDb, origin, dataRepo, branch = 'main' }) {
   return async (request) => {
     const headers = {
       'Access-Control-Allow-Origin': origin,
@@ -72,7 +72,7 @@ export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload
       const kind = searchParams.get('kind') || 'workbook';
       if (!isNexpharmProject(project) || !['workbook', 'reference'].includes(kind)) fail(400, '프로젝트와 파일 유형을 확인해 주세요.');
       if (!(request.method === 'GET' && ['meta', 'file', 'schedule'].includes(action))
-        && !(request.method === 'POST' && ['publish', 'remove'].includes(action))) fail(405, '지원하지 않는 요청입니다.');
+        && !(request.method === 'POST' && ['publish', 'remove', 'migrate'].includes(action))) fail(405, '지원하지 않는 요청입니다.');
 
       const auth = request.headers.get('authorization') || '';
       if (!auth) fail(403, '넥스팜 PMS에 로그인해 주세요.');
@@ -87,6 +87,60 @@ export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload
       if (kind === 'reference' && access.project?.template === PRODUCTION) fail(404, '생산 일정에는 별도 참고 파일이 없습니다.');
       if (action === 'schedule' && !production) fail(400, '생산위수탁관리 일정에만 사용할 수 있습니다.');
       if (production && action === 'file' && access.canManage !== true) fail(403, '공정표 원본은 관리자만 내려받을 수 있습니다.');
+      const database = production && productionDb;
+      if (action === 'migrate' && (!database || project !== 'nexpharm-8088c44595a3'
+        || !(await rpc(auth, 'nexpharm_schedule_preferences', { p_slug: project }))?.canApplyGlobal)) {
+        fail(403, '시스템 관리자 권한이 필요합니다.');
+      }
+      let snapshot = null;
+      if (database) {
+        snapshot = await database.read(auth, project, action !== 'schedule');
+        if (snapshot) {
+          if (action === 'migrate') return json({ etag: snapshot.current?.etag ?? null, existing: true });
+          if (action === 'meta') return json({ current: snapshot.current, canManage: snapshot.canManage });
+          if (action === 'schedule' || action === 'file') {
+            if (!snapshot.current) fail(404, '등록된 파일이 없습니다.');
+            if (action === 'schedule') return json({ etag: snapshot.current.etag, schedule: snapshot.schedule });
+            const { etag, name } = snapshot.current;
+            const original = await database.original(project, etag);
+            await check();
+            return new Response(original.body, { headers: { ...headers, 'Content-Type': /\.xlsm$/i.test(name) ? XLSM : XLSX,
+              ETag: etag, 'X-Content-Type-Options': 'nosniff', 'X-Filename': encodeURIComponent(name) } });
+          }
+        }
+        if (writing && action !== 'migrate' && (snapshot || access.project?.status === 'draft')) {
+          return publishToDatabase(snapshot?.current?.etag ?? 'seed');
+        }
+      }
+
+      async function publishToDatabase(expected, beforeMigration = false) {
+        if (!beforeMigration && request.headers.get('if-match') !== expected) fail(409, '다른 변경이 있습니다. 최신 파일을 확인해 주세요.');
+        if (action === 'remove') {
+          if (expected === 'seed') fail(404, '제거할 파일이 없습니다.');
+          await check();
+          await database.publish(auth, project, beforeMigration ? 'seed' : expected, null, null);
+          return json({ etag: null, audit_recorded: true });
+        }
+        let name;
+        try { name = decodeURIComponent(request.headers.get('x-filename') || ''); }
+        catch { fail(400, '파일명을 확인해 주세요.'); }
+        if (!validName(name, true)) fail(400, 'xlsx 또는 xlsm 파일을 선택해 주세요.');
+        const bytes = await readUpload(request);
+        if (bytes[0] !== 80 || bytes[1] !== 75) fail(400, '올바른 Excel 통합문서를 선택해 주세요.');
+        let schedule;
+        try { schedule = await validate(bytes, name, kind, PRODUCTION); }
+        catch (error) { fail(400, error.message); }
+        const digest = await sha256(bytes);
+        if (access.project?.status === 'draft' && access.project.sourceSha256 !== digest) {
+          fail(409, '임시 등록에 사용한 동일 파일을 선택해 주세요.');
+        }
+        const etag = await sha256(new TextEncoder().encode(crypto.randomUUID() + digest));
+        const meta = { etag, name, sha256: digest, at: new Date().toISOString(), size: bytes.length, start: schedule.start, finish: schedule.finish };
+        await check();
+        await database.publish(auth, project, beforeMigration ? 'seed' : expected, meta, schedule, bytes);
+        return json({ etag, audit_recorded: true });
+      }
+
       if (!dataRepo || !/^[-\w]+\/[-\w.]+$/.test(dataRepo)) fail(503, '비공개 원본 저장소 연결이 필요합니다.');
       if ((await github('/repos/' + dataRepo)).private !== true) fail(503, '비공개 원본 저장소 연결이 필요합니다.');
 
@@ -94,7 +148,7 @@ export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload
       const path = '/repos/' + dataRepo + '/contents/projects/' + project + '/' + storageName + '.json';
       const ref = path + '?ref=' + encodeURIComponent(branch);
       const current = await github(ref, {}, true);
-      if (!writing) {
+      if (!writing || action === 'migrate') {
         if (!current) {
           if (action !== 'meta') fail(404, '등록된 파일이 없습니다.');
           access = await check();
@@ -119,11 +173,20 @@ export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload
         if (action === 'schedule') return json({ etag: current.sha, schedule: payload.schedule });
         const bytes = Uint8Array.from(atob(payload.content), (value) => value.charCodeAt(0));
         if (bytes.length !== payload.size || bytes[0] !== 80 || bytes[1] !== 75) fail(502, '등록된 파일을 확인할 수 없습니다.');
+        if (action === 'migrate') {
+          const digest = await sha256(bytes);
+          if (digest !== payload.sha256) fail(502, '기존 공정표 원본 검증에 실패했습니다.');
+          const meta = { etag: current.sha, name: payload.name, sha256: digest, size: payload.size, at: payload.at,
+            start: payload.schedule.start, finish: payload.schedule.finish };
+          await database.publish(auth, project, 'seed', meta, payload.schedule, bytes, true);
+          return json({ etag: current.sha, task_count: payload.schedule.tasks.length });
+        }
         return new Response(bytes, { headers: { ...headers, 'Content-Type': /\.xlsm$/i.test(payload.name) ? XLSM : XLSX, ETag: current.sha,
           'X-Content-Type-Options': 'nosniff', 'X-Filename': encodeURIComponent(payload.name) } });
       }
 
       if (request.headers.get('if-match') !== (current?.sha || 'seed')) fail(409, '다른 변경이 있습니다. 최신 파일을 확인해 주세요.');
+      if (database) return publishToDatabase(current?.sha || 'seed', true);
       let result, details;
       const expectedDigest = kind === 'workbook' && access.project?.status === 'draft' ? access.project.sourceSha256 : null;
       let actualDigest;

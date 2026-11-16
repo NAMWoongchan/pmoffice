@@ -21,6 +21,8 @@ const detailFrame = ref(null)
 const frameHeight = ref(null)
 const canEdit = ref(false)
 const editing = ref(false)
+const productionView = ref('')
+const isProduction = computed(() => detail.value?.template === 'production_outsourcing')
 const savedNotice = ref('')
 const catalog = ref(null)
 const session = ref(null)
@@ -58,6 +60,7 @@ function addressChanged() {
   savedNotice.value = ''
   detail.value = null
   frameHeight.value = null
+  productionView.value = ''
   catalog.value = null
   drawer.value = null
   rangeController?.abort()
@@ -67,11 +70,22 @@ function addressChanged() {
 function resizeScheduleFrame(event) {
   const message = event.data
   if (event.origin !== window.location.origin || event.source !== detailFrame.value?.contentWindow
-      || message?.type !== 'pmoffice-nexpharm-schedule-height' || message.project !== selected.value
-      || message.project !== 'nexpharm-8088c44595a3') return
+      || message?.project !== selected.value || !isProduction.value) return
+  if (message.type === 'pmoffice-nexpharm-view' && ['schedule', 'calendar', 'files', 'settings'].includes(message.view)) {
+    productionView.value = message.view
+    return
+  }
+  if (message.type !== 'pmoffice-nexpharm-schedule-height') return
   if (message.height === null) frameHeight.value = null
   else if (Number.isInteger(message.height) && message.height > 0 && message.height <= 1000000)
     frameHeight.value = message.height + 2
+}
+function openProductionView(view) {
+  editing.value = false
+  if (!detailFrame.value?.contentWindow) return
+  detailFrame.value.contentWindow.postMessage({
+    type: 'pmoffice-nexpharm-navigate', project: selected.value, view,
+  }, location.origin)
 }
 async function load(quiet = false) {
   const id = ++epoch
@@ -321,7 +335,7 @@ onUnmounted(() => {
         <div>
           <img v-if="!selected && !board" class="nex-company-logo" src="/images/nexpharm-korea.png" alt="넥스팜코리아" width="150" height="69">
           <h1>{{ selected ? '프로젝트 일정' : board ? '자유 게시판' : '프로젝트 센터' }}</h1>
-          <p v-if="selected && detail">{{ detail.title }}</p>
+          <p v-if="selected && detail && !isProduction">{{ detail.title }}</p>
         </div>
         <div class="nex-actions">
           <button v-if="!selected && !board && catalog?.canManage" class="nex-button nex-primary" type="button"
@@ -335,14 +349,22 @@ onUnmounted(() => {
       <p v-if="error" class="nex-notice" role="alert">{{ error }} <button class="nex-button" type="button" @click="load()">다시 확인</button></p>
       <template v-if="selected">
         <p v-if="detail?.description" class="nex-description">{{ detail.description }}</p>
-        <button v-if="detail && canEdit && !editing" class="nex-button nex-edit" type="button"
+        <nav v-if="isProduction" class="nex-production-nav" aria-label="프로젝트 일정 보기">
+          <button v-for="item in [['schedule', '일정표'], ['calendar', '달력 설정'], ...(canEdit ? [['files', '파일 관리']] : [])]"
+            :key="item[0]" type="button" class="nex-button" :disabled="!productionView"
+            :aria-current="!editing && productionView === item[0] ? 'page' : undefined"
+            @click="openProductionView(item[0])">{{ item[1] }}</button>
+          <button v-if="canEdit" type="button" class="nex-button" :aria-expanded="editing"
+            @click="editing=!editing;savedNotice=''">프로젝트 정보</button>
+        </nav>
+        <button v-else-if="detail && canEdit && !editing" class="nex-button nex-edit" type="button"
           @click="editing=true;savedNotice=''">프로젝트 정보 수정</button>
         <NexpharmProjectEditor v-if="detail && canEdit && editing" :key="detail.slug" :project="detail"
           @saved="projectSaved" @cancel="editing=false" />
-        <iframe v-if="detail" ref="detailFrame" :key="detail.slug + '-' + (detail.version || 0)" class="nex-frame"
+        <iframe v-if="detail" v-show="!isProduction || !editing" ref="detailFrame" :key="detail.slug + '-' + (detail.version || 0)" class="nex-frame"
           :style="frameHeight ? {height: frameHeight + 'px'} : undefined"
           :src="'/pms/app/index.html?project=' + encodeURIComponent(detail.slug) + '&embed=1'
-            + (detail.slug === 'nexpharm-8088c44595a3' ? '&layout=page-scroll-chart' : '')" title="넥스팜 프로젝트 일정과 자료"></iframe>
+            + (isProduction ? '&layout=production-outline' : '')" title="넥스팜 프로젝트 일정과 자료"></iframe>
         <p v-else-if="!loading && !error" class="nex-notice">프로젝트를 열려면 지정 그룹 권한이 필요합니다.</p>
       </template>
       <template v-else-if="catalog?.canRead">

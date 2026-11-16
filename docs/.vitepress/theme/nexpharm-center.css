@@ -47,6 +47,8 @@
 .nex-table thead .nex-detail-cell{z-index:3}
 .nex-range-status{white-space:nowrap}
 .nex-frame{width:100%;height:max(720px,calc(100vh - 160px));border:1px solid var(--nex-line);border-radius:9px}
+.nex-production-nav{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.nex-production-nav [aria-current=page]{background:#e2edff;color:#164882;border-color:#a9c3e6}
 .nex-description{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:14px}
 .nex-edit{margin-bottom:14px}
 .nex-activity{max-width:900px}

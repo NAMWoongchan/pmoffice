@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CalendarDays, CalendarRange, ChevronRight, Download, FileText, Flag, FolderUp, Menu, X } from 'lucide-react';
 import { NexpharmReference } from './components/NexpharmReference';
 import { NexpharmSchedule } from './components/NexpharmSchedule';
-import { NexpharmProductionSchedule } from './components/NexpharmProductionSchedule';
+import { NexpharmProductionGrid } from './components/NexpharmProductionGrid';
+import { productionOutline, presetBranches, type OutlinePreset } from './lib/nexpharm-outline';
+import type { DateScale } from './lib/nexpharm-production-timescale';
 import { NexpharmProductionCalendar } from './components/NexpharmProductionCalendar';
 import { NexpharmScheduleSettings, useNexpharmScheduleSettings } from './components/NexpharmScheduleSettings';
-import { personalScheduleProject } from './lib/nexpharm-schedule-layout';
-import { slug } from './transport';
+import { auth, slug } from './transport';
 import { nexpharmFile, type FileMeta } from './lib/nexpharm-api';
 import { parseNexpharmFile, scheduleSnapshot, type NexpharmFile } from './lib/nexpharm-book';
 import type { Book } from './lib/workbook';
@@ -21,8 +22,8 @@ const menu = [
 ] as const;
 const calendarMenu = { key: 'calendar', label: '달력 설정', icon: CalendarDays } as const;
 const productionMenu = [menu[0], calendarMenu] as const;
-type View = typeof menu[number]['key'] | typeof calendarMenu.key;
-type Entry = { meta?: FileMeta | null; book?: Book; production?: ProductionSchedule; error?: string };
+type View = typeof menu[number]['key'] | typeof calendarMenu.key | 'settings';
+type Entry = { meta?: FileMeta | null; book?: Book; production?: ProductionSchedule; legacy?: boolean; error?: string };
 const kinds = ['workbook', 'reference'] as const;
 const labels = { workbook: '공정표', reference: '참고 정보' };
 const center = '/pms/nexpharm/';
@@ -30,6 +31,7 @@ const embedded = new URLSearchParams(location.search).get('embed') === '1';
 
 function readView(): View {
   const key = location.hash.slice(1);
+  if (key === 'settings') return key;
   return [...menu, calendarMenu].find(item => item.key === key)?.key ?? 'schedule';
 }
 
@@ -38,12 +40,13 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
   const visibleMenu = isProduction ? [...productionMenu, ...(canManage ? [menu[3]] : [])] : menu;
   const availableKinds = isProduction ? kinds.slice(0, 1) : kinds;
   const [view, setView] = useState<View>(readView);
-  const activeView = visibleMenu.some(item => item.key === view) ? view : 'schedule';
-  const personalSchedule = isProduction && slug === personalScheduleProject;
-  const fullSchedule = personalSchedule && activeView === 'schedule';
-  const preferences = useNexpharmScheduleSettings(slug, personalSchedule);
-  const [outline, setOutline] = useState('');
-  const [showSettings, setShowSettings] = useState(false);
+  const activeView = (isProduction && view === 'settings') || visibleMenu.some(item => item.key === view) ? view : 'schedule';
+  const fullSchedule = isProduction && activeView === 'schedule';
+  const preferences = useNexpharmScheduleSettings(slug, isProduction);
+  const [outline, setOutline] = useState<OutlinePreset>('1');
+  const [branches, setBranches] = useState<Set<string>>(() => new Set());
+  const [scale, setScale] = useState<DateScale>('day');
+  const settingsOpened = useRef(false);
   const shell = useRef<HTMLDivElement>(null);
   const settingsButton = useRef<HTMLButtonElement>(null);
   const [entries, setEntries] = useState<Record<NexpharmFile, Entry>>({ workbook: {}, reference: {} });
@@ -54,15 +57,47 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
   const mounts = useRef(true);
   const revisions = useRef({ workbook: 0, reference: 0 });
 
-  function navigate(target: View) {
+  const navigate = useCallback((target: View, reset = target === 'schedule') => {
+    if (reset) {
+      setOutline('1');
+      setBranches(new Set());
+    }
+    if (target === 'settings') settingsOpened.current = true;
     location.hash = target;
     setView(target);
     setMobile(false);
-    setShowSettings(false);
-  }
+  }, []);
 
   useEffect(() => {
-    if (!embedded || !fullSchedule || window.parent === window || !shell.current) return;
+    if (!embedded || !isProduction || window.parent === window) return;
+    const sendView = () => window.parent.postMessage({
+      type: 'pmoffice-nexpharm-view', project: slug, view: activeView,
+    }, location.origin);
+    const receive = (event: MessageEvent) => {
+      if (event.source !== window.parent || event.origin !== location.origin
+          || event.data?.type !== 'pmoffice-nexpharm-navigate' || event.data.project !== slug) return;
+      const target = event.data.view;
+      if (target === 'schedule' || target === 'calendar' || (target === 'files' && canManage)) navigate(target);
+    };
+    sendView();
+    window.addEventListener('message', receive);
+    return () => window.removeEventListener('message', receive);
+  }, [activeView, isProduction, canManage, navigate]);
+
+  useEffect(() => {
+    if (!embedded || !fullSchedule || window.parent === window) return;
+    const pageKey = (event: KeyboardEvent) => {
+      if (!['PageDown', 'PageUp'].includes(event.key) || event.defaultPrevented
+          || (event.target instanceof Element && event.target.closest('input,select,textarea,[contenteditable=true]'))) return;
+      event.preventDefault();
+      window.parent.scrollBy(0, (event.key === 'PageDown' ? 1 : -1) * Math.max(100, window.parent.innerHeight - 64));
+    };
+    window.addEventListener('keydown', pageKey);
+    return () => window.removeEventListener('keydown', pageKey);
+  }, [fullSchedule]);
+
+  useEffect(() => {
+    if (!embedded || !isProduction || window.parent === window || !shell.current) return;
     const root = shell.current;
     const send = (height: number | null) => window.parent.postMessage(
       { type: 'pmoffice-nexpharm-schedule-height', project: slug, height }, window.location.origin);
@@ -71,12 +106,21 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
     observer.observe(root);
     measure();
     return () => { observer.disconnect(); send(null); };
-  }, [fullSchedule]);
+  }, [isProduction]);
 
   function closeSettings() {
-    setShowSettings(false);
-    settingsButton.current?.focus();
+    if (settingsOpened.current) history.back();
+    else {
+      history.replaceState(history.state, '', '#schedule');
+      setView('schedule');
+    }
   }
+
+  useEffect(() => {
+    if (!fullSchedule || !settingsOpened.current) return;
+    settingsOpened.current = false;
+    settingsButton.current?.focus({ preventScroll: true });
+  }, [fullSchedule]);
 
   const refresh = useCallback(async (kind: NexpharmFile) => {
     const revision = ++revisions.current[kind];
@@ -85,13 +129,21 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
     };
     let meta: FileMeta | null | undefined;
     try {
+      if (isProduction && kind === 'workbook') {
+        const { data, error } = await auth.rpc('nexpharm_production_snapshot', { p_slug: slug });
+        if (error && !['PGRST202', '42883'].includes(error.code)) throw Error(error.message);
+        if (data) {
+          save({ meta: data.current, production: data.schedule ?? undefined });
+          return;
+        }
+      }
       const { current } = await (await nexpharmFile(kind, 'meta')).json() as { current: FileMeta | null };
       meta = current;
       if (!current) { save({ meta: null }); return; }
       if (isProduction) {
         const { etag, schedule } = await (await nexpharmFile(kind, 'schedule')).json();
         if (etag !== current.etag) throw Error('파일이 변경되었습니다. 다시 확인해 주세요.');
-        save({ meta: current, production: schedule });
+        save({ meta: current, production: schedule, legacy: true });
         return;
       }
       const response = await nexpharmFile(kind, 'file');
@@ -145,6 +197,19 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
     } finally { setBusy(null); }
   }
 
+  async function migrateProduction() {
+    if (!preferences.canApplyGlobal || busy) return;
+    setBusy('workbook');
+    setError('');
+    try {
+      await nexpharmFile('workbook', 'migrate', { method: 'POST' });
+      await refresh('workbook');
+      setNotice('게시된 생산 일정을 데이터베이스로 이관했습니다.');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : '생산 일정 이관을 완료하지 못했습니다.');
+    } finally { setBusy(null); }
+  }
+
   async function download(kind: NexpharmFile) {
     if (busy) return;
     setBusy(kind);
@@ -168,8 +233,26 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
   const schedule = entries.workbook;
   const reference = entries.reference;
   const snapshot = useMemo(() => schedule.book ? scheduleSnapshot(schedule.book) : null, [schedule.book]);
-  const selectedMenu = visibleMenu.find(item => item.key === activeView)!;
-  const viewLabel = isProduction && activeView === 'schedule' ? '생산위수탁관리 일정표' : selectedMenu.label;
+  const selectedMenu = visibleMenu.find(item => item.key === activeView);
+  const viewLabel = activeView === 'settings' ? '일정표 열 설정' : fullSchedule ? title.replace(/생산계획$/, '생산 계획') : selectedMenu?.label ?? '일정표';
+  const production = schedule.production;
+  const hierarchy = useMemo(() => productionOutline(production?.tasks ?? []), [production]);
+  const expanded = useMemo(() => outline === 'custom' ? branches : presetBranches(production?.tasks ?? [], outline), [production, branches, outline]);
+  const rows = useMemo(() => (production?.tasks ?? []).filter(task => {
+    if (outline !== 'custom') return outline === 'all' || task.level <= Number(outline);
+    return (task.level === 1 || (hierarchy.ancestors.get(task.id)?.length ?? 0) > 0)
+      && (hierarchy.ancestors.get(task.id) ?? []).every(id => expanded.has(id));
+  }), [production, hierarchy, outline, expanded]);
+
+  function toggleBranch(id: string) {
+    const next = new Set(expanded);
+    if (next.has(id)) {
+      next.delete(id);
+      for (const child of next) if (hierarchy.ancestors.get(child)?.includes(id)) next.delete(child);
+    } else next.add(id);
+    setBranches(next);
+    setOutline('custom');
+  }
 
   function unavailable(kind: NexpharmFile) {
     const entry = entries[kind];
@@ -185,7 +268,7 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
       onClick={() => navigate(key)}><Icon size={19}/><span>{isProduction && key === 'schedule' ? '일정표' : label}</span></button>)}</nav>;
 
   return <div ref={shell} className={'app-shell nex-detail' + (embedded ? ' nex-embedded' : '')
-    + (fullSchedule ? ' nex-full-schedule' : '')}>
+    + (isProduction ? ' nex-full-schedule' : '')}>
     {!embedded && mobile && <button className="sidebar-overlay" aria-label="메뉴 닫기" onClick={() => setMobile(false)}/>}
     {!embedded && <aside className={'sidebar ' + (mobile ? 'mobile-open' : '')}>
       <a className="brand" href={center} target="_top"><span className="brand-symbol">P</span><strong>PMOffice<span>넥스팜 PMS</span></strong></a>
@@ -204,29 +287,32 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
         <span className="source-indicator">{canManage ? '파일 관리 가능' : '열람 회원'}</span>
       </div>}
       <main>
-        {embedded && <div className="nex-view-nav">{navigation}</div>}
-        <header className="page-header"><div><h1>{viewLabel}</h1><p>{title}</p></div>
+        {embedded && !isProduction && <div className="nex-view-nav">{navigation}</div>}
+        {activeView !== 'settings' && <header className="page-header"><div><h1 className={fullSchedule ? 'nex-production-title' : undefined}>{viewLabel}</h1>{!fullSchedule && <p>{title}</p>}</div>
           <div className="header-actions">
             {fullSchedule && <>
-              <select value={outline} aria-label="개요 수준" onChange={event => setOutline(event.target.value)}>
-                <option value="">모든 개요 수준</option>
+              <select value={scale} aria-label="날짜 표시줄" onChange={event => setScale(event.target.value as DateScale)}>
+                <option value="day">일(Day)</option><option value="week">주(Week)</option>
+              </select>
+              <select value={outline} aria-label="개요 수준" onChange={event => setOutline(event.target.value as OutlinePreset)}>
+                <option value="all">모든 개요 수준</option>
+                {outline === 'custom' && <option value="custom" disabled>직접 펼치기</option>}
                 {[1, 2, 3].map(level => <option key={level} value={level}>{level}수준까지</option>)}
               </select>
-              <button type="button" ref={settingsButton} aria-expanded={showSettings} aria-controls="nex-schedule-settings"
-                onClick={() => setShowSettings(previous => !previous)}>설정</button>
+              <button type="button" ref={settingsButton} onClick={() => navigate('settings')}>설정</button>
             </>}
             {(activeView === 'schedule' || activeView === 'milestones') && (!isProduction || canManage) && schedule.meta && <button className="primary" disabled={!!busy}
               onClick={() => download('workbook')}><Download size={16}/> 공정표 원본</button>}
             {activeView === 'reference' && reference.meta && <button className="primary" disabled={!!busy}
               onClick={() => download('reference')}><Download size={16}/> 참고 엑셀 원본</button>}
           </div>
-        </header>
+        </header>}
         {error && <p className="error" role="alert">{error}</p>}
         {notice && <p className="nex-message" role="status">{notice}</p>}
-        {fullSchedule && showSettings && <NexpharmScheduleSettings preferences={preferences} close={closeSettings}/>}
-        {activeView === 'schedule' && (schedule.production
-          ? <NexpharmProductionSchedule key={schedule.meta?.etag} schedule={schedule.production}
-              layout={fullSchedule ? preferences.layout : undefined} level={outline}/>
+        {activeView === 'settings' && <NexpharmScheduleSettings preferences={preferences} close={closeSettings}/>}
+        {activeView === 'schedule' && (production
+          ? <NexpharmProductionGrid key={schedule.meta?.etag} schedule={production} layout={preferences.layout}
+              rows={rows} parents={hierarchy.parents} expanded={expanded} toggle={toggleBranch} scale={scale}/>
           : schedule.book && snapshot
           ? <NexpharmSchedule key={schedule.meta?.etag} tasks={schedule.book.tasks} {...snapshot}/>
           : unavailable('workbook'))}
@@ -262,6 +348,8 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
                   disabled={!!busy} onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) change(kind, 'publish', file); }}/>
               </label>}
               {entry.meta && <button disabled={!!busy} onClick={() => download(kind)}>원본 다운로드</button>}
+              {slug === 'nexpharm-8088c44595a3' && entry.legacy && preferences.canApplyGlobal &&
+                <button disabled={!!busy} onClick={migrateProduction}>게시 일정 DB로 이관</button>}
               {entry.meta && canManage && <button className="nex-remove" disabled={!!busy} onClick={() => change(kind, 'remove')}>제거</button>}
               {entry.error && <button onClick={() => refresh(kind)}>다시 확인</button>}
             </div>

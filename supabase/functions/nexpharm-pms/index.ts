@@ -1,12 +1,25 @@
 import { createNexpharmFilesHandler } from './files.mjs';
 import { validateNexpharmFile } from './workbook.mjs';
+import { productionDatabase } from './production-db.ts';
 
 const supabase = Deno.env.get('SUPABASE_URL')!;
 const key = Deno.env.get('SUPABASE_ANON_KEY')!;
 const token = Deno.env.get('PMS_GITHUB_TOKEN')?.trim();
 const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
+async function rpc(auth: string, name: string, args: object) {
+  const response = await fetch(supabase + '/rest/v1/rpc/' + name, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: auth, 'Content-Type': 'application/json' },
+    body: JSON.stringify(args),
+  });
+  if (!response.ok) throw Object.assign(Error('프로젝트 이용 권한을 확인해 주세요.'), { status: 403 });
+  return response.status === 204 ? null : response.json();
+}
+
 Deno.serve(createNexpharmFilesHandler({
+  rpc,
+  productionDb: productionDatabase(supabase, key, serviceKey, rpc),
   origin: Deno.env.get('PMS_ALLOWED_ORIGIN') || 'https://pmoffice.co.kr',
   dataRepo: Deno.env.get('PMS_DATA_REPO'),
   validate: validateNexpharmFile,
@@ -18,16 +31,6 @@ Deno.serve(createNexpharmFilesHandler({
       body: JSON.stringify({ p_slug: slug, p_sha256: sha256, p_etag: etag }),
     });
     if (!response.ok) throw Error('프로젝트 파일 검증 기록을 저장하지 못했습니다.');
-  },
-  async rpc(auth: string, name: string, args: object) {
-    const response = await fetch(supabase + '/rest/v1/rpc/' + name, {
-      method: 'POST',
-      headers: { apikey: key, Authorization: auth, 'Content-Type': 'application/json' },
-      body: JSON.stringify(args),
-    });
-    if (!response.ok) throw Object.assign(Error('프로젝트 이용 권한을 확인해 주세요.'), { status: 403 });
-    // PostgREST returns no content for successful void routines such as the audit insert.
-    return response.status === 204 ? null : response.json();
   },
   async github(path: string, options: { method?: string; raw?: boolean; body?: object } = {}, missing = false) {
     if (!token) throw Object.assign(Error('PMS 원본 저장소 연결을 확인해 주세요.'), { status: 503 });

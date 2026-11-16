@@ -88,3 +88,29 @@
 .nex-schedule-settings input[type=number]{width:64px;padding:4px}
 .nex-layout-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
 @media(max-width:700px){.nex-full-schedule .page-header{flex-direction:column;align-items:flex-start}}
+.nex-detail .page-header .nex-production-title{font-size:4em;line-height:1.12;overflow-wrap:anywhere}
+@media(max-width:1150px){.nex-detail .page-header .nex-production-title{font-size:50px}}
+.nex-windowed-schedule .nex-production-scroll table{margin:0;box-sizing:border-box}
+.nex-windowed-schedule .nex-production-scroll :is(th,td){box-sizing:border-box;min-width:0}
+.nex-windowed-schedule .nex-task-pane thead th{height:72px}
+.nex-windowed-schedule .nex-chart-pane thead th{height:24px;padding:1px 3px;text-align:center}
+.nex-windowed-schedule .nex-production-scroll tbody td:is(.prod-value-id,.prod-value-quantity,.prod-value-hours,.prod-value-start,.prod-value-finish){text-align:right}
+.nex-windowed-schedule .nex-production-scroll tbody .nex-row-gap td{padding:0;border:0;line-height:0}
+.prod-task-label{display:flex;align-items:center;gap:4px;overflow:hidden}
+.prod-task-label>span{overflow:hidden;text-overflow:ellipsis}
+.prod-outline-button{height:19px;min-width:19px;flex:0 0 19px;padding:0;justify-content:center;line-height:1;border-radius:3px;color:#17314e}
+.nex-chart-rows{position:relative;background:white}
+.nex-chart-rows::after{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,transparent calc(100% - 1px),#e1e7ef calc(100% - 1px)),linear-gradient(to bottom,transparent 31px,#e1e7ef 31px);background-size:var(--nex-date-width) 100%,100% 32px}
+.nex-chart-off{position:absolute;inset:0;pointer-events:none}
+.nex-chart-off>span{position:absolute;top:0;bottom:0;background:#edf1f6}
+.nex-chart-task{position:absolute;left:0;right:0;height:32px;z-index:1}
+.nex-chart-task .prod-bar{position:absolute;top:6px}
+.nex-chart-task .prod-label{white-space:nowrap;color:inherit}
+.nex-schedule-settings h1{margin:0 0 16px;font-size:24px}
+.nex-schedule-settings .nex-layout-list{max-width:840px}
+.nex-schedule-settings .nex-layout-list li{grid-template-columns:minmax(85px,1fr) minmax(160px,2fr) auto auto auto}
+.nex-layout-list input[type=text]{width:100%;min-width:0}
+.nex-layout-list small{grid-column:1/-1}
+.nex-schedule-settings :is(small,[role=alert]){color:#9c1727}
+.nex-schedule-settings button.nex-global-layout{color:#fff;background:#b42318;border-color:#b42318}
+@media(max-width:610px){.nex-schedule-settings .nex-layout-list li{grid-template-columns:minmax(75px,1fr) minmax(100px,1fr) auto auto}.nex-layout-list label:has(input[type=text]){grid-column:1/-1;grid-row:2}}
