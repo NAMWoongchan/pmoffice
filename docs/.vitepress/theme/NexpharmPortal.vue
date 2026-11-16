@@ -304,7 +304,7 @@ onUnmounted(() => {
     <div class="nex-main">
       <header class="nex-heading">
         <div>
-          <img v-if="!selected && !board" class="nex-company-logo" src="/images/nexpharm-korea.jpg" alt="넥스팜코리아" width="150" height="69">
+          <img v-if="!selected && !board" class="nex-company-logo" src="/images/nexpharm-korea.png" alt="넥스팜코리아" width="150" height="69">
           <h1>{{ selected ? '프로젝트 일정' : board ? '자유 게시판' : '프로젝트 센터' }}</h1>
           <p v-if="selected && detail">{{ detail.title }}</p>
         </div>

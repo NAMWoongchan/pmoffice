@@ -30,11 +30,13 @@ Deno.serve(createNexpharmFilesHandler({
   },
   async github(path: string, options: { method?: string; raw?: boolean; body?: object } = {}, missing = false) {
     if (!token) throw Object.assign(Error('PMS 원본 저장소 연결을 확인해 주세요.'), { status: 503 });
+    const accept = options.raw ? 'application/vnd.github.raw+json' : !options.method && path.includes('/contents/')
+      ? 'application/vnd.github.object+json' : 'application/vnd.github+json';
     const response = await fetch('https://api.github.com' + path, {
       method: options.method || 'GET',
       headers: {
         Authorization: 'Bearer ' + token,
-        Accept: options.raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json',
+        Accept: accept,
         'X-GitHub-Api-Version': '2022-11-28',
         'Content-Type': 'application/json',
       },
