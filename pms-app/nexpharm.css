@@ -72,6 +72,15 @@
 .nex-production-full .nex-production-scroll .prod-id{position:static;width:auto;min-width:0}
 .nex-production-full .nex-production-scroll .prod-name{left:0;width:auto;min-width:0;max-width:none}
 .nex-production-full .nex-production-scroll td.prod-day{min-width:0}
+.nex-schedule-panes{display:grid;grid-template-columns:minmax(0,1fr)}
+.nex-schedule-panes.nex-has-chart{grid-template-columns:minmax(0,1fr) clamp(280px,34%,570px);gap:12px}
+.nex-task-pane,.nex-chart-pane{min-width:0}
+.nex-pane-title{height:26px;font-size:13px;line-height:20px}
+.nex-pane-horizontal{height:16px;overflow-x:auto;overflow-y:hidden;margin-bottom:4px}
+.nex-pane-horizontal>div{height:1px}
+.nex-schedule-panes .nex-production-scroll{scrollbar-width:none}
+.nex-schedule-panes .nex-production-scroll :is(th,td){height:32px;line-height:20px}
+@media(max-width:720px){.nex-schedule-panes.nex-has-chart{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}}
 .nex-schedule-settings h2{margin:0 0 12px}
 .nex-layout-list{padding:0;margin:0 0 14px;list-style:none;max-width:620px}
 .nex-layout-list li{display:grid;grid-template-columns:minmax(85px,1fr) auto auto auto;gap:6px;align-items:center;padding:4px 0}

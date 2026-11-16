@@ -74,19 +74,28 @@ test('production layout stores one validated preference per permitted account an
 
 test('full production view keeps every matching row, follows field order and formats hours alone', () => {
   const tasks = Array.from({ length: 654 }, (_, i) => ({ id: String(i + 1), name: '작업 ' + (i + 1), level: i % 3 + 1,
-    hours: i % 3 === 0 ? 2.65 : i % 3 === 1 ? 3 : '', quantity: 3, color: '기타', start: '', finish: '' }));
+    hours: i % 3 === 0 ? 2.65 : i % 3 === 1 ? 3 : '', quantity: 3, color: '기타', start: '2026-11-01', finish: '2026-11-01' }));
   const schedule = { tasks, days: [{ date: '2026-11-01', workday: false }] };
   const layout = defaultScheduleLayout();
   const render = level => new JSDOM(renderToStaticMarkup(
     React.createElement(NexpharmProductionSchedule, { schedule, layout, level }))).window.document;
   const initial = render('');
-  assert.equal(initial.querySelectorAll('tbody tr').length, 654);
-  assert.equal(initial.querySelector('tbody tr:last-child th').textContent, '작업 654');
+  const taskRows = doc => [...doc.querySelectorAll('.nex-task-pane tbody tr')];
+  const chartRows = doc => [...doc.querySelectorAll('.nex-chart-pane tbody tr')];
+  const ids = rows => rows.map(row => row.dataset.taskId);
+  assert.equal(taskRows(initial).length, 654);
+  assert.equal(taskRows(initial).at(-1).querySelector('th').textContent, '작업 654');
+  assert.deepEqual(ids(chartRows(initial)), ids(taskRows(initial)));
+  assert.equal(initial.querySelector('.nex-chart-pane th.prod-day').textContent, '11/01');
+  assert.equal(initial.querySelector('.nex-chart-pane tbody .prod-bar').textContent, '작업 1');
+  assert.equal(initial.querySelector('.nex-chart-pane .nex-pane-horizontal').tabIndex, 0);
   assert.equal(initial.querySelector('.nex-production-toolbar'), null);
   assert.deepEqual([...initial.querySelectorAll('tbody .prod-hours')].slice(0, 3).map(el => el.textContent), ['2.7','3.0','']);
   assert.equal(initial.querySelector('tbody .prod-quantity').textContent, '3');
-  assert.equal(render('1').querySelectorAll('tbody tr').length, 218);
-  assert.equal(render('2').querySelectorAll('tbody tr').length, 436);
+  const level1 = render('1');
+  assert.equal(taskRows(level1).length, 218);
+  assert.deepEqual(ids(chartRows(level1)), ids(taskRows(level1)));
+  assert.equal(taskRows(render('2')).length, 436);
   assert.equal(displayHours(2.64), '2.6');
   layout.fields.reverse();
   layout.fields = layout.fields.map(field => ({ ...field, visible: false, width: field.key === 'name' ? 182 : field.width }));
@@ -94,5 +103,6 @@ test('full production view keeps every matching row, follows field order and for
   const personal = render('');
   assert.deepEqual([...personal.querySelectorAll('thead th')].map(el => el.textContent), ['작업 이름']);
   assert.equal(personal.querySelector('col').style.width, '182px');
+  assert.equal(personal.querySelector('.nex-chart-pane'), null);
   assert.equal(personal.querySelectorAll('tbody tr').length, 654);
 });
