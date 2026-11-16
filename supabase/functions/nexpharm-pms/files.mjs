@@ -109,7 +109,7 @@ export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload
           }
         }
         if (writing && action !== 'migrate' && (snapshot || access.project?.status === 'draft')) {
-          return publishToDatabase(snapshot?.current?.etag ?? 'seed');
+          return await publishToDatabase(snapshot?.current?.etag ?? 'seed');
         }
       }
 
@@ -186,7 +186,7 @@ export function createNexpharmFilesHandler({ rpc, github, validate, recordUpload
       }
 
       if (request.headers.get('if-match') !== (current?.sha || 'seed')) fail(409, '다른 변경이 있습니다. 최신 파일을 확인해 주세요.');
-      if (database) return publishToDatabase(current?.sha || 'seed', true);
+      if (database) return await publishToDatabase(current?.sha || 'seed', true);
       let result, details;
       const expectedDigest = kind === 'workbook' && access.project?.status === 'draft' ? access.project.sourceSha256 : null;
       let actualDigest;
