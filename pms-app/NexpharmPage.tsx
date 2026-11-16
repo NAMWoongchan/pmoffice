@@ -4,6 +4,9 @@ import { NexpharmReference } from './components/NexpharmReference';
 import { NexpharmSchedule } from './components/NexpharmSchedule';
 import { NexpharmProductionSchedule } from './components/NexpharmProductionSchedule';
 import { NexpharmProductionCalendar } from './components/NexpharmProductionCalendar';
+import { NexpharmScheduleSettings, useNexpharmScheduleSettings } from './components/NexpharmScheduleSettings';
+import { personalScheduleProject } from './lib/nexpharm-schedule-layout';
+import { slug } from './transport';
 import { nexpharmFile, type FileMeta } from './lib/nexpharm-api';
 import { parseNexpharmFile, scheduleSnapshot, type NexpharmFile } from './lib/nexpharm-book';
 import type { Book } from './lib/workbook';
@@ -36,6 +39,13 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
   const availableKinds = isProduction ? kinds.slice(0, 1) : kinds;
   const [view, setView] = useState<View>(readView);
   const activeView = visibleMenu.some(item => item.key === view) ? view : 'schedule';
+  const personalSchedule = isProduction && slug === personalScheduleProject;
+  const fullSchedule = personalSchedule && activeView === 'schedule';
+  const preferences = useNexpharmScheduleSettings(slug, personalSchedule);
+  const [outline, setOutline] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const shell = useRef<HTMLDivElement>(null);
+  const settingsButton = useRef<HTMLButtonElement>(null);
   const [entries, setEntries] = useState<Record<NexpharmFile, Entry>>({ workbook: {}, reference: {} });
   const [busy, setBusy] = useState<NexpharmFile | null>(null);
   const [error, setError] = useState('');
@@ -48,6 +58,24 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
     location.hash = target;
     setView(target);
     setMobile(false);
+    setShowSettings(false);
+  }
+
+  useEffect(() => {
+    if (!embedded || !fullSchedule || window.parent === window || !shell.current) return;
+    const root = shell.current;
+    const send = (height: number | null) => window.parent.postMessage(
+      { type: 'pmoffice-nexpharm-schedule-height', project: slug, height }, window.location.origin);
+    const measure = () => send(Math.ceil(root.getBoundingClientRect().height));
+    const observer = new ResizeObserver(measure);
+    observer.observe(root);
+    measure();
+    return () => { observer.disconnect(); send(null); };
+  }, [fullSchedule]);
+
+  function closeSettings() {
+    setShowSettings(false);
+    settingsButton.current?.focus();
   }
 
   const refresh = useCallback(async (kind: NexpharmFile) => {
@@ -156,7 +184,8 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
     <button key={key} className={key === activeView ? 'selected' : ''} aria-current={key === activeView ? 'page' : undefined}
       onClick={() => navigate(key)}><Icon size={19}/><span>{isProduction && key === 'schedule' ? '일정표' : label}</span></button>)}</nav>;
 
-  return <div className={'app-shell nex-detail' + (embedded ? ' nex-embedded' : '')}>
+  return <div ref={shell} className={'app-shell nex-detail' + (embedded ? ' nex-embedded' : '')
+    + (fullSchedule ? ' nex-full-schedule' : '')}>
     {!embedded && mobile && <button className="sidebar-overlay" aria-label="메뉴 닫기" onClick={() => setMobile(false)}/>}
     {!embedded && <aside className={'sidebar ' + (mobile ? 'mobile-open' : '')}>
       <a className="brand" href={center} target="_top"><span className="brand-symbol">P</span><strong>PMOffice<span>넥스팜 PMS</span></strong></a>
@@ -178,6 +207,14 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
         {embedded && <div className="nex-view-nav">{navigation}</div>}
         <header className="page-header"><div><h1>{viewLabel}</h1><p>{title}</p></div>
           <div className="header-actions">
+            {fullSchedule && <>
+              <select value={outline} aria-label="개요 수준" onChange={event => setOutline(event.target.value)}>
+                <option value="">모든 개요 수준</option>
+                {[1, 2, 3].map(level => <option key={level} value={level}>{level}수준까지</option>)}
+              </select>
+              <button type="button" ref={settingsButton} aria-expanded={showSettings} aria-controls="nex-schedule-settings"
+                onClick={() => setShowSettings(previous => !previous)}>설정</button>
+            </>}
             {(activeView === 'schedule' || activeView === 'milestones') && (!isProduction || canManage) && schedule.meta && <button className="primary" disabled={!!busy}
               onClick={() => download('workbook')}><Download size={16}/> 공정표 원본</button>}
             {activeView === 'reference' && reference.meta && <button className="primary" disabled={!!busy}
@@ -186,8 +223,10 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
         </header>
         {error && <p className="error" role="alert">{error}</p>}
         {notice && <p className="nex-message" role="status">{notice}</p>}
+        {fullSchedule && showSettings && <NexpharmScheduleSettings preferences={preferences} close={closeSettings}/>}
         {activeView === 'schedule' && (schedule.production
-          ? <NexpharmProductionSchedule key={schedule.meta?.etag} schedule={schedule.production}/>
+          ? <NexpharmProductionSchedule key={schedule.meta?.etag} schedule={schedule.production}
+              layout={fullSchedule ? preferences.layout : undefined} level={outline}/>
           : schedule.book && snapshot
           ? <NexpharmSchedule key={schedule.meta?.etag} tasks={schedule.book.tasks} {...snapshot}/>
           : unavailable('workbook'))}
