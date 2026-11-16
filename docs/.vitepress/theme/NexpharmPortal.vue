@@ -1,10 +1,21 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { call, client } from './pms-client.js'
 import NexpharmProjectEditor from './NexpharmProjectEditor.vue'
+import NexpharmActivity from './NexpharmActivity.vue'
+import { cleanComment, projectMonths, workbookRange, workbookRequest } from './nexpharm-center.js'
+import './nexpharm-center.css'
 
 const center = '/pms/nexpharm/'
 const selected = ref('')
+const board = ref(false)
+const drawer = ref(null)
+const rangeBySlug = ref({})
+const timeline = computed(() => projectMonths(rangeBySlug.value))
+const file = ref(null)
+const fileInput = ref(null)
+const registering = ref(false)
+let rangeController, detailTrigger
 const detail = ref(null)
 const canEdit = ref(false)
 const editing = ref(false)
@@ -19,14 +30,19 @@ let epoch = 0
 let timer, subscription, refreshTimer
 
 const urlFor = slug => center + '?project=' + encodeURIComponent(slug)
+const boardUrl = center + '?view=board'
+const address = computed(() => selected.value ? urlFor(selected.value) : board.value ? boardUrl : center)
 function readAddress() {
-  const slug = new URLSearchParams(location.search).get('project') || ''
+  const params = new URLSearchParams(location.search)
+  const slug = params.get('project') || ''
   selected.value = /^nexpharm-[0-9a-f]{12}$/.test(slug) ? slug : ''
+  board.value = !selected.value && params.get('view') === 'board'
 }
-function onNavigate(event, slug) {
+function onNavigate(event, href) {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   event.preventDefault()
-  history.pushState(history.state, '', slug ? urlFor(slug) : center)
+  if (href === address.value) return
+  history.pushState(history.state, '', href)
   addressChanged()
 }
 function addressChanged() {
@@ -36,6 +52,8 @@ function addressChanged() {
   savedNotice.value = ''
   detail.value = null
   catalog.value = null
+  drawer.value = null
+  rangeController?.abort()
   load()
 }
 async function load(quiet = false) {
@@ -52,11 +70,15 @@ async function load(quiet = false) {
       : call('nexpharm_catalog')) : null
     if (id !== epoch) return
     if (slug) {
-      detail.value = result?.canRead ? result.project : null
-      canEdit.value = result?.canManage === true
+      detail.value = result?.canRead && result.project?.status !== 'draft' ? result.project : null
+      canEdit.value = detail.value && result?.canManage === true
       if (!canEdit.value) editing.value = false
     }
-    else catalog.value = result
+    else {
+      catalog.value = result
+      if (!result?.canRead) drawer.value = null
+      if (result?.canRead && !board.value) void loadRanges(result.projects, session.value)
+    }
     error.value = ''
   } catch (reason) {
     if (id !== epoch) return
@@ -67,16 +89,85 @@ async function load(quiet = false) {
     if (id === epoch) loading.value = false
   }
 }
+async function loadRanges(projects, currentSession) {
+  rangeController?.abort()
+  rangeController = new AbortController()
+  const { signal } = rangeController
+  const previous = rangeBySlug.value
+  rangeBySlug.value = Object.fromEntries(projects.map(({ slug }) => [slug, previous[slug] ?? { pending: true }]))
+  let index = 0
+  async function readNext() {
+    while (index < projects.length && !signal.aborted) {
+      const { slug } = projects[index++]
+      let range
+      try {
+        const { current } = await (await workbookRequest(currentSession, slug, 'meta', { signal })).json()
+        if (!current) range = {}
+        else if (previous[slug]?.etag === current.etag) range = previous[slug]
+        else {
+          const response = await workbookRequest(currentSession, slug, 'file', { signal })
+          if (response.headers.get('ETag') !== current.etag) throw Error('공정표가 변경되었습니다.')
+          range = { ...await workbookRange(await response.arrayBuffer(), current.name), etag: current.etag }
+        }
+      } catch { range = { failed: true } }
+      if (!signal.aborted) rangeBySlug.value = { ...rangeBySlug.value, [slug]: range }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(4, projects.length) }, readNext))
+}
+function chooseFile(event) {
+  file.value = event.target.files[0] ?? null
+  if (file.value && !title.value.trim()) title.value = file.value.name.replace(/\.xlsx$/i, '').slice(0, 160)
+}
 async function register() {
-  if (busy.value || !title.value.trim() || !catalog.value?.canManage) return
+  if (busy.value || !file.value || !title.value.trim() || !catalog.value?.canManage) return
   busy.value = true
+  error.value = ''
+  savedNotice.value = ''
+  const currentSession = session.value
   try {
-    const result = await call('nexpharm_create_project', { p_title: title.value.trim() })
+    const source = file.value
+    if (source.size > 8 * 1024 * 1024) throw Error('xlsx 파일을 최대 8MiB까지 등록할 수 있습니다.')
+    const body = await source.arrayBuffer()
+    const range = await workbookRange(body, source.name)
+    const { slug } = await call('nexpharm_prepare_project', { p_title: title.value.trim() })
+    const { current } = await (await workbookRequest(currentSession, slug, 'meta')).json()
+    const saved = await (await workbookRequest(currentSession, slug, 'publish', {
+      method: 'POST', body, headers: {
+        'If-Match': current?.etag ?? 'seed',
+        'Content-Type': 'application/octet-stream',
+        'X-Filename': encodeURIComponent(source.name),
+      },
+    })).json()
+    if (!saved.etag || saved.audit_recorded !== true) throw Error('공정표 등록 기록을 확인하지 못했습니다. 같은 프로젝트 이름으로 다시 시도해 주세요.')
+    await call('nexpharm_publish_project', { p_slug: slug, p_etag: saved.etag })
+    if (session.value?.user.id !== currentSession.user.id) return
+    rangeBySlug.value = { ...rangeBySlug.value, [slug]: { ...range, etag: saved.etag } }
     title.value = ''
-    history.pushState(history.state, '', urlFor(result.slug))
-    addressChanged()
+    file.value = null
+    if (fileInput.value) fileInput.value.value = ''
+    registering.value = false
+    await load(true)
+    savedNotice.value = '프로젝트와 공정표를 등록했습니다.'
   } catch (reason) { error.value = reason.message }
   finally { busy.value = false }
+}
+async function openRegistration() {
+  registering.value = !registering.value
+  if (registering.value) { await nextTick(); fileInput.value?.focus() }
+}
+function openDetails(project, event) {
+  detailTrigger = event.currentTarget
+  drawer.value = project
+}
+async function closeDetails() {
+  drawer.value = null
+  await nextTick()
+  detailTrigger?.focus()
+}
+function updateComment(slug, html) {
+  const project = catalog.value?.projects.find(item => item.slug === slug)
+  if (project) project.comment = html
 }
 function projectSaved(project) {
   detail.value = project
@@ -88,6 +179,12 @@ async function logout() {
   detail.value = null
   catalog.value = null
   session.value = null
+  drawer.value = null
+  rangeController?.abort()
+  rangeBySlug.value = {}
+  title.value = ''
+  file.value = null
+  registering.value = false
   try {
     const { error: reason } = await client().auth.signOut()
     if (reason) throw reason
@@ -104,6 +201,9 @@ onMounted(() => {
       ++epoch
       detail.value = null
       catalog.value = null
+      drawer.value = null
+      rangeController?.abort()
+      rangeBySlug.value = {}
       session.value = next
     }
     clearTimeout(refreshTimer)
@@ -113,6 +213,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   ++epoch
+  rangeController?.abort()
   subscription?.unsubscribe()
   clearInterval(timer)
   clearTimeout(refreshTimer)
@@ -122,76 +223,83 @@ onUnmounted(() => {
 
 <template>
   <main class="nex-portal">
-    <header class="nex-heading">
-      <div>
-        <span class="nex-eyebrow">PMOFFICE · 넥스팜 PMS</span>
-        <h1>{{ selected ? detail?.title || '프로젝트 상세' : '프로젝트 센터' }}</h1>
-        <p>{{ selected ? '사업 일정과 마일스톤, 참고 자료를 확인하세요.' : '넥스팜 프로젝트의 공정표와 참고 자료를 한 곳에서 관리합니다.' }}</p>
-      </div>
-      <div class="nex-actions">
-        <a v-if="selected" class="nex-button" :href="center" @click="onNavigate($event, '')">프로젝트 센터</a>
-        <button v-if="session" type="button" class="nex-button" @click="logout">로그아웃</button>
-        <a v-else class="nex-button nex-primary" :href="'/login.html?returnTo=' + encodeURIComponent(selected ? urlFor(selected) : center)">로그인</a>
-      </div>
-    </header>
-    <p v-if="savedNotice" role="status">{{ savedNotice }}</p>
-    <p v-if="loading" class="nex-notice" role="status">프로젝트 이용 권한을 확인하고 있습니다.</p>
-    <p v-if="error" class="nex-notice" role="alert">{{ error }} <button class="nex-button" type="button" @click="load()">다시 확인</button></p>
-    <template v-if="selected">
-      <p v-if="detail?.description" class="nex-description">{{ detail.description }}</p>
-      <button v-if="detail && canEdit && !editing" class="nex-button nex-edit" type="button"
-        @click="editing=true;savedNotice=''">프로젝트 정보 수정</button>
-      <NexpharmProjectEditor v-if="detail && canEdit && editing" :key="detail.slug" :project="detail"
-        @saved="projectSaved" @cancel="editing=false" />
-      <iframe v-if="detail" :key="detail.slug + '-' + (detail.version || 0)" class="nex-frame"
-        :src="'/pms/app/index.html?project=' + encodeURIComponent(detail.slug)" title="넥스팜 프로젝트 일정과 자료"></iframe>
-      <p v-else-if="!loading && !error" class="nex-notice">프로젝트를 열려면 지정 그룹 권한이 필요합니다.</p>
-    </template>
-    <template v-else-if="catalog?.canRead">
-      <form v-if="catalog.canManage" class="nex-register" @submit.prevent="register">
-        <div><h2>프로젝트 등록</h2><p>새 프로젝트를 만든 뒤 상세 화면에서 공정표를 올릴 수 있습니다.</p></div>
-        <label for="nex-project-title">프로젝트 이름</label>
-        <div class="nex-register-controls">
-          <input id="nex-project-title" v-model="title" maxlength="160" required placeholder="프로젝트 이름 입력">
-          <button class="nex-button nex-primary" type="submit" :disabled="busy || !title.trim()">{{ busy ? '등록 중…' : '프로젝트 등록' }}</button>
+    <aside class="nex-sidebar">
+      <strong>넥스팜 PMS</strong>
+      <nav aria-label="넥스팜 PMS 메뉴">
+        <a :href="center" :aria-current="!board && !selected ? 'page' : undefined" @click="onNavigate($event, center)">프로젝트 센터</a>
+        <a :href="boardUrl" :aria-current="board ? 'page' : undefined" @click="onNavigate($event, boardUrl)">자유 게시판</a>
+      </nav>
+    </aside>
+    <div class="nex-main">
+      <header class="nex-heading">
+        <div>
+          <h1>{{ selected ? '프로젝트 일정' : board ? '자유 게시판' : '프로젝트 센터' }}</h1>
+          <p v-if="selected && detail">{{ detail.title }}</p>
         </div>
-      </form>
-      <section class="nex-catalog" aria-label="등록 프로젝트">
-        <header><h2>등록 프로젝트</h2><span>{{ catalog.projects.length }}건</span></header>
-        <ul v-if="catalog.projects.length">
-          <li v-for="project in catalog.projects" :key="project.slug">
-            <a :href="urlFor(project.slug)" @click="onNavigate($event, project.slug)">
-              <span class="nex-project-icon" aria-hidden="true">P</span>
-              <strong>{{ project.title }}</strong><span aria-hidden="true">열기 →</span>
-            </a>
-          </li>
-        </ul>
-        <p v-else class="nex-empty">등록된 프로젝트가 없습니다.</p>
-      </section>
-    </template>
-    <p v-else-if="!loading && !error" class="nex-notice">{{ session ? '넥스팜 PMS 지정 그룹에 등록된 계정으로 이용해 주세요.' : '넥스팜 PMS를 이용하려면 로그인해 주세요.' }}</p>
+        <div class="nex-actions">
+          <button v-if="!selected && !board && catalog?.canManage" class="nex-button nex-primary" type="button"
+            :aria-expanded="registering" :disabled="busy" @click="openRegistration">엑셀로 등록</button>
+          <button v-if="session" type="button" class="nex-button" @click="logout">로그아웃</button>
+          <a v-else class="nex-button nex-primary" :href="'/login.html?returnTo=' + encodeURIComponent(address)">로그인</a>
+        </div>
+      </header>
+      <p v-if="savedNotice" class="nex-notice" role="status">{{ savedNotice }}</p>
+      <p v-if="loading" class="nex-notice" role="status">프로젝트 이용 권한을 확인하고 있습니다.</p>
+      <p v-if="error" class="nex-notice" role="alert">{{ error }} <button class="nex-button" type="button" @click="load()">다시 확인</button></p>
+      <template v-if="selected">
+        <p v-if="detail?.description" class="nex-description">{{ detail.description }}</p>
+        <button v-if="detail && canEdit && !editing" class="nex-button nex-edit" type="button"
+          @click="editing=true;savedNotice=''">프로젝트 정보 수정</button>
+        <NexpharmProjectEditor v-if="detail && canEdit && editing" :key="detail.slug" :project="detail"
+          @saved="projectSaved" @cancel="editing=false" />
+        <iframe v-if="detail" :key="detail.slug + '-' + (detail.version || 0)" class="nex-frame"
+          :src="'/pms/app/index.html?project=' + encodeURIComponent(detail.slug) + '&embed=1'" title="넥스팜 프로젝트 일정과 자료"></iframe>
+        <p v-else-if="!loading && !error" class="nex-notice">프로젝트를 열려면 지정 그룹 권한이 필요합니다.</p>
+      </template>
+      <template v-else-if="catalog?.canRead">
+        <NexpharmActivity v-if="board" />
+        <template v-else>
+          <form v-if="catalog.canManage && registering" class="nex-register" @submit.prevent="register">
+            <h2>새 프로젝트 등록</h2>
+            <div class="nex-register-controls">
+              <label>공정표 (.xlsx)<input ref="fileInput" type="file" accept=".xlsx" required :disabled="busy" @change="chooseFile"></label>
+              <label>프로젝트 이름<input v-model="title" maxlength="160" required :disabled="busy"></label>
+              <button class="nex-button nex-primary" type="submit" :disabled="busy || !file || !title.trim()">{{ busy ? '등록 중…' : '프로젝트 등록' }}</button>
+            </div>
+          </form>
+          <div v-if="catalog.projects.length" class="nex-catalog" role="region" aria-label="등록 프로젝트 월별 일정" tabindex="0">
+            <table class="nex-table" :style="{ '--months': Math.max(timeline.labels.length, 1) }">
+              <thead><tr>
+                <th scope="col">프로젝트 이름</th><th scope="col">시작</th><th scope="col">완료</th><th scope="col">코멘트</th>
+                <th scope="col" class="nex-timeline" aria-label="일정 막대 차트">
+                  <div v-if="timeline.labels.length" class="nex-month-grid"><span v-for="(month, index) in timeline.labels" :key="index">{{ month }}</span></div>
+                  <span v-else>월별 일정</span>
+                </th>
+                <th scope="col" class="nex-detail-cell">상세</th>
+              </tr></thead>
+              <tbody><tr v-for="project in catalog.projects" :key="project.slug">
+                <th scope="row"><a :href="urlFor(project.slug)" @click="onNavigate($event, urlFor(project.slug))">{{ project.title }}</a></th>
+                <td class="nex-date">{{ rangeBySlug[project.slug]?.start || '—' }}</td>
+                <td class="nex-date">{{ rangeBySlug[project.slug]?.finish || '—' }}</td>
+                <td><span class="nex-comment-preview">{{ cleanComment(project.comment).text || '—' }}</span></td>
+                <td class="nex-timeline">
+                  <div v-if="timeline.spans[project.slug]" class="nex-month-grid nex-track">
+                    <span class="nex-bar"
+                      :style="{ gridColumn: timeline.spans[project.slug][0] + ' / span ' + timeline.spans[project.slug][1] }"
+                      :aria-label="'일정 ' + timeline.spans[project.slug][1] + '개월'" role="img"></span>
+                  </div>
+                  <span v-else class="nex-range-status">{{ rangeBySlug[project.slug]?.failed ? '공정표 조회 실패' : rangeBySlug[project.slug]?.pending || !rangeBySlug[project.slug] ? '조회 중…' : '공정표 없음' }}</span>
+                </td>
+                <td class="nex-detail-cell"><button class="nex-button" type="button" :aria-expanded="drawer?.slug === project.slug"
+                  :aria-label="project.title + ' 상세 정보'" @click="openDetails(project, $event)">상세 정보</button></td>
+              </tr></tbody>
+            </table>
+          </div>
+          <p v-else class="nex-notice">등록된 프로젝트가 없습니다.</p>
+        </template>
+      </template>
+      <p v-else-if="!loading && !error" class="nex-notice">{{ session ? '넥스팜 PMS 지정 그룹에 등록된 계정으로 이용해 주세요.' : '넥스팜 PMS를 이용하려면 로그인해 주세요.' }}</p>
+    </div>
+    <NexpharmActivity v-if="drawer && catalog?.canRead" :key="drawer.slug" :project="drawer" @close="closeDetails" @posted="updateComment" />
   </main>
 </template>
-
-<style scoped>
-.nex-portal{max-width:1440px;margin:auto;padding:52px 24px;color:#17314e}
-.nex-heading{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:32px}
-.nex-eyebrow{font-size:12px;letter-spacing:.12em;font-weight:650;color:#496784}
-.nex-heading h1{font-size:clamp(26px,4vw,36px);font-weight:760;line-height:1.3;margin:10px 0;overflow-wrap:anywhere}
-.nex-heading p,.nex-register p{color:#4c637a}
-.nex-actions,.nex-register-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.nex-actions{flex-shrink:0}
-.nex-button,.nex-register input{display:inline-flex;justify-content:center;align-items:center;min-height:42px;padding:8px 14px;background:#fff;color:#17314e;border:1px solid #b9cbdc;border-radius:7px;font-weight:650}
-.nex-primary{background:#1d52a3;color:#fff;border-color:#1d52a3}.nex-button:disabled{opacity:.55}
-.nex-button:focus-visible,.nex-catalog a:focus-visible,.nex-register input:focus-visible{outline:3px solid #2978d1;outline-offset:3px}
-.nex-catalog,.nex-register,.nex-notice{background:#f4f7fb;border:1px solid #d6e1ef;border-radius:12px;padding:24px;margin:0 0 22px}
-.nex-register label{display:block;font-weight:650;margin-top:14px;margin-bottom:5px}
-.nex-register input{flex:1;min-width:min(100%,220px);font-weight:400}
-.nex-catalog header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #d6e1ef;padding-bottom:12px}
-.nex-catalog h2,.nex-register h2{font-size:21px;font-weight:730}.nex-catalog ul{list-style:none;padding:0;margin:12px 0 0}
-.nex-catalog li+li{margin-top:9px}.nex-catalog li a{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:13px;padding:14px;background:#fff;border:1px solid #d6e1ef;border-radius:8px;color:#17314e}
-.nex-catalog li a:hover{border-color:#266bc5}.nex-catalog strong{overflow-wrap:anywhere}
-.nex-project-icon{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:#e5efff;color:#1d52a3;font-weight:800}
-.nex-edit{margin:0 0 14px}.nex-description{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 14px}.nex-empty{padding-top:12px}.nex-frame{width:100%;height:max(720px,calc(100vh - 160px));border:1px solid #d6e1ef;border-radius:10px}
-@media(max-width:700px){.nex-portal{padding:30px 14px}.nex-heading{display:block}.nex-actions{margin-top:15px}.nex-register,.nex-catalog,.nex-notice{padding:15px}}
-</style>

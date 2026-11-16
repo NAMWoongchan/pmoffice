@@ -36,3 +36,8 @@
 .nex-upload input{position:absolute;inset:0;opacity:0;width:100%;cursor:inherit}.nex-upload:focus-within{outline:3px solid #357ed3}
 .nex-message{padding:10px 12px;background:#e5f6ee;border-radius:7px;color:#145940}
 @media(max-width:700px){.nex-gantt .sticky-name{min-width:140px;width:140px}.nex-detail .source-indicator{display:none}.nex-detail .page-header{gap:10px;align-items:flex-start}}
+
+.nex-embedded.app-shell{display:block;min-width:0}
+.nex-view-nav nav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.nex-view-nav button{display:inline-flex;align-items:center;gap:6px;border:1px solid #d9e4f1;border-radius:6px;background:white;color:#17314e;padding:6px 10px}
+.nex-view-nav button.selected{background:#e2edff;color:#164882;border-color:#a9c3e6}

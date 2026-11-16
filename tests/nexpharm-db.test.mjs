@@ -27,6 +27,7 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     await db.exec('alter table public.pms_group_members add column expires_at timestamptz');
     await db.exec(readFileSync('supabase/migrations/202611080001_nexpharm_pms.sql', 'utf8'));
     await db.exec(readFileSync('supabase/migrations/202611080002_nexpharm_admin.sql', 'utf8'));
+    await db.exec(readFileSync('supabase/migrations/202611160001_nexpharm_center.sql', 'utf8'));
     const id = n => '00000000-0000-0000-0000-' + String(n).padStart(12, '0');
     for (let n = 1; n <= 5; n++) {
       await db.query('insert into auth.users(id,email) values ($1,$2)', [id(n), 'user'+n+'@example.test']);
@@ -44,6 +45,10 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     const update = (slug, version, title) => query('select public.nexpharm_update_project($1,$2,$3,$4) as result', [slug,version,title,'프로젝트 설명']);
     const assign = (user,role) => query('select public.nexpharm_set_member_role($1,$2)', [id(user),role]);
     const roster = () => query('select public.nexpharm_admin_members() as result');
+    const prepare = title => query('select public.nexpharm_prepare_project($1) as result', [title]);
+    const publish = (slug, etag) => query('select public.nexpharm_publish_project($1,$2)', [slug, etag]);
+    const comments = slug => query('select public.nexpharm_comments($1) as result', [slug]);
+    const posts = () => query('select public.nexpharm_posts() as result');
 
     await uid(null);
     await db.exec('set role anon');
@@ -61,6 +66,26 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     await assert.rejects(() => update('korail',1,'범위 외 수정'));
     await assert.rejects(() => assign(3,'manager'));
     await assert.rejects(roster);
+    const staged = await prepare('엑셀 프로젝트');
+    assert.deepEqual(await prepare('엑셀 프로젝트'), staged);
+    assert.equal((await access(staged.slug)).project.status, 'draft');
+    assert.equal((await catalog()).projects.some(project => project.slug === staged.slug), false);
+    await assert.rejects(() => publish(staged.slug, 'saved-workbook'));
+    await assert.rejects(() => comments(staged.slug));
+    await uid(3);
+    assert.equal((await access(staged.slug)).canRead, false);
+    await assert.rejects(() => prepare('직원 등록 차단'));
+    await assert.rejects(() => publish(staged.slug, 'saved-workbook'));
+    await uid(2);
+    await query('select public.nexpharm_file_audit($1,$2,$3)', [
+      staged.slug, 'workbook.publish', JSON.stringify({blob: 'saved-workbook'}),
+    ]);
+    await assert.rejects(() => publish(staged.slug, 'other-workbook'));
+    await publish(staged.slug, 'saved-workbook');
+    await publish(staged.slug, 'saved-workbook');
+    assert.equal((await access(staged.slug)).project.status, 'published');
+    await assert.rejects(() => prepare('엑셀 프로젝트'));
+
     const saved = await update(one.slug,1,'수정한 프로젝트');
     assert.equal(saved.version,2);
     assert.equal(saved.description,'프로젝트 설명');
@@ -73,7 +98,16 @@ test('Nexpharm membership, duplicate-safe project registration, expiry, and isol
     assert.equal((await access(one.slug)).canManage, false);
     await assert.rejects(() => create('차단된 등록'));
     await assert.rejects(() => update(one.slug,2,'직원 수정 차단'));
+    await query('select public.nexpharm_add_comment($1,$2)', [staged.slug, '<b>확인</b>']);
+    await query('select public.nexpharm_add_post($1,$2)', ['게시글', '첫 줄\n둘째 줄']);
+    assert.equal((await comments(staged.slug))[0].body, '<b>확인</b>');
+    assert.equal((await catalog()).projects.find(project => project.slug === staged.slug).comment, '<b>확인</b>');
+    assert.equal((await posts())[0].body, '첫 줄\n둘째 줄');
+    await assert.rejects(() => query('select * from pmoffice_private.nexpharm_post'));
     await uid(4);
+    await assert.rejects(posts);
+    await assert.rejects(() => comments(staged.slug));
+    await assert.rejects(() => query('select public.nexpharm_add_post($1,$2)', ['외부인', '차단']));
     assert.deepEqual((await catalog()).projects, []);
     assert.equal((await access(two.slug)).project, null);
     await uid(1);

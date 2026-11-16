@@ -18,6 +18,7 @@ type Entry = { meta?: FileMeta | null; book?: Book; error?: string };
 const kinds = ['workbook', 'reference'] as const;
 const labels = { workbook: '공정표', reference: '참고 정보' };
 const center = '/pms/nexpharm/';
+const embedded = new URLSearchParams(location.search).get('embed') === '1';
 
 function readView(): View {
   const key = location.hash.slice(1);
@@ -133,27 +134,30 @@ export default function NexpharmPage({ title, canManage }: { title: string; canM
     </section>;
   }
 
-  return <div className="app-shell nex-detail">
-    {mobile && <button className="sidebar-overlay" aria-label="메뉴 닫기" onClick={() => setMobile(false)}/>}
-    <aside className={'sidebar ' + (mobile ? 'mobile-open' : '')}>
+  const navigation = <nav aria-label="프로젝트 일정 보기">{menu.map(({ key, label, icon: Icon }) =>
+    <button key={key} className={key === view ? 'selected' : ''} aria-current={key === view ? 'page' : undefined}
+      onClick={() => navigate(key)}><Icon size={19}/><span>{label}</span></button>)}</nav>;
+
+  return <div className={'app-shell nex-detail' + (embedded ? ' nex-embedded' : '')}>
+    {!embedded && mobile && <button className="sidebar-overlay" aria-label="메뉴 닫기" onClick={() => setMobile(false)}/>}
+    {!embedded && <aside className={'sidebar ' + (mobile ? 'mobile-open' : '')}>
       <a className="brand" href={center} target="_top"><span className="brand-symbol">P</span><strong>PMOffice<span>넥스팜 PMS</span></strong></a>
       <button className="mobile-close" onClick={() => setMobile(false)} aria-label="메뉴 닫기"><X size={20}/></button>
       <div className="sidebar-content">
         <div className="project-label"><span>넥스팜 프로젝트</span><strong>{title}</strong>
           {snapshot && <small>{snapshot.start} ~ {snapshot.finish}</small>}</div>
-        <nav aria-label="프로젝트 메뉴">{menu.map(({ key, label, icon: Icon }) =>
-          <button key={key} className={key === view ? 'selected' : ''} aria-current={key === view ? 'page' : undefined}
-            onClick={() => navigate(key)}><Icon size={19}/><span>{label}</span>{key === view && <ChevronRight size={15}/>}</button>)}</nav>
+        {navigation}
       </div>
       <div className="sidebar-footer"><a className="nex-center-link" href={center} target="_top">← 프로젝트 센터</a></div>
-    </aside>
+    </aside>}
     <div className="main-area">
-      <div className="topbar">
+      {!embedded && <div className="topbar">
         <button className="hamburger" onClick={() => setMobile(true)} aria-label="메뉴 열기" aria-expanded={mobile}><Menu size={22}/></button>
         <span className="breadcrumb">넥스팜 PMS <ChevronRight size={14}/> <strong>{selectedMenu.label}</strong></span>
         <span className="source-indicator">{canManage ? '파일 관리 가능' : '열람 회원'}</span>
-      </div>
+      </div>}
       <main>
+        {embedded && <div className="nex-view-nav">{navigation}</div>}
         <header className="page-header"><div><h1>{selectedMenu.label}</h1><p>{title}</p></div>
           <div className="header-actions">
             {(view === 'schedule' || view === 'milestones') && schedule.meta && <button className="primary" disabled={!!busy}
