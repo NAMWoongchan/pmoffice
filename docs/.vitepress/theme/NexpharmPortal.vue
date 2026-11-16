@@ -262,7 +262,8 @@ function updateComment(slug, html) {
   if (project) project.comment = html
 }
 function projectSaved(project) {
-  detail.value = project
+  if (isProduction.value) productionView.value = ''
+  detail.value = { ...detail.value, ...project }
   editing.value = false
   savedNotice.value = '프로젝트 정보를 저장했습니다.'
 }
