@@ -312,7 +312,8 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
         {activeView === 'settings' && <NexpharmScheduleSettings preferences={preferences} close={closeSettings}/>}
         {activeView === 'schedule' && (production
           ? <NexpharmProductionGrid key={schedule.meta?.etag} schedule={production} layout={preferences.layout}
-              rows={rows} parents={hierarchy.parents} expanded={expanded} toggle={toggleBranch} scale={scale}/>
+              rows={rows} parents={hierarchy.parents} expanded={expanded} toggle={toggleBranch} scale={scale}
+              resizable={slug === 'nexpharm-8088c44595a3'}/>
           : schedule.book && snapshot
           ? <NexpharmSchedule key={schedule.meta?.etag} tasks={schedule.book.tasks} {...snapshot}/>
           : unavailable('workbook'))}

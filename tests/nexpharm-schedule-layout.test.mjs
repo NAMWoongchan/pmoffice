@@ -86,8 +86,9 @@ test('production grid keeps the rows and chart aligned within a bounded render w
   assert.equal(parents.has('3'), false);
   assert.equal(presetBranches(tasks, '1').size, 0);
   assert.equal(presetBranches(tasks.slice(0, 3), '2').has('2'), false);
-  const render = (rows, expanded = new Set(), scale = 'day') => new JSDOM(renderToStaticMarkup(
-    React.createElement(NexpharmProductionGrid, { schedule, layout, rows, parents, expanded, toggle: () => {}, scale }))).window.document;
+  const render = (rows, expanded = new Set(), scale = 'day', preferences = layout, resizable = false) => new JSDOM(renderToStaticMarkup(
+    React.createElement(NexpharmProductionGrid, { schedule, layout: preferences, rows, parents, expanded,
+      toggle: () => {}, scale, resizable }))).window.document;
   const initial = render(tasks.filter(task => task.level === 1).slice(0, 5));
   const taskRows = doc => [...doc.querySelectorAll('.nex-task-pane tbody tr[data-task-id]')];
   const chartRows = doc => [...doc.querySelectorAll('.nex-chart-pane [data-task-id]')];
@@ -95,7 +96,15 @@ test('production grid keeps the rows and chart aligned within a bounded render w
   assert.equal(taskRows(initial).length, 5);
   assert.equal(initial.querySelector('button[aria-expanded=false]').textContent, '+');
   assert.equal(initial.querySelector('.nex-chart-pane thead th').textContent, '11월 초순');
-  const full = render(tasks, presetBranches(tasks, 'all'), 'week');
+  assert.equal(initial.querySelector('[role="separator"]'), null);
+  const full = render(tasks, presetBranches(tasks, 'all'), 'week', layout, true);
+  const divider = full.querySelector('[role="separator"]');
+  assert.equal(divider.tabIndex, 0);
+  assert.equal(divider.getAttribute('aria-orientation'), 'vertical');
+  assert.equal(full.getElementById(divider.getAttribute('aria-controls')), divider.previousElementSibling);
+  assert.equal(divider.nextElementSibling, full.querySelector('.nex-chart-pane'));
+  const tableOnly = render(tasks, new Set(), 'day', { ...layout, ganttVisible: false }, true);
+  assert.equal(tableOnly.querySelector('[role="separator"], .nex-chart-pane'), null);
   assert.equal(taskRows(full).length, 80);
   assert.equal(full.querySelector('.nex-task-pane table').getAttribute('aria-rowcount'), '655');
   assert.equal(full.querySelector('.nex-row-gap td').style.height, String(574 * 32) + 'px');

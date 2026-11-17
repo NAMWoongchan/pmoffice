@@ -22,6 +22,8 @@ const frameHeight = ref(null)
 const canEdit = ref(false)
 const editing = ref(false)
 const productionView = ref('')
+const hideScheduleLogout = computed(() => selected.value === 'nexpharm-8088c44595a3'
+  && !editing.value && (!productionView.value || productionView.value === 'schedule'))
 const isProduction = computed(() => detail.value?.template === 'production_outsourcing')
 const savedNotice = ref('')
 const catalog = ref(null)
@@ -341,8 +343,8 @@ onUnmounted(() => {
         <div class="nex-actions">
           <button v-if="!selected && !board && catalog?.canManage" class="nex-button nex-primary" type="button"
             :aria-expanded="registering" :disabled="busy" @click="openRegistration">엑셀로 등록</button>
-          <button v-if="session" type="button" class="nex-button" @click="logout">로그아웃</button>
-          <a v-else class="nex-button nex-primary" :href="'/login.html?returnTo=' + encodeURIComponent(address)">로그인</a>
+          <button v-if="session && !hideScheduleLogout" type="button" class="nex-button" @click="logout">로그아웃</button>
+          <a v-else-if="!session" class="nex-button nex-primary" :href="'/login.html?returnTo=' + encodeURIComponent(address)">로그인</a>
         </div>
       </header>
       <p v-if="savedNotice" class="nex-notice" role="status">{{ savedNotice }}</p>

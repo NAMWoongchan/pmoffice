@@ -13,7 +13,9 @@ const { parse, compileScript } = require(require.resolve('@vue/compiler-sfc', {
 const stub = `
 const session = { user: { id: 'manager' }, access_token: 'fixture' };
 const slug = 'nexpharm-583d09bdd195';
-const projects = [{slug, title: '테스트 프로젝트', template:'rd'}];
+const production = 'nexpharm-8088c44595a3';
+const projects = [{slug, title: '테스트 프로젝트', template:'rd'},
+  {slug: production, title: '생산계획 테스트', template:'production_outsourcing'}];
 let draft;
 const comments = [{ id: 1, author: '작성자', body: '<strong>기존 코멘트</strong><img src=x onerror=bad()>', created_at: '2026-11-16T01:00:00Z' }];
 const posts = [];
@@ -90,7 +92,8 @@ test('Nexpharm center renders a full month and connects registration, comments, 
 
   try {
     await wait(() => document.querySelector('.nex-bar'));
-    assert.deepEqual([...document.querySelectorAll('.nex-sidebar nav a')].map(el => el.textContent), ['프로젝트 센터', '테스트 프로젝트', '자유 게시판']);
+    assert.deepEqual([...document.querySelectorAll('.nex-sidebar nav a')].map(el => el.textContent),
+      ['프로젝트 센터', '테스트 프로젝트', '생산계획 테스트', '자유 게시판']);
     assert.equal(document.querySelector('.nex-schedule-menu summary').textContent, '프로젝트 일정');
     assert.equal(document.querySelector('.nex-schedule-menu a').href, document.querySelector('.nex-table a').href);
     assert.ok(find('.nex-month-grid span', '26-11'));
@@ -140,6 +143,24 @@ test('Nexpharm center renders a full month and connects registration, comments, 
     assert.equal(location.search, '?project=nexpharm-583d09bdd195');
     assert.equal(document.querySelector('h1').textContent, '프로젝트 일정');
     assert.match(document.querySelector('iframe').getAttribute('src'), /project=nexpharm-583d09bdd195/);
+    assert.ok(find('.nex-heading button', '로그아웃'));
+
+    click('a', '생산계획 테스트');
+    const production = 'nexpharm-8088c44595a3';
+    await wait(() => document.querySelector(`iframe[src*="${production}"]`));
+    assert.equal(find('.nex-heading button', '로그아웃'), undefined);
+    assert.equal(find('.nex-heading a', '로그인'), undefined);
+    const reportView = async view => {
+      window.dispatchEvent(new window.MessageEvent('message', {
+        origin: location.origin, source: document.querySelector('iframe').contentWindow,
+        data: { type: 'pmoffice-nexpharm-view', project: production, view },
+      }));
+      await app.nextTick();
+    };
+    await reportView('calendar');
+    assert.ok(find('.nex-heading button', '로그아웃'));
+    await reportView('schedule');
+    assert.equal(find('.nex-heading button', '로그아웃'), undefined);
   } finally {
     app.close();
     dom.window.close();

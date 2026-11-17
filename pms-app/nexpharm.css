@@ -81,6 +81,24 @@
 .nex-schedule-panes .nex-production-scroll{scrollbar-width:none}
 .nex-schedule-panes .nex-production-scroll :is(th,td){height:32px;line-height:20px}
 @media(max-width:720px){.nex-schedule-panes.nex-has-chart{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}}
+.nex-schedule-panes.nex-resizable{
+  --nex-divider-width:12px;
+  --nex-pane-space:calc(100% - var(--nex-divider-width));
+  --nex-pane-min:min(160px,calc(var(--nex-pane-space) * .3));
+  --nex-default-task-width:calc(var(--nex-pane-space) - clamp(280px,34%,570px));
+  --nex-task-width:var(--nex-adjusted-task-width,var(--nex-default-task-width));
+  grid-template-columns:clamp(var(--nex-pane-min),var(--nex-task-width),calc(var(--nex-pane-space) - var(--nex-pane-min))) var(--nex-divider-width) minmax(0,1fr);
+  gap:0;
+}
+@media(max-width:720px){.nex-schedule-panes.nex-resizable{--nex-default-task-width:calc(var(--nex-pane-space) * .5)}}
+.nex-schedule-divider{position:relative;cursor:col-resize;touch-action:none;user-select:none}
+.nex-schedule-divider::before,.nex-schedule-divider::after{content:"";position:absolute;left:50%;transform:translateX(-50%);pointer-events:none}
+.nex-schedule-divider::before{inset-block:0;width:2px;background:#8294a9}
+.nex-schedule-divider::after{top:44px;width:6px;height:28px;border-radius:3px;background:#637891}
+.nex-schedule-divider:is(:hover,:focus-visible,[data-dragging]){background:#eaf2fc}
+.nex-schedule-divider:is(:hover,:focus-visible,[data-dragging])::after{background:#245fe0}
+.nex-schedule-divider:focus-visible{outline-offset:-2px}
+.nex-resizable:has(>.nex-schedule-divider[data-dragging]){cursor:col-resize;user-select:none}
 .nex-schedule-settings h2{margin:0 0 12px}
 .nex-layout-list{padding:0;margin:0 0 14px;list-style:none;max-width:620px}
 .nex-layout-list li{display:grid;grid-template-columns:minmax(85px,1fr) auto auto auto;gap:6px;align-items:center;padding:4px 0}

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import React, { useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { productionColors, type ProductionSchedule, type ProductionTask } from '../lib/nexpharm-production';
 import { displayHours, scheduleLabels, type ScheduleLayout } from '../lib/nexpharm-schedule-layout';
 import { productionTimescale, type DateScale } from '../lib/nexpharm-production-timescale';
@@ -42,15 +42,15 @@ function useRowWindow(count: number) {
   return { ref, start: Math.min(range.start, count), end: Math.min(range.end, count) };
 }
 
-function Pane({ label, className, width, children }: {
-  label: string; className: string; width: number; children: ReactNode;
+function Pane({ id, label, className, width, children }: {
+  id?: string; label: string; className: string; width: number; children: ReactNode;
 }) {
   const top = useRef<HTMLDivElement>(null);
   const grid = useRef<HTMLDivElement>(null);
   function sync(source: HTMLDivElement, target: HTMLDivElement | null) {
     if (target && source.scrollLeft !== target.scrollLeft) target.scrollLeft = source.scrollLeft;
   }
-  return <div className={className}>
+  return <div id={id} className={className}>
     <h2 className="nex-pane-title">{label}</h2>
     <div ref={top} className="nex-pane-horizontal" tabIndex={0} role="region" aria-label={label + ' 가로 스크롤'}
       onScroll={event => sync(event.currentTarget, grid.current)}>
@@ -61,21 +61,97 @@ function Pane({ label, className, width, children }: {
   </div>;
 }
 
+function dividerGeometry(divider: HTMLDivElement) {
+  const panes = divider.parentElement!;
+  const bounds = panes.getBoundingClientRect();
+  const available = Math.max(0, bounds.width - divider.getBoundingClientRect().width);
+  const minimum = Math.min(160, available * 0.3);
+  return { panes, left: bounds.left, available, minimum, maximum: available - minimum,
+    current: divider.previousElementSibling!.getBoundingClientRect().width };
+}
+
+function resizePanes(divider: HTMLDivElement, width: number, geometry = dividerGeometry(divider)) {
+  const { panes, available, minimum, maximum } = geometry;
+  if (available === 0) return;
+  const share = Math.max(minimum, Math.min(width, maximum)) / available;
+  panes.style.setProperty('--nex-adjusted-task-width', `calc(var(--nex-pane-space) * ${share})`);
+}
+
+function ScheduleDivider({ taskPaneId }: { taskPaneId: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ pointerId: number; offset: number } | null>(null);
+  const [range, setRange] = useState({ min: 0, max: 100, now: 50 });
+
+  useLayoutEffect(() => {
+    const divider = ref.current;
+    if (!divider) return;
+    const update = () => {
+      const { available, minimum, maximum, current } = dividerGeometry(divider);
+      if (available === 0) return;
+      const percent = (width: number) => Math.round(width / available * 100);
+      const next = { min: percent(minimum), max: percent(maximum), now: percent(current) };
+      setRange(old => old.min === next.min && old.max === next.max && old.now === next.now ? old : next);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(divider.parentElement!);
+    observer.observe(divider.previousElementSibling!);
+    return () => observer.disconnect();
+  }, []);
+
+  function finishDrag(event: React.PointerEvent<HTMLDivElement>) {
+    if (drag.current?.pointerId !== event.pointerId) return;
+    drag.current = null;
+    event.currentTarget.removeAttribute('data-dragging');
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+
+  return <div ref={ref} className="nex-schedule-divider" role="separator" tabIndex={0}
+    aria-label="작업 목록 너비 조절" aria-orientation="vertical" aria-controls={taskPaneId}
+    aria-valuemin={range.min} aria-valuemax={range.max} aria-valuenow={range.now}
+    onPointerDown={event => {
+      if (!event.isPrimary || event.button !== 0 || drag.current) return;
+      event.preventDefault();
+      const divider = event.currentTarget;
+      divider.focus({ preventScroll: true });
+      divider.setPointerCapture(event.pointerId);
+      drag.current = { pointerId: event.pointerId, offset: event.clientX - divider.getBoundingClientRect().left };
+      divider.setAttribute('data-dragging', '');
+    }}
+    onPointerMove={event => {
+      const active = drag.current;
+      if (!active || active.pointerId !== event.pointerId) return;
+      const geometry = dividerGeometry(event.currentTarget);
+      resizePanes(event.currentTarget, event.clientX - geometry.left - active.offset, geometry);
+    }}
+    onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag}
+    onKeyDown={event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      const geometry = dividerGeometry(event.currentTarget);
+      const { current, minimum, maximum } = geometry;
+      const widths: Record<string, number> = { ArrowLeft: current - 24, ArrowRight: current + 24, Home: minimum, End: maximum };
+      event.preventDefault();
+      resizePanes(event.currentTarget, widths[event.key], geometry);
+    }}/>;
+}
+
 function Spacer({ rows, columns }: { rows: number; columns: number }) {
   return rows > 0 ? <tr aria-hidden="true" className="nex-row-gap"><td colSpan={columns} style={{ height: rows * rowHeight }}/></tr> : null;
 }
 
-export function NexpharmProductionGrid({ schedule, layout, rows, parents, expanded, toggle, scale }: {
+export function NexpharmProductionGrid({ schedule, layout, rows, parents, expanded, toggle, scale, resizable }: {
   schedule: ProductionSchedule; layout: ScheduleLayout; rows: ProductionTask[];
-  parents: ReadonlySet<string>; expanded: ReadonlySet<string>; toggle: (id: string) => void; scale: DateScale;
+  parents: ReadonlySet<string>; expanded: ReadonlySet<string>; toggle: (id: string) => void; scale: DateScale; resizable?: boolean;
 }) {
   const { ref, start, end } = useRowWindow(rows.length);
+  const taskPaneId = useId();
   const fields = layout.fields.filter(field => field.key === 'name' || field.visible);
   const taskWidth = fields.reduce((sum, field) => sum + field.width, 0);
   const { columns, groups, daySlots } = useMemo(() => productionTimescale(schedule.days, scale), [schedule.days, scale]);
   const dateWidth = layout.ganttWidth;
   const chartWidth = columns.length * dateWidth;
   const chartVisible = layout.ganttVisible && chartWidth > 0;
+  const showDivider = chartVisible && resizable;
   const windowRows = rows.slice(start, end);
 
   const offDays = useMemo(() => columns.flatMap(column => column.days.flatMap((day, i) => {
@@ -102,8 +178,8 @@ export function NexpharmProductionGrid({ schedule, layout, rows, parents, expand
   }
 
   return <section className="panel nex-production nex-production-full nex-windowed-schedule">
-    <div ref={ref} className={'nex-schedule-panes' + (chartVisible ? ' nex-has-chart' : '')}>
-      <Pane label="작업 목록" className="nex-task-pane" width={taskWidth}>
+    <div ref={ref} className={'nex-schedule-panes' + (chartVisible ? ' nex-has-chart' : '') + (showDivider ? ' nex-resizable' : '')}>
+      <Pane id={showDivider ? taskPaneId : undefined} label="작업 목록" className="nex-task-pane" width={taskWidth}>
         <table aria-label="생산 작업 목록" aria-rowcount={rows.length + 1} style={{ width: taskWidth, tableLayout: 'fixed' }}>
           <colgroup>{fields.map(field => <col key={field.key} style={{ width: field.width }}/>)}</colgroup>
           <thead><tr>{fields.map(field => <th key={field.key} scope="col" title={field.title ?? scheduleLabels[field.key]}>{field.title ?? scheduleLabels[field.key]}</th>)}</tr></thead>
@@ -130,6 +206,7 @@ export function NexpharmProductionGrid({ schedule, layout, rows, parents, expand
           </tbody>
         </table>
       </Pane>
+      {showDivider && <ScheduleDivider taskPaneId={taskPaneId}/>}
       {chartVisible && <Pane label="간트 차트" className="nex-chart-pane" width={chartWidth}>
         <div className="nex-chart-track" style={{ width: chartWidth, '--nex-date-width': dateWidth + 'px' } as React.CSSProperties}>
           <table aria-label={scale === 'day' ? '일별 날짜 표시줄' : '주별 날짜 표시줄'}
