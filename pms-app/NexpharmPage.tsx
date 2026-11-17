@@ -37,6 +37,7 @@ function readView(): View {
 
 export default function NexpharmPage({ title, canManage, template }: { title: string; canManage: boolean; template?: NexpharmTemplate }) {
   const isProduction = template === PRODUCTION;
+  const hasFileManagementShortcut = isProduction && slug === 'nexpharm-8088c44595a3';
   const visibleMenu = isProduction ? [...productionMenu, ...(canManage ? [menu[3]] : [])] : menu;
   const availableKinds = isProduction ? kinds.slice(0, 1) : kinds;
   const [view, setView] = useState<View>(readView);
@@ -259,7 +260,8 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
     return <section className="panel nex-empty-detail">
       <p>{entry.error || (entry.meta === null ? '등록된 ' + labels[kind] + ' 없음' : '파일을 불러오고 있습니다.')}</p>
       {entry.error && <button onClick={() => refresh(kind)}>다시 확인</button>}
-      {entry.meta === null && canManage && <button onClick={() => navigate('files')}>파일 관리 열기</button>}
+      {entry.meta === null && canManage && !(hasFileManagementShortcut && fullSchedule) &&
+        <button onClick={() => navigate('files')}>파일 관리 열기</button>}
     </section>;
   }
 
@@ -301,8 +303,12 @@ export default function NexpharmPage({ title, canManage, template }: { title: st
               </select>
               <button type="button" ref={settingsButton} onClick={() => navigate('settings')}>설정</button>
             </>}
-            {(activeView === 'schedule' || activeView === 'milestones') && (!isProduction || canManage) && schedule.meta && <button className="primary" disabled={!!busy}
-              onClick={() => download('workbook')}><Download size={16}/> 공정표 원본</button>}
+            {fullSchedule && hasFileManagementShortcut
+              ? canManage && <button type="button" className="primary" disabled={!!busy}
+                onClick={() => navigate('files')}><Download size={16}/> 파일 관리</button>
+              : (activeView === 'schedule' || activeView === 'milestones') && (!isProduction || canManage) && schedule.meta &&
+                <button type="button" className="primary" disabled={!!busy}
+                  onClick={() => download('workbook')}><Download size={16}/> 공정표 원본</button>}
             {activeView === 'reference' && reference.meta && <button className="primary" disabled={!!busy}
               onClick={() => download('reference')}><Download size={16}/> 참고 엑셀 원본</button>}
           </div>

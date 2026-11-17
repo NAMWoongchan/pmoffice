@@ -22,8 +22,8 @@ const frameHeight = ref(null)
 const canEdit = ref(false)
 const editing = ref(false)
 const productionView = ref('')
-const isSplitterProject = computed(() => selected.value === 'nexpharm-8088c44595a3')
-const hideScheduleLogout = computed(() => isSplitterProject.value
+const isNovemberProduction = computed(() => selected.value === 'nexpharm-8088c44595a3')
+const hideScheduleLogout = computed(() => isNovemberProduction.value
   && !editing.value && (!productionView.value || productionView.value === 'schedule'))
 const isProduction = computed(() => detail.value?.template === 'production_outsourcing')
 const savedNotice = ref('')
@@ -354,7 +354,7 @@ onUnmounted(() => {
       <template v-if="selected">
         <p v-if="detail?.description" class="nex-description">{{ detail.description }}</p>
         <nav v-if="isProduction" class="nex-production-nav" aria-label="프로젝트 일정 보기">
-          <button v-for="item in [['schedule', '일정표'], ['calendar', '달력 설정'], ...(canEdit ? [['files', '파일 관리']] : [])]"
+          <button v-for="item in [['schedule', '일정표'], ['calendar', '달력 설정'], ...(canEdit && !isNovemberProduction ? [['files', '파일 관리']] : [])]"
             :key="item[0]" type="button" class="nex-button" :disabled="!productionView"
             :aria-current="!editing && productionView === item[0] ? 'page' : undefined"
             @click="openProductionView(item[0])">{{ item[1] }}</button>
@@ -369,7 +369,7 @@ onUnmounted(() => {
           :style="frameHeight ? {height: frameHeight + 'px'} : undefined"
           :src="'/pms/app/index.html?project=' + encodeURIComponent(detail.slug) + '&embed=1'
             + (isProduction ? '&layout=production-outline' : '')
-            + (isSplitterProject ? '&v=schedule-splitter' : '')" title="넥스팜 프로젝트 일정과 자료"></iframe>
+            + (isNovemberProduction ? '&v=production-v311' : '')" title="넥스팜 프로젝트 일정과 자료"></iframe>
         <p v-else-if="!loading && !error" class="nex-notice">프로젝트를 열려면 지정 그룹 권한이 필요합니다.</p>
       </template>
       <template v-else-if="catalog?.canRead">
