@@ -78,6 +78,12 @@
 .nex-pane-title{height:26px;font-size:13px;line-height:20px}
 .nex-pane-horizontal{height:16px;overflow-x:auto;overflow-y:hidden;margin-bottom:4px}
 .nex-pane-horizontal>div{height:1px}
+.nex-bottom-scroll :is(.nex-task-pane,.nex-chart-pane){display:flex;flex-direction:column}
+.nex-bottom-scroll .nex-production-scroll{flex:1}
+.nex-bottom-scroll .nex-pane-horizontal{
+  flex:none;margin:0;position:relative;z-index:2;background:#fff;
+  transform:translateY(var(--nex-scrollbar-shift,0px));
+}
 .nex-schedule-panes .nex-production-scroll{scrollbar-width:none}
 .nex-schedule-panes .nex-production-scroll :is(th,td){height:32px;line-height:20px}
 @media(max-width:720px){.nex-schedule-panes.nex-has-chart{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}}

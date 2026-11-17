@@ -7,8 +7,9 @@ const rowHeight = 32;
 const headerHeight = 72;
 const overscan = 32;
 const number = new Intl.NumberFormat('ko-KR', { maximumFractionDigits: 3 });
+const outlineColors: Record<number, string> = { 1: '#B9DEFF', 2: '#C7EDC8' };
 
-function useRowWindow(count: number) {
+function useRowWindow(count: number, bottomScroll: boolean) {
   const ref = useRef<HTMLDivElement>(null);
   const [range, setRange] = useState({ start: 0, end: 80 });
   useLayoutEffect(() => {
@@ -16,10 +17,21 @@ function useRowWindow(count: number) {
     if (!host) return;
     const frame = window.frameElement;
     const outer = frame?.ownerDocument.defaultView ?? window;
+    const header = bottomScroll ? host.querySelector('thead') : null;
+    const scrollbar = bottomScroll ? host.querySelector<HTMLElement>('.nex-pane-horizontal') : null;
     let request = 0;
     const update = () => {
       const frameTop = frame ? frame.getBoundingClientRect().top + frame.clientTop : 0;
-      const top = host.getBoundingClientRect().top + frameTop + headerHeight;
+      const bounds = host.getBoundingClientRect();
+      const top = (header?.getBoundingClientRect().bottom ?? bounds.top + headerHeight) + frameTop;
+      if (scrollbar) {
+        // The embedded grid occupies a full-height frame. Dock the existing
+        // scrollbars against the outer viewport until their natural row enters it.
+        const visibleBottom = Math.min(bounds.bottom + frameTop, outer.innerHeight);
+        const shift = visibleBottom - scrollbar.offsetHeight >= top
+          ? visibleBottom - (bounds.bottom + frameTop) : 0;
+        host.style.setProperty('--nex-scrollbar-shift', shift + 'px');
+      }
       const start = Math.max(0, Math.min(count, Math.floor(-top / rowHeight)) - overscan);
       const end = Math.min(count, Math.max(start + 1, Math.ceil((outer.innerHeight - top) / rowHeight) + overscan));
       setRange(old => old.start === start && old.end === end ? old : { start, end });
@@ -29,35 +41,40 @@ function useRowWindow(count: number) {
       request = requestAnimationFrame(update);
     };
     update();
+    const observer = bottomScroll ? new ResizeObserver(queue) : null;
+    observer?.observe(host);
     outer.addEventListener('scroll', queue, { passive: true });
     outer.addEventListener('resize', queue);
     if (outer !== window) window.addEventListener('resize', queue);
     return () => {
+      observer?.disconnect();
       cancelAnimationFrame(request);
       outer.removeEventListener('scroll', queue);
       outer.removeEventListener('resize', queue);
       window.removeEventListener('resize', queue);
     };
-  }, [count]);
+  }, [count, bottomScroll]);
   return { ref, start: Math.min(range.start, count), end: Math.min(range.end, count) };
 }
 
-function Pane({ id, label, className, width, children }: {
-  id?: string; label: string; className: string; width: number; children: ReactNode;
+function Pane({ id, label, className, width, bottomScroll, children }: {
+  id?: string; label: string; className: string; width: number; bottomScroll?: boolean; children: ReactNode;
 }) {
-  const top = useRef<HTMLDivElement>(null);
+  const scroll = useRef<HTMLDivElement>(null);
   const grid = useRef<HTMLDivElement>(null);
   function sync(source: HTMLDivElement, target: HTMLDivElement | null) {
     if (target && source.scrollLeft !== target.scrollLeft) target.scrollLeft = source.scrollLeft;
   }
+  const scrollbar = <div ref={scroll} className="nex-pane-horizontal" tabIndex={0} role="region" aria-label={label + ' 가로 스크롤'}
+    onScroll={event => sync(event.currentTarget, grid.current)}>
+    <div style={{ width }} aria-hidden="true"/>
+  </div>;
   return <div id={id} className={className}>
     <h2 className="nex-pane-title">{label}</h2>
-    <div ref={top} className="nex-pane-horizontal" tabIndex={0} role="region" aria-label={label + ' 가로 스크롤'}
-      onScroll={event => sync(event.currentTarget, grid.current)}>
-      <div style={{ width }} aria-hidden="true"/>
-    </div>
+    {!bottomScroll && scrollbar}
     <div ref={grid} className="nex-production-scroll" tabIndex={0} role="region" aria-label={label}
-      onScroll={event => sync(event.currentTarget, top.current)}>{children}</div>
+      onScroll={event => sync(event.currentTarget, scroll.current)}>{children}</div>
+    {bottomScroll && scrollbar}
   </div>;
 }
 
@@ -139,11 +156,11 @@ function Spacer({ rows, columns }: { rows: number; columns: number }) {
   return rows > 0 ? <tr aria-hidden="true" className="nex-row-gap"><td colSpan={columns} style={{ height: rows * rowHeight }}/></tr> : null;
 }
 
-export function NexpharmProductionGrid({ schedule, layout, rows, parents, expanded, toggle, scale, resizable }: {
+export function NexpharmProductionGrid({ schedule, layout, rows, parents, expanded, toggle, scale, novemberLayout }: {
   schedule: ProductionSchedule; layout: ScheduleLayout; rows: ProductionTask[];
-  parents: ReadonlySet<string>; expanded: ReadonlySet<string>; toggle: (id: string) => void; scale: DateScale; resizable?: boolean;
+  parents: ReadonlySet<string>; expanded: ReadonlySet<string>; toggle: (id: string) => void; scale: DateScale; novemberLayout?: boolean;
 }) {
-  const { ref, start, end } = useRowWindow(rows.length);
+  const { ref, start, end } = useRowWindow(rows.length, !!novemberLayout);
   const taskPaneId = useId();
   const fields = layout.fields.filter(field => field.key === 'name' || field.visible);
   const taskWidth = fields.reduce((sum, field) => sum + field.width, 0);
@@ -151,7 +168,7 @@ export function NexpharmProductionGrid({ schedule, layout, rows, parents, expand
   const dateWidth = layout.ganttWidth;
   const chartWidth = columns.length * dateWidth;
   const chartVisible = layout.ganttVisible && chartWidth > 0;
-  const showDivider = chartVisible && resizable;
+  const showDivider = chartVisible && novemberLayout;
   const windowRows = rows.slice(start, end);
 
   const offDays = useMemo(() => columns.flatMap(column => column.days.flatMap((day, i) => {
@@ -178,8 +195,9 @@ export function NexpharmProductionGrid({ schedule, layout, rows, parents, expand
   }
 
   return <section className="panel nex-production nex-production-full nex-windowed-schedule">
-    <div ref={ref} className={'nex-schedule-panes' + (chartVisible ? ' nex-has-chart' : '') + (showDivider ? ' nex-resizable' : '')}>
-      <Pane id={showDivider ? taskPaneId : undefined} label="작업 목록" className="nex-task-pane" width={taskWidth}>
+    <div ref={ref} className={'nex-schedule-panes' + (chartVisible ? ' nex-has-chart' : '')
+      + (showDivider ? ' nex-resizable' : '') + (novemberLayout ? ' nex-bottom-scroll' : '')}>
+      <Pane id={showDivider ? taskPaneId : undefined} label="작업 목록" className="nex-task-pane" width={taskWidth} bottomScroll={novemberLayout}>
         <table aria-label="생산 작업 목록" aria-rowcount={rows.length + 1} style={{ width: taskWidth, tableLayout: 'fixed' }}>
           <colgroup>{fields.map(field => <col key={field.key} style={{ width: field.width }}/>)}</colgroup>
           <thead><tr>{fields.map(field => <th key={field.key} scope="col" title={field.title ?? scheduleLabels[field.key]}>{field.title ?? scheduleLabels[field.key]}</th>)}</tr></thead>
@@ -207,7 +225,7 @@ export function NexpharmProductionGrid({ schedule, layout, rows, parents, expand
         </table>
       </Pane>
       {showDivider && <ScheduleDivider taskPaneId={taskPaneId}/>}
-      {chartVisible && <Pane label="간트 차트" className="nex-chart-pane" width={chartWidth}>
+      {chartVisible && <Pane label="간트 차트" className="nex-chart-pane" width={chartWidth} bottomScroll={novemberLayout}>
         <div className="nex-chart-track" style={{ width: chartWidth, '--nex-date-width': dateWidth + 'px' } as React.CSSProperties}>
           <table aria-label={scale === 'day' ? '일별 날짜 표시줄' : '주별 날짜 표시줄'}
             style={{ width: chartWidth, tableLayout: 'fixed' }}>
@@ -224,12 +242,14 @@ export function NexpharmProductionGrid({ schedule, layout, rows, parents, expand
               <span key={day.date} style={{ left: day.x, width: day.width }}/>)}</div>
             {windowRows.map((task, i) => {
               const dark = task.level === 2 || task.color === '진한 파랑';
+              const outlineColor = novemberLayout ? outlineColors[task.level] : undefined;
               return <div className="nex-chart-task" key={task.id} data-task-id={task.id}
                 style={{ top: (start + i) * rowHeight }} aria-label={task.name}>
                 {segments(task).map((bar, index) => <span key={bar.from} className="prod-bar"
                   title={task.name + ' · ' + task.start + ' ~ ' + task.finish}
                   style={{ left: bar.from * dateWidth, width: (bar.to - bar.from) * dateWidth,
-                    backgroundColor: dark ? productionColors['진한 파랑'] : productionColors[task.color], color: dark ? '#fff' : '#182637' }}>
+                    backgroundColor: outlineColor ?? (dark ? productionColors['진한 파랑'] : productionColors[task.color]),
+                    color: outlineColor ? '#000' : dark ? '#fff' : '#182637' }}>
                   {index === 0 && <span className="prod-label">{task.name}</span>}
                 </span>)}
               </div>;

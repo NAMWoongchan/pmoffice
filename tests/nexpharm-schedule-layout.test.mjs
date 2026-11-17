@@ -86,9 +86,9 @@ test('production grid keeps the rows and chart aligned within a bounded render w
   assert.equal(parents.has('3'), false);
   assert.equal(presetBranches(tasks, '1').size, 0);
   assert.equal(presetBranches(tasks.slice(0, 3), '2').has('2'), false);
-  const render = (rows, expanded = new Set(), scale = 'day', preferences = layout, resizable = false) => new JSDOM(renderToStaticMarkup(
+  const render = (rows, expanded = new Set(), scale = 'day', preferences = layout, novemberLayout = false) => new JSDOM(renderToStaticMarkup(
     React.createElement(NexpharmProductionGrid, { schedule, layout: preferences, rows, parents, expanded,
-      toggle: () => {}, scale, resizable }))).window.document;
+      toggle: () => {}, scale, novemberLayout }))).window.document;
   const initial = render(tasks.filter(task => task.level === 1).slice(0, 5));
   const taskRows = doc => [...doc.querySelectorAll('.nex-task-pane tbody tr[data-task-id]')];
   const chartRows = doc => [...doc.querySelectorAll('.nex-chart-pane [data-task-id]')];
@@ -105,6 +105,21 @@ test('production grid keeps the rows and chart aligned within a bounded render w
   assert.equal(divider.nextElementSibling, full.querySelector('.nex-chart-pane'));
   const tableOnly = render(tasks, new Set(), 'day', { ...layout, ganttVisible: false }, true);
   assert.equal(tableOnly.querySelector('[role="separator"], .nex-chart-pane'), null);
+  assert.equal(tableOnly.querySelectorAll('.nex-pane-horizontal').length, 1);
+  assert.equal(initial.querySelectorAll('.nex-pane-horizontal + .nex-production-scroll').length, 2);
+  assert.equal(full.querySelectorAll('.nex-production-scroll + .nex-pane-horizontal').length, 2);
+  const colors = doc => chartRows(doc).slice(0, 3).map(row => {
+    const { backgroundColor, color } = row.querySelector('.prod-bar').style;
+    return [backgroundColor, color];
+  });
+  const outlineColors = [
+    ['rgb(185, 222, 255)', 'rgb(0, 0, 0)'],
+    ['rgb(199, 237, 200)', 'rgb(0, 0, 0)'],
+    ['rgb(231, 230, 230)', 'rgb(24, 38, 55)'],
+  ];
+  assert.deepEqual(colors(full), outlineColors);
+  assert.deepEqual(colors(render(tasks, new Set(), 'day', layout, true)), outlineColors);
+  assert.equal(colors(initial)[0][0], 'rgb(231, 230, 230)');
   assert.equal(taskRows(full).length, 80);
   assert.equal(full.querySelector('.nex-task-pane table').getAttribute('aria-rowcount'), '655');
   assert.equal(full.querySelector('.nex-row-gap td').style.height, String(574 * 32) + 'px');
