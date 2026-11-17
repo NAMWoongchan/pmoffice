@@ -22,7 +22,8 @@ const frameHeight = ref(null)
 const canEdit = ref(false)
 const editing = ref(false)
 const productionView = ref('')
-const hideScheduleLogout = computed(() => selected.value === 'nexpharm-8088c44595a3'
+const isSplitterProject = computed(() => selected.value === 'nexpharm-8088c44595a3')
+const hideScheduleLogout = computed(() => isSplitterProject.value
   && !editing.value && (!productionView.value || productionView.value === 'schedule'))
 const isProduction = computed(() => detail.value?.template === 'production_outsourcing')
 const savedNotice = ref('')
@@ -367,7 +368,8 @@ onUnmounted(() => {
         <iframe v-if="detail" v-show="!isProduction || !editing" ref="detailFrame" :key="detail.slug + '-' + (detail.version || 0)" class="nex-frame"
           :style="frameHeight ? {height: frameHeight + 'px'} : undefined"
           :src="'/pms/app/index.html?project=' + encodeURIComponent(detail.slug) + '&embed=1'
-            + (isProduction ? '&layout=production-outline' : '')" title="넥스팜 프로젝트 일정과 자료"></iframe>
+            + (isProduction ? '&layout=production-outline' : '')
+            + (isSplitterProject ? '&v=schedule-splitter' : '')" title="넥스팜 프로젝트 일정과 자료"></iframe>
         <p v-else-if="!loading && !error" class="nex-notice">프로젝트를 열려면 지정 그룹 권한이 필요합니다.</p>
       </template>
       <template v-else-if="catalog?.canRead">

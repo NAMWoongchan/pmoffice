@@ -148,6 +148,7 @@ test('Nexpharm center renders a full month and connects registration, comments, 
     click('a', '생산계획 테스트');
     const production = 'nexpharm-8088c44595a3';
     await wait(() => document.querySelector(`iframe[src*="${production}"]`));
+    assert.equal(new URL(document.querySelector('iframe').src).searchParams.get('v'), 'schedule-splitter');
     assert.equal(find('.nex-heading button', '로그아웃'), undefined);
     assert.equal(find('.nex-heading a', '로그인'), undefined);
     const reportView = async view => {
