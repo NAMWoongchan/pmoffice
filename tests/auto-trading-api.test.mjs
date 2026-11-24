@@ -1,3 +1,9 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {createTradingHandler,cleanSnapshot} from '../supabase/functions/auto-trading/core.mjs';
 test('worker entrypoint rejects missing credential, foreign origin and unknown command',async()=>{let calls=0;const h=createTradingHandler({worker:async()=>{calls++;return {}}});const call=(p,headers={})=>h(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json',...headers},body:JSON.stringify(p)}));assert.equal((await call({action:'sync',id:'00000000-0000-0000-0000-000000000001'})).status,401);assert.equal((await call({action:'delete'},{Origin:'https://evil.test'})).status,403);assert.equal((await call({action:'start'})).status,400);assert.equal(calls,0)});
 test('only scoped whitelisted telemetry leaves the worker',()=>{const value=cleanSnapshot({environment:'BINANCE DEMO ONLY',entries:true,key:'secret',secret:'secret',webhook_url:'secret'});assert.equal(value.entries,true);assert.equal(value.key,undefined);assert.equal(value.secret,undefined);assert.equal(value.webhook_url,undefined);assert.throws(()=>cleanSnapshot({environment:'LIVE'}))});
+
+test('scoped event sync carries only defined position-change fields',async()=>{
+ let received;const h=createTradingHandler({worker:async(a,p)=>{received=p;return {}}});
+ const response=await h(new Request('https://example.test',{method:'POST',headers:{'Content-Type':'application/json','X-Worker-Token':'a'.repeat(64)},body:JSON.stringify({action:'sync',id:'00000000-0000-0000-0000-000000000001',revision:1,snapshot:{environment:'BINANCE DEMO ONLY'},events:[{event_id:'entry',revision:1,received_ms:1000,position_change:{before:'0',after:'.23',basis:'settled_ledger',secret:'never-copy'}}]})}));
+ assert.equal(response.status,200);assert.deepEqual(received.events[0].position_change,{before:'0',after:'.23',basis:'settled_ledger'});
+});

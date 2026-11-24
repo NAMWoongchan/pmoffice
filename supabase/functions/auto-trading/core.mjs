@@ -27,7 +27,7 @@ export function createTradingHandler(deps){return async req=>{
  if(action==='sync'){
  if(!Number.isSafeInteger(body.revision)||body.revision<1||!Array.isArray(body.events)||body.events.length>200)return reply(400,{error:'상태 형식을 확인해 주세요.'})
  p.revision=body.revision;p.snapshot=cleanSnapshot(body.snapshot)
- p.events=body.events.map(e=>{if(typeof e.event_id!=='string'||e.event_id.length>220||!Number.isSafeInteger(e.revision)||!Number.isSafeInteger(e.received_ms))throw Error('Invalid event');return {event_id:e.event_id,revision:e.revision,received_ms:e.received_ms,seq:e.seq,state:e.state,note:String(e.note||'').slice(0,300),order_json:e.order_json,fills_json:e.fills_json}})
+ p.events=body.events.map(e=>{if(typeof e.event_id!=='string'||e.event_id.length>220||!Number.isSafeInteger(e.revision)||!Number.isSafeInteger(e.received_ms))throw Error('Invalid event');return {event_id:e.event_id,revision:e.revision,received_ms:e.received_ms,seq:e.seq,state:e.state,note:String(e.note||'').slice(0,300),order_json:e.order_json,fills_json:e.fills_json,position_change:e.position_change?{before:String(e.position_change.before),after:String(e.position_change.after),basis: e.position_change.basis==='settled_ledger'?'settled_ledger':'unknown'}:null}})
  }else{
  if(!identifier.test(body.command_id||''))return reply(400,{error:'명령을 확인해 주세요.'})
  p.command_id=body.command_id
