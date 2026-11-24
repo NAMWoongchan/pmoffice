@@ -8,3 +8,9 @@ test('dashboard renders readable status, accounting, history and safe command ex
 test('offline dashboard retains last values and disables every trading action',async()=>{
  const dom=new JSDOM('<main id="root"></main>');globalThis.document=dom.window.document;const root=document.querySelector('#root');const view=mountTradingDashboard(root,{getStatus:async()=>({observed_ms:1000,entries:true,position:'1'}),getEvents:async()=>[],isOnline:()=>false},{interval:60000});await new Promise(r=>setTimeout(r,20));assert.match(root.textContent,/연결 끊김/);for(const b of root.querySelectorAll('[data-action]'))assert.equal(b.disabled,true);view.destroy();dom.window.close();
 });
+
+test('unknown exchange quantity is never displayed as a confirmed flat position',async()=>{
+ const dom=new JSDOM('<main id="root"></main>');globalThis.document=dom.window.document;const root=document.querySelector('#root');
+ const view=mountTradingDashboard(root,{getStatus:async()=>({position:'확인 전',ready:false,api_key_loaded:true}),getEvents:async()=>({rows:[],total:0})},{interval:60000});
+ await new Promise(r=>setTimeout(r,20));assert.match(root.textContent,/보유 수량 확인 필요/);assert.equal(root.querySelector('[data-action=close]').disabled,true);assert.doesNotMatch(root.textContent,/미보유/);view.destroy();dom.window.close();
+});
