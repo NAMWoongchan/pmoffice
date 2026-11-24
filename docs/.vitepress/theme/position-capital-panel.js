@@ -21,8 +21,8 @@ export function mountCapitalPanel(root,adapter){
  const bar=el('div',undefined,'cp-budget-bar'),fill=el('span');bar.append(fill);bar.setAttribute('aria-hidden','true');sizing.append(bar);
  const formula=el('p','비율 예산 안에서 진입 수수료를 남기고 증거금을 계산합니다. 주문 직전 잔고·가격·수량 단위로 다시 계산하며, 최소 주문·30배 한도 미달/초과 시 주문하지 않습니다.','cp-muted');sizing.append(formula);
  const apply=el('button','다음 진입부터 적용','cp-apply'),notice=el('p','','cp-notice');notice.setAttribute('role','status');sizing.append(apply,notice);root.append(sizing);
- let s,dirty=false,saving=false,request=null,pending=null,initialized=false,points=[],entryKey='',disposed=false;
- const draft=()=>({mode:mode.value,value:String(mode.value==='available_percent'?percent.value:fixed.value)});
+ let s,dirty=false,saving=false,request=null,pending=null,initialized=false,points=[],entryKey='',disposed=false,previewWarning=false;
+ const draft=()=>({mode:mode.value,value:String(Number(mode.value==='available_percent'?percent.value:fixed.value))});
  const changed=()=>{dirty=true;request=null;preview()};mode.onchange=changed;fixed.oninput=changed;percent.oninput=()=>{range.value=percent.value;changed()};range.oninput=()=>{percent.value=range.value;changed()};
  function preview(){
   const isPercent=mode.value==='available_percent';controls.hidden=!isPercent;fixedLabel.hidden=isPercent;
@@ -31,8 +31,9 @@ export function mountCapitalPanel(root,adapter){
   previewValues.budget.textContent=cash(isPercent?budget:(margin===null||fees===null?null:margin+fees));previewValues.margin.textContent=cash(margin);previewValues.fees.textContent=cash(fees);previewValues.exposure.textContent=cash(notional);
   account.textContent='사용 가능 USDT '+cash(av)+' · 실제 주문은 다음 진입 시점의 잔고로 재계산';fill.style.width=Math.max(0,Math.min(100,isPercent?value:av>0?(margin||0)/av*100:0))+'%';
   const max=num(s?.sizing_limits?.notional_cap_30x),over=max!==null&&notional!==null&&notional>=max;
-  if(over&&!saving)notice.textContent='현재 예상 금액이 30배 허용 한도를 넘습니다. 투자 비율을 낮춰 주세요.';
-  else if(!valid&&dirty&&!saving)notice.textContent=isPercent?'투자 비율을 0% 초과 100% 이하로 선택해 주세요.':'주문 총액을 0보다 크게 입력해 주세요.';
+  if(over&&!saving){notice.textContent='현재 예상 금액이 30배 허용 한도를 넘습니다. 투자 비율을 낮춰 주세요.';previewWarning=true}
+  else if(!valid&&dirty&&!saving){notice.textContent=isPercent?'투자 비율을 0% 초과 100% 이하로 선택해 주세요.':'주문 총액을 0보다 크게 입력해 주세요.';previewWarning=true}
+  else if(previewWarning&&!saving){notice.textContent='';previewWarning=false}
   const online=adapter.isOnline?adapter.isOnline(s||{}):true,pendingVersion=pending?.sizing_version??s?.sizing_version??s?.sizing?.version??0,pcVersion=s?.sizing?.version??-1;
   ack.textContent=pcVersion>=pendingVersion?'PC 적용 완료':'PC 적용 대기';ack.className='cp-ack '+(pcVersion>=pendingVersion?'cp-ok':'cp-pending');
   active.textContent='현재 PC 설정: '+labelConfig(s?.sizing)+' · 30배 · 설정을 저장해도 신규 진입을 자동으로 켜지 않습니다.';
