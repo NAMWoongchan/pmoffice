@@ -42,6 +42,15 @@ test('Auto Trading is absent from fixed navigation and business status follows A
   await check(session,{member:true,admin:'true'},false,'unverified string flag');
   await check(session,{member:true,admin:true},true,'administrator signed in again');
   await check(session,{member:true,admin:false},false,'administrator permission revoked');
+  app.unmount();
+  const homeBundle=await build({stdin:{contents:"export {default} from './docs/.vitepress/theme/AdminHome.vue'",resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'node',external:['vue'],plugins:[{name:'isolated-home-data',setup(api){
+   api.onResolve({filter:/pms-client\.js$|admin-ebook\.js$/},()=>({path:'home-api',namespace:'home-fixture'}));
+   api.onLoad({filter:/.*/,namespace:'home-fixture'},()=>({contents:'export const call=async()=>({new:0,processing:0});export const adminEbook=async()=>({queued:0,failed:0});',loader:'js'}));
+   api.onLoad({filter:/\.vue$/},a=>{const {descriptor}=parse(fs.readFileSync(a.path,'utf8'));return {contents:compileScript(descriptor,{id:'home-menu-label',inlineTemplate:true}).content,loader:'js',resolveDir:path.dirname(a.path)}});
+  }}]});
+  fs.writeFileSync(generated,homeBundle.outputFiles[0].text);const Home=(await import(pathToFileURL(generated).href+'?home')).default;app=vue.createApp(Home);app.mount('#app');await new Promise(r=>setTimeout(r,10));await vue.nextTick();
+  assert.equal(document.querySelector('a[href="/admin/#auto-trading"] strong').textContent,'Auto Trading 센터');assert.doesNotMatch(document.querySelector('main').textContent,/사업 현황/);
+
  }finally{
   app?.unmount();fs.unlinkSync(generated);delete globalThis.__adminNavFixture;dom.window.close();
  }
