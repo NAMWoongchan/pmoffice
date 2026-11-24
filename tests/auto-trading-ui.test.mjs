@@ -19,6 +19,6 @@ test('idle dashboard never loads or shows trading history before explicit succes
  const dom=new JSDOM('<main id="root"></main>');globalThis.document=dom.window.document;
  let loads=0,actions=0;let sample={data_enabled:false,position:'0',observed_ms:Date.now(),api_key_loaded:true,entries:false,ready:true};
  const root=document.querySelector('#root'),view=mountTradingDashboard(root,{getStatus:async()=>sample,getEvents:async()=>{loads++;return {rows:[],total:0}},command:async action=>{actions++;sample={...sample,data_enabled:true,entries:action==='start'};return {state:'completed'}}},{interval:60000});
- await new Promise(r=>setTimeout(r,20));await view.refresh();assert.equal(loads,0);assert.equal(actions,0);assert.equal(root.querySelector('.td-grid').hidden,true);assert.match(root.querySelector('.td-waiting').textContent,/진입 시작 또는 청산/);
- root.querySelector('[data-action=start]').click();await new Promise(r=>setTimeout(r,20));assert.equal(actions,1);assert.equal(loads,1);assert.equal(root.querySelector('.td-grid').hidden,false);assert.equal(root.querySelector('.td-waiting').hidden,true);view.destroy();dom.window.close();
+ try{await new Promise(r=>setTimeout(r,20));await view.refresh();assert.equal(loads,0);assert.equal(actions,0);assert.equal(root.querySelector('.td-grid').hidden,true);assert.equal(dom.window.getComputedStyle(root.querySelector('.td-grid')).display,'none');assert.match(root.querySelector('.td-waiting').textContent,/진입 시작 또는 청산/);
+ root.querySelector('[data-action=start]').click();await new Promise(r=>setTimeout(r,20));assert.equal(actions,1);assert.equal(loads,1);assert.equal(root.querySelector('.td-grid').hidden,false);assert.equal(root.querySelector('.td-waiting').hidden,true);}finally{view.destroy();dom.window.close();}
 });
