@@ -1,4 +1,13 @@
 export const ACTIONS=new Set(['LONG_ENTRY','SHORT_ENTRY','LONG_EXIT','SHORT_EXIT']);
+export const CORS_ALLOW_HEADERS='authorization,apikey,content-type,x-client-info,x-retry-count,traceparent,tracestate,baggage';
+const healthMessages={DEMO_QUOTE_FAILED:'Demo 시세 조회 실패 · 이벤트는 서버 장부에 보존됩니다.',PROCESSING_FAILED:'서버 처리 실패 · 이벤트 기록을 확인해 주세요.'};
+async function health(worker,id,code,quote){
+ try{await worker('health',{id,code,quote_at_ms:quote?.at_ms??null})}catch{/* A database outage cannot persist its own status. The caller still receives the failure. */}
+}
+export async function diagnose(id,worker,fetcher=fetch){
+ try{const q=await quoteDemo(fetcher);await health(worker,id,'OK',q);return {checks:{admin:true,server:true,quote:true},quote_at_ms:q.at_ms,checked_at:new Date().toISOString()}}
+ catch{await health(worker,id,'DEMO_QUOTE_FAILED');return {checks:{admin:true,server:true,quote:false},error:healthMessages.DEMO_QUOTE_FAILED,error_code:'DEMO_QUOTE_FAILED',checked_at:new Date().toISOString()}}
+}
 const id=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function validateSignal(p,now=Date.now()){
  const keys=['version','event_id','event','symbol','timeframe','bar_open_ms','event_time_ms','price'];
@@ -17,17 +26,19 @@ export async function quoteDemo(fetcher=fetch,clock=Date.now){
  if([q.price,q.step,q.min_qty,q.max_qty,q.min_notional].some(x=>!Number.isFinite(Number(x))||Number(x)<=0)||!Number.isSafeInteger(q.at_ms)||Math.abs(clock()-q.at_ms)>5000||Math.abs(clock()-q.server_ms)>5000)throw Error('최신 Demo 시세 검증 실패');return q;
 }
 export async function drain(id,worker,fetcher=fetch){
- let q;try{q=await quoteDemo(fetcher)}catch{return {processed:0,error:'Demo 시세 조회 실패 · 이벤트는 서버 장부에 보존됩니다.'}}
+ let q;try{q=await quoteDemo(fetcher)}catch{await health(worker,id,'DEMO_QUOTE_FAILED');return {processed:0,error:healthMessages.DEMO_QUOTE_FAILED,error_code:'DEMO_QUOTE_FAILED'}}
+ try{
  await worker('quote',{id,quote:q});let count=0;
  for(let round=0;round<3;round++){
  const rows=await worker('next',{id});if(!rows.length)break;let progress=false;
  for(const e of rows){const out=await worker('apply',{id,seq:e.seq,quote:q});if(!['awaiting_exit','already_processed'].includes(out.state)){progress=true;count++}}
  if(!progress)break;
- }return {processed:count};
+ }await health(worker,id,'OK',q);return {processed:count};
+ }catch{await health(worker,id,'PROCESSING_FAILED');return {processed:0,error:healthMessages.PROCESSING_FAILED,error_code:'PROCESSING_FAILED'}}
 }
-export function createPaperHandler({worker,admin,checkCron,fetcher=fetch,background=p=>p.catch(()=>{})}){return async req=>{
+export function createPaperHandler({worker,admin,checkCron,fetcher=fetch,corsAllowHeaders=CORS_ALLOW_HEADERS,background=p=>p.catch(()=>{})}){return async req=>{
  const origin=req.headers.get('Origin'),allowed=origin==='https://pmoffice.co.kr'||/^http:\/\/(localhost|127\.0\.0\.1):5173$/.test(origin||'');
- const headers={'Cache-Control':'no-store','Content-Type':'application/json','X-Content-Type-Options':'nosniff',...(allowed?{'Access-Control-Allow-Origin':origin,'Vary':'Origin','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'}:{})};
+ const headers={'Cache-Control':'no-store','Content-Type':'application/json','X-Content-Type-Options':'nosniff',...(allowed?{'Access-Control-Allow-Origin':origin,'Vary':'Origin','Access-Control-Allow-Headers':corsAllowHeaders,'Access-Control-Allow-Methods':'POST,OPTIONS'}:{})};
  const reply=(s,x)=>new Response(JSON.stringify(x),{status:s,headers});
  if(origin&&!allowed)return reply(403,{error:'허용되지 않은 접속 경로입니다.'});if(req.method==='OPTIONS')return new Response(null,{status:204,headers});if(req.method!=='POST')return reply(405,{error:'POST 요청만 허용됩니다.'});
  try{
@@ -45,7 +56,9 @@ export function createPaperHandler({worker,admin,checkCron,fetcher=fetch,backgro
  const body=JSON.parse(raw||'{}');const token=req.headers.get('Authorization')||'';
  if(!/^Bearer .+/.test(token))return reply(401,{error:'관리자 로그인이 필요합니다.'});
  const state=await admin(token,'get',{id:body.id});
+ if(body.action==='diagnose')return reply(200,{...await diagnose(state.item.id,worker,fetcher),mode:'SERVER PAPER'});
  if(body.action!=='refresh')return reply(400,{error:'허용되지 않은 작업입니다.'});
+ if(!state.item.data_enabled)return reply(409,{error:'진입 시작 또는 수동 진입·청산 실행 후 시세를 갱신해 주세요.'});
  const result=await drain(state.item.id,worker,fetcher);return reply(200,{...result,mode:'SERVER PAPER'});
  }catch{return reply(403,{error:'관리자 권한·전용 주소·신호 형식을 확인해 주세요.'})}
 }}

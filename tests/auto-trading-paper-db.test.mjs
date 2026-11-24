@@ -13,6 +13,7 @@ test('server paper SQL: admin isolation, independent ledgers, entry/close, dedup
 
  await db.exec(fs.readFileSync('supabase/migrations/202611240005_cloud_paper.sql','utf8'));
  await db.exec(fs.readFileSync('supabase/migrations/202611240007_cloud_paper_orphan.sql','utf8'));
+ await db.exec(fs.readFileSync('supabase/migrations/202611240008_paper_connection.sql','utf8'));
  async function as(n,role,fn){await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[n?uid(n):'']);await db.exec('set role '+role);try{return await fn()}finally{await db.exec('reset role')}}
  const admin=(a,p={})=>as(1,'authenticated',async()=>(await db.query('select auto_trading_paper_admin($1,$2) value',[a,p])).rows[0].value);
  const worker=(a,p={})=>as(null,'service_role',async()=>(await db.query('select auto_trading_paper_worker($1,$2) value',[a,p])).rows[0].value);
@@ -32,6 +33,13 @@ test('server paper SQL: admin isolation, independent ledgers, entry/close, dedup
  await doManual('close',44,103);assert.equal((await get(a.id)).qty,0);assert.equal((await get(a.id)).wallet,1000.9916);assert.equal((await get(b.id)).wallet,1000);
  await doManual('short',40,104);assert.equal((await get(a.id)).qty,-0.25);await doManual('close',36,105);assert.equal((await get(a.id)).qty,0);assert.equal((await get(a.id)).wallet,1001.984);
  const hook=await admin('webhook',{id:a.id});assert.equal(hook.secret.length,64);await admin('start',{id:a.id});
+ const beforeMetadata=await get(a.id);assert.equal(beforeMetadata.webhook_issued,true);
+ const renamed=await admin('save',{id:a.id,version:beforeMetadata.config_version,name:'이름만 수정',description:'설명만 변경',entry_conditions:beforeMetadata.entry_conditions,exit_conditions:beforeMetadata.exit_conditions,sizing_mode:beforeMetadata.sizing_mode,sizing_value:beforeMetadata.sizing_value});
+ assert.equal(renamed.config_version,beforeMetadata.config_version);assert.equal(renamed.webhook_revision,hook.revision);assert.equal(renamed.auto_entries,true);assert.equal(renamed.webhook_issued,true);
+ const audit=(await db.query("select action,details from pmoffice_private.paper_audit where trading_id=$1 and action='webhook'",[a.id])).rows;assert.equal(audit.length,1);assert.equal(audit[0].details.revision,hook.revision);assert.ok(!JSON.stringify(audit).includes(hook.secret));
+ await worker('health',{id:a.id,code:'DEMO_QUOTE_FAILED'});const connection=(await admin('get',{id:a.id})).connection;assert.equal(connection.signal_count,0);assert.equal(connection.health.code,'DEMO_QUOTE_FAILED');assert.equal(connection.webhook_revision,hook.revision);
+ await worker('health',{id:a.id,code:'OK',quote_at_ms:Date.now()});assert.equal((await get(a.id)).connection_health.code,'OK');
+ await assert.rejects(()=>as(1,'authenticated',()=>db.query("select auto_trading_paper_admin_base('list')")));await assert.rejects(()=>as(1,'authenticated',()=>db.query("select auto_trading_paper_worker_base('pending')")));
  const now=Date.now(),bar=Math.floor(now/10000)*10000;
  const signal=(event,et=now,br=bar)=>({version:'0.11',event_id:['soxl-0.11','BINANCE:SOXLUSDT.P','10S',br,event].join('|'),event,symbol:'BINANCE:SOXLUSDT.P',timeframe:'10S',event_time_ms:et,bar_open_ms:br,price:40});
  const ingest=s=>worker('ingest',{id:a.id,revision:hook.revision,secret:hook.secret,signal:s});
@@ -40,6 +48,7 @@ test('server paper SQL: admin isolation, independent ledgers, entry/close, dedup
  await ingest(signal('SHORT_ENTRY'));const waiting=(await worker('next',{id:a.id}))[0];assert.equal((await worker('apply',{id:a.id,seq:waiting.seq,quote:q(40)})).state,'awaiting_exit');assert.equal((await get(a.id)).auto_entries,true);
  await ingest(signal('LONG_EXIT',bar-1,bar-10000));const pending=await worker('next',{id:a.id});assert.equal(pending[0].event,'LONG_EXIT');for(const e of pending)await worker('apply',{id:a.id,seq:e.seq,quote:q(40)});assert.equal((await get(a.id)).qty,-0.25);
  assert.equal((await ingest(signal('SHORT_ENTRY'))).state,'filled');
+ assert.ok((await admin('get',{id:a.id})).connection.signal_count>=2);
  await ingest(signal('SHORT_EXIT',now+1));const ex=(await worker('next',{id:a.id}))[0];await worker('apply',{id:a.id,seq:ex.seq,quote:q(40)});assert.equal((await get(a.id)).qty,0);
  await ingest(signal('LONG_EXIT',bar-10001,bar-20000));const orphan=(await worker('next',{id:a.id}))[0];assert.equal((await worker('apply',{id:a.id,seq:orphan.seq,quote:q(40)})).state,'ignored');assert.equal((await get(a.id)).auto_entries,true);
  await admin('stop',{id:a.id});const old=await ingest(signal('LONG_ENTRY',bar-20001,bar-30000));assert.equal(old.state,'ignored');
