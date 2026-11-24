@@ -33,7 +33,7 @@ test('real table edits persist, summary toggles, condition lines stay complete a
  try{
   const result=await build({stdin:{contents:"export {default} from './docs/.vitepress/theme/AdminAutoTrading.vue'",resolveDir:process.cwd()},bundle:true,write:false,format:'esm',platform:'node',external:['vue'],plugins:[{name:'isolated-trading-api',setup(b){
    b.onResolve({filter:/auto-trading-client\.js$/},()=>({path:'api',namespace:'fixture'}));
-   b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:"export const tradingApi=(a,p)=>globalThis.__tradingMetadataFixture.api(a,p);export const tradingOnline=x=>!!x.last_seen;",loader:'js'}));
+   b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:"export const saveTradingSizing=()=>{throw Error('not used in list fixture')};export const tradingApi=(a,p)=>globalThis.__tradingMetadataFixture.api(a,p);export const tradingOnline=x=>!!x.last_seen;",loader:'js'}));
    b.onLoad({filter:/\.vue$/},a=>{const {descriptor}=parse(fs.readFileSync(a.path,'utf8'));return {contents:compileScript(descriptor,{id:'table-item-editor',inlineTemplate:true}).content,loader:'js',resolveDir:path.dirname(a.path)}});
   }}]});
   fs.writeFileSync(generated,result.outputFiles[0].text);const C=(await import(pathToFileURL(generated).href)).default;

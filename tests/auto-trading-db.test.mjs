@@ -10,6 +10,7 @@ test('real administrator policy, scoped pairing, replay, isolation and command r
  await db.exec(fs.readFileSync('supabase/migrations/202611240001_auto_trading.sql','utf8'));
  await db.exec(fs.readFileSync('supabase/migrations/202611240002_auto_trading_metadata.sql','utf8'));
  await db.exec(fs.readFileSync('supabase/migrations/202611240003_auto_trading_manual_data.sql','utf8'));
+ await db.exec(fs.readFileSync('supabase/migrations/202611240004_auto_trading_sizing.sql','utf8'));
 
  for(let n=1;n<=2;n++){await db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[uid(n),n===1?'namwoongchan@gmail.com':'member@example.test']);await db.query('update profiles set signup_accepted_at=now(),signup_version=(select signup_version from pmoffice_private.service_settings) where id=$1',[uid(n)])}
  await db.query("insert into auth.identities values($1,'google','admin-google',$2)",[uid(1),{email:'namwoongchan@gmail.com',email_verified:true}]);await db.query("update pmoffice_private.admin_identity_config set allowed_user_id=$1,allowed_google_provider_id='admin-google'",[uid(1)]);await db.query('insert into admin_roles(user_id) values($1)',[uid(1)]);
@@ -40,6 +41,22 @@ test('real administrator policy, scoped pairing, replay, isolation and command r
  const value=await admin('get',{id:a.id});assert.equal(value.item.snapshot.position,'0');assert.equal(value.item.worker_hash,undefined);assert.equal((await admin('events',{id:a.id})).total,0);
  await db.query("update pmoffice_private.auto_trading_items set snapshot=snapshot||'{\"data_enabled\":true,\"data_since\":101}' where id=$1",[a.id]);assert.equal((await admin('events',{id:a.id,since:0})).total,0);
  await db.query("update pmoffice_private.auto_trading_items set snapshot=snapshot||'{\"data_since\":100}' where id=$1",[a.id]);assert.equal((await admin('events',{id:a.id})).rows[0].state,'filled');
+ const sizing=(cfg,version=0,request=uid(501),actor=1)=>as(actor,'authenticated',async()=>(await db.query('select auto_trading_set_sizing($1,$2,$3,$4) value',[a.id,version,cfg,request])).rows[0].value);
+ assert.deepEqual((await admin('get',{id:a.id})).item.sizing,{mode:'fixed_notional',value:'10'});
+ const commandCount=(await db.query('select count(*)::int n from pmoffice_private.auto_trading_commands')).rows[0].n;
+ const setting=await sizing({mode:'available_percent',value:'25.5'});assert.equal(setting.sizing_version,1);
+ assert.deepEqual(await sizing({mode:'available_percent',value:'25.5'}),setting);
+ await assert.rejects(()=>sizing({mode:'available_percent',value:'30'},0,uid(502)));
+ await assert.rejects(()=>sizing({mode:'available_percent',value:'101'},1,uid(503)));
+ await assert.rejects(()=>sizing({mode:'available_percent',value:'0'},1,uid(503)));
+ await assert.rejects(()=>sizing({mode:'available_percent',value:'20'},1,uid(503),2));
+ await assert.rejects(()=>sizing({mode:'available_percent',value:'20',secret:'bad'},1,uid(503)));
+ const syncSizing=await worker('sync',{...identity,revision:3,snapshot:{environment:'BINANCE DEMO ONLY',position:'.23',entries:true,sizing:{mode:'fixed_notional',value:'10',version:0}},events:[]});
+ assert.deepEqual(syncSizing.sizing,{mode:'available_percent',value:'25.5',version:1});assert.equal((await admin('get',{id:a.id})).item.snapshot.position,'.23');
+ assert.equal((await db.query('select count(*)::int n from pmoffice_private.auto_trading_commands')).rows[0].n,commandCount);
+ await db.query('delete from admin_roles where user_id=$1',[uid(1)]);
+ assert.equal((await worker('sync',{...identity,revision:4,snapshot:{environment:'BINANCE DEMO ONLY',position:'0',entries:false},events:[]})).sizing,null);
+ await db.query('insert into admin_roles(user_id) values($1)',[uid(1)]);
  const start=await admin('command',{id:a.id,command_id:uid(101),action:'start'});assert.equal(start.state,'queued');
  await admin('command',{id:a.id,command_id:uid(102),action:'stop'});assert.equal((await worker('claim',{...identity,command_id:uid(101)})).state,'superseded');
  const claim=await worker('claim',{...identity,command_id:uid(102)});assert.equal(claim.state,'executing');await worker('ack',{...identity,command_id:uid(102),state:'completed',result:{entries:false}});
