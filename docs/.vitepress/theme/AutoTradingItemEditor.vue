@@ -1,8 +1,8 @@
 <script setup>
 import {computed} from 'vue'
 const model=defineModel({type:Object,required:true})
-defineProps({busy:Boolean,error:String})
-defineEmits(['save','cancel'])
+defineProps({busy:Boolean,error:String,archiveLabel:String})
+defineEmits(['save','cancel','archive'])
 const count=computed(()=>(model.value.description||'').length)
 </script>
 <template>
@@ -12,7 +12,7 @@ const count=computed(()=>(model.value.description||'').length)
 <label :for="'at-description-'+model.id">설명 <small>(200자 이내)</small></label><textarea :id="'at-description-'+model.id" v-model="model.description" name="description" maxlength="200" rows="3" :disabled="busy" :aria-describedby="'at-count-'+model.id"></textarea>
 <p :id="'at-count-'+model.id" class="at-editor-count">{{count}} / 200자</p>
 <p v-if="error" role="alert">{{error}}</p>
-<button type="submit" :disabled="busy">{{busy?'저장 중…':'저장'}}</button><button type="button" :disabled="busy" @click="$emit('cancel')">취소</button>
+<button type="submit" :disabled="busy">{{busy?'저장 중…':'저장'}}</button><button type="button" :disabled="busy" @click="$emit('cancel')">취소</button><button v-if="archiveLabel" type="button" :disabled="busy" @click="$emit('archive')">{{archiveLabel}}</button>
 </form>
 </template>
 <style scoped>

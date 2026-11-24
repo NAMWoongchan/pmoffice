@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 import {JSDOM} from 'jsdom';
 import {build} from 'esbuild';
 
-test('actual navigation renders Auto Trading only for a logged-in system administrator',async()=>{
+test('Auto Trading is absent from fixed navigation and business status follows AI work in the admin sidebar',async()=>{
  const dom=new JSDOM('<div id="app"></div>',{url:'https://pmoffice.co.kr/'});
  for(const name of ['window','document','Element','HTMLElement','SVGElement','Node'])globalThis[name]=dom.window[name];
  const vue=await import('vue');const {parse,compileScript}=await import('vue/compiler-sfc');
@@ -29,9 +29,10 @@ test('actual navigation renders Auto Trading only for a logged-in system adminis
    state.memberSession.value=session;state.memberAccount.value=account;await vue.nextTick();
    const desktop=document.querySelectorAll('.member-auth a[href="/admin/#auto-trading"]');
    const mobile=document.querySelectorAll('.member-mobile-admin a[href="/admin/#auto-trading"]');
-   assert.equal(desktop.length,visible?1:0,label+' desktop');assert.equal(mobile.length,visible?1:0,label+' mobile');
+   assert.equal(desktop.length,0,label+' desktop');assert.equal(mobile.length,0,label+' mobile');assert.equal(document.querySelectorAll('.member-auth a[href="/admin/"]').length,visible?1:0,label+' system admin entry');
    if(!visible)assert.equal(document.querySelectorAll('a[href="/admin/#auto-trading"]').length,0,label+' hidden from DOM');
   };
+  const {adminSections}=await import('../docs/.vitepress/theme/admin-navigation.js');const section=adminSections.find(x=>x.title==='시스템 관리(Administration)');assert.deepEqual(section.items.map(x=>x[0]),['ai-work','auto-trading','history']);assert.equal(section.items.find(x=>x[0]==='auto-trading')[1],'사업 현황');
   const session={user:{id:'fixture-user'}};
   await check(null,null,false,'logged out');
   await check(session,{member:true,admin:false},false,'ordinary member');

@@ -9,6 +9,7 @@ test('real administrator policy, scoped pairing, replay, isolation and command r
  await db.exec("create function extensions.gen_random_bytes(n integer) returns bytea language sql volatile as $$select decode(substr(repeat(md5(gen_random_uuid()::text),100),1,n*2),'hex')$$;create function extensions.digest(v text,k text) returns bytea language sql immutable as $$select decode(md5(v)||md5(v),'hex')$$;");
  await db.exec(fs.readFileSync('supabase/migrations/202611240001_auto_trading.sql','utf8'));
  await db.exec(fs.readFileSync('supabase/migrations/202611240002_auto_trading_metadata.sql','utf8'));
+ await db.exec(fs.readFileSync('supabase/migrations/202611240003_auto_trading_manual_data.sql','utf8'));
 
  for(let n=1;n<=2;n++){await db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[uid(n),n===1?'namwoongchan@gmail.com':'member@example.test']);await db.query('update profiles set signup_accepted_at=now(),signup_version=(select signup_version from pmoffice_private.service_settings) where id=$1',[uid(n)])}
  await db.query("insert into auth.identities values($1,'google','admin-google',$2)",[uid(1),{email:'namwoongchan@gmail.com',email_verified:true}]);await db.query("update pmoffice_private.admin_identity_config set allowed_user_id=$1,allowed_google_provider_id='admin-google'",[uid(1)]);await db.query('insert into admin_roles(user_id) values($1)',[uid(1)]);
@@ -36,7 +37,9 @@ test('real administrator policy, scoped pairing, replay, isolation and command r
  const duplicate=await admin('save',{name:'다른 별칭 동일 계정',account_alias:'different-label',symbol:'SOXLUSDT',timeframe:'10S'});const duplicateCode=await admin('pair',{id:duplicate.id});await assert.rejects(()=>worker('pair',{code:duplicateCode.code,symbol:'SOXLUSDT',timeframe:'10S',account_hash:'a'.repeat(64)}));
  const identity={id:a.id,token:cred.token};await worker('sync',{...identity,revision:2,snapshot:{environment:'BINANCE DEMO ONLY',position:'0',entries:false},events:[{event_id:'x',revision:2,received_ms:100,state:'filled'}]});
  await worker('sync',{...identity,revision:1,snapshot:{position:'999'},events:[{event_id:'x',revision:1,received_ms:100,state:'queued'}]});
- const value=await admin('get',{id:a.id});assert.equal(value.item.snapshot.position,'0');assert.equal(value.item.worker_hash,undefined);assert.equal((await admin('events',{id:a.id})).rows[0].state,'filled');
+ const value=await admin('get',{id:a.id});assert.equal(value.item.snapshot.position,'0');assert.equal(value.item.worker_hash,undefined);assert.equal((await admin('events',{id:a.id})).total,0);
+ await db.query("update pmoffice_private.auto_trading_items set snapshot=snapshot||'{\"data_enabled\":true,\"data_since\":101}' where id=$1",[a.id]);assert.equal((await admin('events',{id:a.id,since:0})).total,0);
+ await db.query("update pmoffice_private.auto_trading_items set snapshot=snapshot||'{\"data_since\":100}' where id=$1",[a.id]);assert.equal((await admin('events',{id:a.id})).rows[0].state,'filled');
  const start=await admin('command',{id:a.id,command_id:uid(101),action:'start'});assert.equal(start.state,'queued');
  await admin('command',{id:a.id,command_id:uid(102),action:'stop'});assert.equal((await worker('claim',{...identity,command_id:uid(101)})).state,'superseded');
  const claim=await worker('claim',{...identity,command_id:uid(102)});assert.equal(claim.state,'executing');await worker('ack',{...identity,command_id:uid(102),state:'completed',result:{entries:false}});
