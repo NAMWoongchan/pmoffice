@@ -48,7 +48,7 @@ test('real table edits persist, summary toggles, condition lines stay complete a
   assert.deepEqual([...root().querySelectorAll('.at-exit-conditions li')].map(x=>x.textContent),backend.exit_conditions);
   button('요약').click();await settle();assert.deepEqual([...root().querySelectorAll('.at-summary-grid h3')].map(x=>x.textContent),['진입 조건','청산 조건','설명']);
   assert.match(root().textContent,/기존 설명/);button('요약 접기').click();await settle();assert.equal(root().querySelector('.at-summary'),null);
-  button('이름 변경').click();await settle();assert.equal(document.activeElement.id,'at-name-'+id);
+  assert.equal(button('이름 변경'),undefined);assert.equal(button('보관'),undefined);button('요약').click();await settle();assert.equal(document.activeElement.id,'at-name-'+id);assert.equal(button('취소').nextElementSibling.textContent,'보관');
   const prefix='<img src=x onerror=bad()>\n',description=prefix+'가'.repeat(200-prefix.length);
   input(root().querySelector('input[name=name]'),'변경한 모의 거래');
   input(root().querySelector('textarea[name=description]'),description);submit();await settle();
@@ -56,13 +56,13 @@ test('real table edits persist, summary toggles, condition lines stay complete a
   assert.equal(root().querySelector('img'),null);assert.equal(root().querySelector('a[href*="trading="]').textContent,'변경한 모의 거래');
   app.unmount();document.querySelector('#app').replaceChildren();await mount();button('요약').click();await settle();
   assert.equal(root().querySelector('.at-description').textContent,description);
-  button('이름 변경').click();await settle();const saveCount=calls.filter(x=>x.action==='save').length;
+  button('요약 접기').click();await settle();button('요약').click();await settle();const saveCount=calls.filter(x=>x.action==='save').length;
   input(root().querySelector('textarea'),'가'.repeat(201));submit();await settle();
   assert.equal(calls.filter(x=>x.action==='save').length,saveCount);assert.match(root().textContent,/200자 이내/);
   input(root().querySelector('textarea'),'정상 설명');input(root().querySelector('input[name=name]'),'입력 유지');
   backend={...backend,name:'다른 관리자 변경',version:backend.version+1};submit();await settle();
   assert.equal(backend.name,'다른 관리자 변경');assert.equal(root().querySelector('input[name=name]').value,'입력 유지');assert.match(root().textContent,/다른 변경/);
-  button('취소').click();await settle();button('이름 변경').click();await settle();
+  button('취소').click();await settle();button('요약').click();await settle();
   fixture.deferNext=true;fixture.poll();await settle();assert.equal(typeof fixture.release,'function');
   input(root().querySelector('input[name=name]'),'최종 저장 이름');input(root().querySelector('textarea'),'최종 설명');
   submit();await settle();fixture.release();await settle();
