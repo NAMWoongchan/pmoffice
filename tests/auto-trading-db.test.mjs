@@ -8,6 +8,8 @@ test('real administrator policy, scoped pairing, replay, isolation and command r
  // Crypto function substitutes exercise state/permission behavior; production uses Supabase pgcrypto.
  await db.exec("create function extensions.gen_random_bytes(n integer) returns bytea language sql volatile as $$select decode(substr(repeat(md5(gen_random_uuid()::text),100),1,n*2),'hex')$$;create function extensions.digest(v text,k text) returns bytea language sql immutable as $$select decode(md5(v)||md5(v),'hex')$$;");
  await db.exec(fs.readFileSync('supabase/migrations/202611240001_auto_trading.sql','utf8'));
+ await db.exec(fs.readFileSync('supabase/migrations/202611240002_auto_trading_metadata.sql','utf8'));
+
  for(let n=1;n<=2;n++){await db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())',[uid(n),n===1?'namwoongchan@gmail.com':'member@example.test']);await db.query('update profiles set signup_accepted_at=now(),signup_version=(select signup_version from pmoffice_private.service_settings) where id=$1',[uid(n)])}
  await db.query("insert into auth.identities values($1,'google','admin-google',$2)",[uid(1),{email:'namwoongchan@gmail.com',email_verified:true}]);await db.query("update pmoffice_private.admin_identity_config set allowed_user_id=$1,allowed_google_provider_id='admin-google'",[uid(1)]);await db.query('insert into admin_roles(user_id) values($1)',[uid(1)]);
  async function as(n,role,fn){await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[n?uid(n):'']);await db.exec('set role '+role);try{return await fn()}finally{await db.exec('reset role')}}
@@ -18,6 +20,14 @@ test('real administrator policy, scoped pairing, replay, isolation and command r
  await assert.rejects(()=>as(1,'authenticated',()=>db.query('select * from pmoffice_private.auto_trading_items')));
  const a=await admin('save',{name:'SOXL 테스트',account_alias:'demo-a',symbol:'SOXLUSDT',timeframe:'10S'});
  await assert.rejects(()=>admin('save',{name:'중복',account_alias:'demo-a',symbol:'SOXLUSDT',timeframe:'10S'}));
+ await db.query('update pmoffice_private.auto_trading_items set entry_conditions=$1,exit_conditions=$2 where id=$3',[['Test Entry A','Test Entry B'],['Test Exit C'],a.id]);
+ const baseline=(await admin('get',{id:a.id})).item;assert.deepEqual(baseline.entry_conditions,['Test Entry A','Test Entry B']);assert.deepEqual(baseline.exit_conditions,['Test Exit C']);assert.equal(baseline.description,'');
+ const edited=await admin('save',{id:a.id,version:a.version,name:'변경된 이름',description:'가'.repeat(200)});
+ assert.equal(edited.name,'변경된 이름');assert.equal(edited.description.length,200);assert.equal((await admin('get',{id:a.id})).item.description,'가'.repeat(200));
+ await assert.rejects(()=>admin('save',{id:a.id,version:a.version,name:'stale'}));
+ await assert.rejects(()=>admin('save',{id:a.id,version:edited.version,name:'too long',description:'가'.repeat(201)}));
+ await assert.rejects(()=>as(2,'authenticated',()=>db.query("select auto_trading_admin('save',$1)",[{id:a.id,version:edited.version,name:'blocked',description:'blocked'}])));
+ const renamed=await admin('save',{id:a.id,version:edited.version,name:'이름만 변경'});assert.equal(renamed.description,'가'.repeat(200));
  const b=await admin('save',{name:'다른 항목',account_alias:'demo-a',symbol:'ETHUSDT',timeframe:'10S'});
  const pair=await admin('pair',{id:a.id});const cred=await worker('pair',{code:pair.code,symbol:'SOXLUSDT',timeframe:'10S',account_hash:'a'.repeat(64)});
  await assert.rejects(()=>worker('pair',{code:pair.code,symbol:'SOXLUSDT',timeframe:'10S',account_hash:'a'.repeat(64)}));
