@@ -2,8 +2,10 @@
 import {ref,computed,onMounted,onUnmounted,nextTick} from 'vue'
 import {tradingApi,tradingOnline,saveTradingSizing} from './auto-trading-client.js'
 import {mountTradingDashboard,money,date} from './trading-dashboard.js'
+import ServerPaperTrading from './ServerPaperTrading.vue'
 import AutoTradingItemEditor from './AutoTradingItemEditor.vue'
 const emit=defineEmits(['access-revoked']),rows=ref([]),search=ref(''),filter=ref(''),archived=ref(false),error=ref(''),notice=ref(''),busy=ref(false),id=ref(''),host=ref(null),item=ref(null),form=ref(null),editError=ref(''),pair=ref(null),expanded=ref(new Set())
+const paperId=ref('')
 let view,timer,disposed=false,loading=false,generation=0,listEpoch=0
 const shown=computed(()=>rows.value.filter(x=>(!search.value||[x.name,x.symbol,x.account_alias].join(' ').toLowerCase().includes(search.value.toLowerCase()))&&(!filter.value||(filter.value==='error'?!tradingOnline(x)||(!x.snapshot?.ready&&!!x.last_seen):filter.value==='running'?tradingOnline(x)&&x.snapshot?.entries:tradingOnline(x)&&!x.snapshot?.entries))))
 const conditions=value=>Array.isArray(value)?value:[]
@@ -17,7 +19,8 @@ async function load(force=false){
 }
 async function route(){
  const epoch=++generation;++listEpoch;view?.destroy();view=null;pair.value=null;form.value=null;editError.value='';notice.value=''
- id.value=new URLSearchParams(location.hash.split('?')[1]||'').get('trading')||'';item.value=null;error.value=''
+ paperId.value=new URLSearchParams(location.hash.split('?')[1]||'').get('paper')||'';id.value=new URLSearchParams(location.hash.split('?')[1]||'').get('trading')||'';item.value=null;error.value=''
+ if(paperId.value)return;
  if(!id.value){await load(true);return}
  const selectedId=id.value
  try{const data=await api('get',{id:selectedId});if(disposed||epoch!==generation)return;item.value=data.item;await nextTick();if(!host.value)return
@@ -61,9 +64,9 @@ async function change(action,x){if(!confirm(x.name+' · '+({'archive':'보관','
 onMounted(()=>{route();window.addEventListener('hashchange',route);timer=setInterval(()=>{if(!id.value)load()},5000)})
 onUnmounted(()=>{disposed=true;++generation;++listEpoch;clearInterval(timer);view?.destroy();window.removeEventListener('hashchange',route)})
 </script>
-<template><main class="at-center"><header><div><span class="at-eyebrow">PMOFFICE · BINANCE DEMO</span><h1>Auto Trading 센터</h1><p>모의 자동 거래의 실행 현황과 손익을 확인하고 관리합니다.</p></div><a v-if="id" href="/admin/#auto-trading">전체 거래 목록</a></header>
+<template><main class="at-center"><header><div><span class="at-eyebrow">PMOFFICE · AUTO TRADING</span><h1>Auto Trading 센터</h1><p>모의 자동 거래의 실행 현황과 손익을 확인하고 관리합니다.</p></div><a v-if="id||paperId" href="/admin/#auto-trading">전체 거래 목록</a></header>
 <p v-if="error" role="alert">{{error}}</p><p v-if="notice" role="status" class="at-notice">{{notice}}</p>
-<template v-if="!id">
+<template v-if="!id&&!paperId">
 <div class="at-toolbar"><label>거래 검색<input v-model="search" placeholder="이름·종목·계정"></label><label>상태<select v-model="filter"><option value="">전체</option><option value="running">실행</option><option value="stopped">중지</option><option value="error">오류·연결 확인</option></select></label><label><input v-model="archived" type="checkbox" @change="load(true)">보관 항목 보기</label></div>
 <div class="at-table"><table><thead><tr><th>거래 이름</th><th>진입 조건</th><th>청산 조건</th><th>종목·시간봉</th><th>실행·연결</th><th>보유</th><th>오늘 순손익</th><th>마지막 확인(KST)</th><th>요약</th></tr></thead><tbody>
 <template v-for="x in shown" :key="x.id">
@@ -79,7 +82,8 @@ onUnmounted(()=>{disposed=true;++generation;++listEpoch;clearInterval(timer);vie
 <section><h3>설명</h3><p class="at-description">{{x.description||'등록된 설명이 없습니다.'}}</p></section></div>
 <p v-if="x.conditions_source" class="at-condition-source">{{x.conditions_source}}</p>
 <AutoTradingItemEditor v-if="form?.id===x.id" v-model="form" :busy="busy" :error="editError" :archive-label="x.archived?'복원':'보관'" @save="save" @cancel="cancelEdit" @archive="change(x.archived?'restore':'archive',x)" />
-</div></td></tr></template></tbody></table></div><p v-if="!shown.length">등록된 거래가 없거나 검색 조건에 맞지 않습니다.</p></template>
+</div></td></tr></template></tbody></table></div><p v-if="!shown.length">등록된 거래가 없거나 검색 조건에 맞지 않습니다.</p><ServerPaperTrading @access-revoked="emit('access-revoked')" /></template>
+<template v-else-if="paperId"><ServerPaperTrading :key="paperId" :selected-id="paperId" @access-revoked="emit('access-revoked')" /></template>
 <template v-else><div ref="host"></div><section v-if="item" class="at-settings"><h2>거래 연결 관리</h2><p>Binance 키 입력·계정 준비·HTTPS 연결은 거래 PC의 로컬 화면에서 관리합니다.</p><button type="button" :disabled="busy" @click="pairCode">PC 연결 코드 발급</button><button type="button" :disabled="busy" @click="change('disconnect',item)">PC 연결 해제</button>
 <AutoTradingItemEditor v-if="form?.id===item.id" v-model="form" :busy="busy" :error="editError" @save="save" @cancel="cancelEdit" />
 <div v-if="pair"><label>거래 PC 관리 화면에 입력할 일회용 코드<input :value="pair.code" readonly aria-label="일회용 PC 연결 코드"></label><p>유효 시각 {{date(pair.expires_at)}} · 한 번만 사용할 수 있습니다.</p></div></section></template>

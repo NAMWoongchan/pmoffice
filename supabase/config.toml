@@ -17,3 +17,7 @@ verify_jwt = true
 [functions.auto-trading]
 # Worker-scoped opaque credential verified inside this function.
 verify_jwt = false
+
+[functions.auto-trading-paper]
+# Administrator / strategy-scoped credentials checked by the function.
+verify_jwt = false
