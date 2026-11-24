@@ -5,6 +5,7 @@ import {suggestedProjectSlug,projectStatusLabel} from './project-admin.js'
 import {watchAdminChanges} from './change-events.js'
 import {adminRoute,adminSections} from './admin-navigation.js'
 import AdminHome from './AdminHome.vue'
+import AdminAutoTrading from './AdminAutoTrading.vue'
 import AdminAiWork from './AdminAiWork.vue'
 import AdminEbooks from './AdminEbooks.vue'
 import AdminSites from './AdminSites.vue'
@@ -63,6 +64,7 @@ onUnmounted(()=>{disposed=true;++verifyEpoch;sub?.unsubscribe();stopChanges?.();
 <div class="admin-content">
 <InquiryAdmin v-if="!allowed" authentication-only />
 <AdminHome v-else-if="tab==='home'" />
+<AdminAutoTrading v-else-if="tab==='auto-trading'" @access-revoked="revokeBoardAccess" />
 <AdminAiWork v-else-if="tab==='ai-work'" @access-revoked="revokeBoardAccess" />
 <InquiryAdmin v-else-if="tab==='client'" />
 <AdminSites v-else-if="tab==='pms'" />

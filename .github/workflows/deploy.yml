@@ -26,6 +26,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --dir ebook-app install --frozen-lockfile
+      - run: node --test tests/auto-trading-*.test.mjs tests/admin-navigation.test.mjs
       - run: pnpm run docs:build
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name != 'pull_request'
