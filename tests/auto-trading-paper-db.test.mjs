@@ -12,6 +12,7 @@ test('server paper SQL: admin isolation, independent ledgers, entry/close, dedup
  await db.query("insert into auth.identities values($1,'google','admin-google',$2)",[uid(1),{email:'namwoongchan@gmail.com',email_verified:true}]);await db.query("update pmoffice_private.admin_identity_config set allowed_user_id=$1,allowed_google_provider_id='admin-google'",[uid(1)]);await db.query('insert into admin_roles(user_id) values($1)',[uid(1)]);
 
  await db.exec(fs.readFileSync('supabase/migrations/202611240005_cloud_paper.sql','utf8'));
+ await db.exec(fs.readFileSync('supabase/migrations/202611240007_cloud_paper_orphan.sql','utf8'));
  async function as(n,role,fn){await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[n?uid(n):'']);await db.exec('set role '+role);try{return await fn()}finally{await db.exec('reset role')}}
  const admin=(a,p={})=>as(1,'authenticated',async()=>(await db.query('select auto_trading_paper_admin($1,$2) value',[a,p])).rows[0].value);
  const worker=(a,p={})=>as(null,'service_role',async()=>(await db.query('select auto_trading_paper_worker($1,$2) value',[a,p])).rows[0].value);
@@ -40,6 +41,7 @@ test('server paper SQL: admin isolation, independent ledgers, entry/close, dedup
  await ingest(signal('LONG_EXIT',bar-1,bar-10000));const pending=await worker('next',{id:a.id});assert.equal(pending[0].event,'LONG_EXIT');for(const e of pending)await worker('apply',{id:a.id,seq:e.seq,quote:q(40)});assert.equal((await get(a.id)).qty,-0.25);
  assert.equal((await ingest(signal('SHORT_ENTRY'))).state,'filled');
  await ingest(signal('SHORT_EXIT',now+1));const ex=(await worker('next',{id:a.id}))[0];await worker('apply',{id:a.id,seq:ex.seq,quote:q(40)});assert.equal((await get(a.id)).qty,0);
+ await ingest(signal('LONG_EXIT',bar-10001,bar-20000));const orphan=(await worker('next',{id:a.id}))[0];assert.equal((await worker('apply',{id:a.id,seq:orphan.seq,quote:q(40)})).state,'ignored');assert.equal((await get(a.id)).auto_entries,true);
  await admin('stop',{id:a.id});const old=await ingest(signal('LONG_ENTRY',bar-20001,bar-30000));assert.equal(old.state,'ignored');
  const edited=await admin('save',{id:a.id,version:(await get(a.id)).config_version,name:'수정 A',description:'가'.repeat(200),entry_conditions:['A','B'],exit_conditions:['C'],sizing_mode:'available_percent',sizing_value:25});assert.equal(edited.sizing_mode,'available_percent');
  await assert.rejects(()=>ingest(signal('LONG_ENTRY')));await assert.rejects(()=>admin('save',{id:a.id,version:1,name:'충돌',entry_conditions:[],exit_conditions:[],sizing_mode:'fixed_notional',sizing_value:10}));
