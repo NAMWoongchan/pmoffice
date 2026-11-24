@@ -43,7 +43,7 @@ test('real table edits persist, summary toggles, condition lines stay complete a
   const input=(element,value)=>{element.value=value;element.dispatchEvent(new dom.window.Event('input',{bubbles:true}))};
   const submit=()=>root().querySelector('form[data-editor-for]').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));
   await mount();
-  assert.equal(button('새 모의 거래 등록'),undefined);
+  assert.equal(root().querySelector('h1').textContent,'Auto Trading 센터');assert.equal(button('새 모의 거래 등록'),undefined);
   assert.deepEqual([...root().querySelectorAll('.at-entry-conditions li')].map(x=>x.textContent),backend.entry_conditions);
   assert.deepEqual([...root().querySelectorAll('.at-exit-conditions li')].map(x=>x.textContent),backend.exit_conditions);
   button('요약').click();await settle();assert.deepEqual([...root().querySelectorAll('.at-summary-grid h3')].map(x=>x.textContent),['진입 조건','청산 조건','설명']);
