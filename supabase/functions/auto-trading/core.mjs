@@ -1,6 +1,6 @@
 const origins=new Set(['https://pmoffice.co.kr','http://127.0.0.1:18764','http://localhost:18764'])
 const identifier=/^[0-9a-f]{8}-[0-9a-f-]{27}$/i
-const allowedSnapshot=new Set(['data_enabled','data_since','schema_version','observed_ms','environment','symbol','timeframe','notional','leverage','entries','ready','busy','reason','position','position_detail','account','connections','performance','analytics','active_entry_id','api_key_loaded'])
+const allowedSnapshot=new Set(['sizing','sizing_limits','data_enabled','data_since','schema_version','observed_ms','environment','symbol','timeframe','notional','leverage','entries','ready','busy','reason','position','position_detail','account','connections','performance','analytics','active_entry_id','api_key_loaded'])
 export function cleanSnapshot(value){
  if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Invalid snapshot')
  if(value.environment!=='BINANCE DEMO ONLY')throw Error('Demo only')

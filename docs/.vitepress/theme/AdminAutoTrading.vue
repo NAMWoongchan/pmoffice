@@ -1,6 +1,6 @@
 <script setup>
 import {ref,computed,onMounted,onUnmounted,nextTick} from 'vue'
-import {tradingApi,tradingOnline} from './auto-trading-client.js'
+import {tradingApi,tradingOnline,saveTradingSizing} from './auto-trading-client.js'
 import {mountTradingDashboard,money,date} from './trading-dashboard.js'
 import AutoTradingItemEditor from './AutoTradingItemEditor.vue'
 const emit=defineEmits(['access-revoked']),rows=ref([]),search=ref(''),filter=ref(''),archived=ref(false),error=ref(''),notice=ref(''),busy=ref(false),id=ref(''),host=ref(null),item=ref(null),form=ref(null),editError=ref(''),pair=ref(null),expanded=ref(new Set())
@@ -22,9 +22,10 @@ async function route(){
  const selectedId=id.value
  try{const data=await api('get',{id:selectedId});if(disposed||epoch!==generation)return;item.value=data.item;await nextTick();if(!host.value)return
  view=mountTradingDashboard(host.value,{
- getStatus:async()=>{const fresh=await api('get',{id:selectedId});if(epoch===generation&&!disposed)item.value=fresh.item;return {...fresh.item.snapshot,name:fresh.item.name,last_seen:fresh.item.last_seen,commands:fresh.commands}},
+ getStatus:async()=>{const fresh=await api('get',{id:selectedId});if(epoch===generation&&!disposed)item.value=fresh.item;return {...fresh.item.snapshot,requested_sizing:fresh.item.sizing,sizing_version:fresh.item.sizing_version,name:fresh.item.name,last_seen:fresh.item.last_seen,commands:fresh.commands}},
  isOnline:s=>!!s.last_seen&&Date.now()-Date.parse(s.last_seen)<15000,
  getEvents:offset=>api('events',{id:selectedId,offset}),
+ setSizing:async(config,version,requestId)=>{try{return await saveTradingSizing(selectedId,version,config,requestId)}catch(e){if(e.accessDenied){++generation;view?.destroy();emit('access-revoked')}throw e}},
  command:(action,p)=>api('command',{id:selectedId,action,command_id:crypto.randomUUID(),...p})
  })}catch(e){if(epoch===generation)error.value=e.message}
 }
